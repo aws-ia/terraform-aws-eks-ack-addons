@@ -70,3 +70,29 @@ variable "ack-dynamo_helm_config" {
   type        = any
   default     = {}
 }
+
+#-----------ACK s3 ADDON-------------
+variable "enable_ack-s3" {
+  description = "Enable ACK s3 add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ack-s3_helm_config" {
+  description = "ACK s3 Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+#-----------ACK rds ADDON-------------
+variable "enable_ack-rds" {
+  description = "Enable ACK rds add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ack-rds_helm_config" {
+  description = "ACK rds Helm Chart config"
+  type        = any
+  default     = {}
+}

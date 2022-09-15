@@ -79,6 +79,9 @@ module "eks_blueprints_kubernetes_addons" {
   # Add-ons
   enable_aws_load_balancer_controller  = true
 
+  depends_on = [
+    module.eks_blueprints
+  ]
   tags = local.tags
 }
 
@@ -92,9 +95,15 @@ module "eks_ack_controllers" {
   eks_oidc_provider    = module.eks_blueprints.oidc_provider
   eks_cluster_version  = module.eks_blueprints.eks_cluster_version
 
+  # install ack api gateway controller and ack dynamodb controller in this example
   enable_ack-apigw     = true
   enable_ack-dynamodb  = true
+  enable_ack-s3        = true
+  enable_ack-rds       = true
 
+  depends_on = [
+    module.eks_blueprints
+  ]
   tags = local.tags
 }
 

@@ -1,0 +1,12 @@
+apiVersion: s3.services.k8s.aws/v1alpha1
+kind: Bucket
+metadata:
+  name: staticwebsiteviceast1
+spec:
+  name: staticwebsitevicast1
+
+  website: 
+    errorDocument: 
+      key: error.html
+    indexDocument: 
+      suffix: index.html

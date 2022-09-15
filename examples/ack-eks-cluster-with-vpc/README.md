@@ -26,7 +26,7 @@ Ensure that you have installed the following tools in your Mac or Windows Laptop
 #### Step 1: Clone the repo using the command below
 
 ```sh
-git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
+git clone https://github.com/aws-ia/terraform-aws-eks-ack-addons.git
 ```
 
 #### Step 2: Run Terraform INIT
@@ -34,7 +34,7 @@ git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
 Initialize a working directory with configuration files
 
 ```sh
-cd examples/ack-microservices/
+cd examples/ack-eks-cluster-with-vpc/
 terraform init
 ```
 
@@ -167,6 +167,7 @@ To clean up your environment, destroy the Terraform modules in reverse order.
 Destroy the Kubernetes Add-ons, EKS cluster with Node groups and VPC
 
 ```sh
+terraform destroy -target="module.eks_ack_controllers" -auto-approve
 terraform destroy -target="module.eks_blueprints_kubernetes_addons" -auto-approve
 terraform destroy -target="module.eks_blueprints" -auto-approve
 terraform destroy -target="module.vpc" -auto-approve

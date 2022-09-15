@@ -1,0 +1,25 @@
+apiVersion: v1    
+kind: Secret
+metadata:
+     name: ack-rds-demo-password
+     namespace: default
+type: Opaque
+data:
+    password: cGFzc3dvcmQxMjM=
+
+---
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBInstance
+metadata:
+  name: "ack-rds-demo"
+spec:
+  allocatedStorage: 20
+  dbInstanceClass: db.t4g.micro
+  dbInstanceIdentifier: "ack-rds-demo"
+  engine: postgres
+  engineVersion: "14"
+  masterUsername: "postgres"
+  masterUserPassword:
+    namespace: default
+    name: "ack-rds-demo-password"
+    key: password
