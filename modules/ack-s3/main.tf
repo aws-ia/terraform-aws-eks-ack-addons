@@ -31,7 +31,7 @@ locals {
     kubernetes_service_account        = local.service_account_name
     create_kubernetes_namespace       = try(local.helm_config["create_namespace"], true)
     create_kubernetes_service_account = true
-    irsa_iam_policies                 = [data.aws_iam_policy.dynamo_fullaccess.arn]
+    irsa_iam_policies                 = [data.aws_iam_policy.s3_fullaccess.arn]
   }
 
   helm_config = merge(local.default_helm_config, var.helm_config)
