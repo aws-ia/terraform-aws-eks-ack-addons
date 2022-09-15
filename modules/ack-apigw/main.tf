@@ -1,5 +1,5 @@
 locals {
-  name = "ack-apigw"
+  name                 = "ack-apigw"
   service_account_name = "ack-apigw-sa"
   default_helm_config = {
     name             = local.name
@@ -31,7 +31,7 @@ locals {
     kubernetes_service_account        = local.service_account_name
     create_kubernetes_namespace       = try(local.helm_config["create_namespace"], true)
     create_kubernetes_service_account = true
-    irsa_iam_policies                 = [aws_iam_policy.apigw_fullaccess.arn,aws_iam_policy.apigw_admin.arn]
+    irsa_iam_policies                 = [aws_iam_policy.apigw_fullaccess.arn, aws_iam_policy.apigw_admin.arn]
   }
 
   helm_config = merge(local.default_helm_config, var.helm_config)

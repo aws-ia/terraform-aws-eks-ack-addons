@@ -1,5 +1,5 @@
 locals {
-  name = "ack-dynamo"
+  name                 = "ack-dynamo"
   service_account_name = "ack-dynamo-sa"
   default_helm_config = {
     name             = local.name
@@ -49,6 +49,5 @@ module "helm_addon" {
 }
 
 data "aws_iam_policy" "dynamo_fullaccess" {
-   name = "AmazonDynamoDBFullAccess"
+  name = "AmazonDynamoDBFullAccess"
 }
-

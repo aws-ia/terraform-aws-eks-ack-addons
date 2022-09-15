@@ -5,9 +5,9 @@ This example deploys the following components:
 - Creates a new sample VPC, 3 Private Subnets and 3 Public Subnets
 - Creates Internet gateway for Public Subnets and NAT Gateway for Private Subnets
 - Creates EKS Cluster Control plane with one managed node group
-- Enable EKS Managed Add-ons: VPC_CNI, CoreDNS, Kube_Proxy, EBS_CSI_Driver 
+- Enable EKS Managed Add-ons: VPC_CNI, CoreDNS, Kube_Proxy, EBS_CSI_Driver
 - Install ALB controller and ACK controllers for API Gateway and DynamoDB
-- API Gateway VpcLink 
+- API Gateway VpcLink
 - DynamoDB read/write IAM role for sample API application
 
 ## How to Deploy
@@ -79,7 +79,7 @@ metadata:
 
 ....
 
-    env: 
+    env:
     - name: tableName     # match with your DynamoDB table setting
         value: "<your table name>"
     - name: aws_region
@@ -114,7 +114,7 @@ spec:
     from:
       name: "ack-api"
   integrationType: HTTP_PROXY
-  integrationURI: "<your ALB listener arn>" 
+  integrationURI: "<your ALB listener arn>"
   integrationMethod: ANY
   payloadFormatVersion: "1.0"
   connectionID: "<your vpclink id>" # apigw_vpclink_id in terraform output
@@ -142,7 +142,7 @@ spec:
   provisionedThroughput:
     readCapacityUnits: 1
     writeCapacityUnits: 1
-  tableName: "<your table name>" # match with the table name used by sample application 
+  tableName: "<your table name>" # match with the table name used by sample application
 ```
 
 ```sh

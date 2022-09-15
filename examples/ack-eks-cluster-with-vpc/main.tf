@@ -77,7 +77,7 @@ module "eks_blueprints_kubernetes_addons" {
   enable_amazon_eks_aws_ebs_csi_driver = true
 
   # Add-ons
-  enable_aws_load_balancer_controller  = true
+  enable_aws_load_balancer_controller = true
 
   depends_on = [
     module.eks_blueprints
@@ -96,10 +96,10 @@ module "eks_ack_controllers" {
   eks_cluster_version  = module.eks_blueprints.eks_cluster_version
 
   # install ack api gateway controller and ack dynamodb controller in this example
-  enable_ack-apigw     = true
-  enable_ack-dynamodb  = true
-  enable_ack-s3        = true
-  enable_ack-rds       = true
+  enable_ack-apigw    = true
+  enable_ack-dynamodb = true
+  enable_ack-s3       = true
+  enable_ack-rds      = true
 
   depends_on = [
     module.eks_blueprints
@@ -149,7 +149,7 @@ module "vpc" {
 }
 
 
-# create irsa for api app read and write dynamodb 
+# create irsa for api app read and write dynamodb
 resource "aws_iam_role" "dynamo-rw_role" {
   name = "${local.cluster_name}-dynamo-rw-irsa"
 
@@ -165,11 +165,11 @@ resource "aws_iam_role" "dynamo-rw_role" {
         Principal = {
           Federated = "${module.eks_blueprints.eks_oidc_provider_arn}"
         }
-        
+
       },
     ]
   })
-  
+
   inline_policy {
     name = "my_inline_policy"
 
@@ -177,17 +177,17 @@ resource "aws_iam_role" "dynamo-rw_role" {
       Version = "2012-10-17"
       Statement = [
         {
-          Action   = [
-               "dynamodb:BatchGetItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:PutItem",
-                "dynamodb:DescribeTable",
-                "dynamodb:DeleteItem",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:Query",
-                "dynamodb:UpdateItem"
+          Action = [
+            "dynamodb:BatchGetItem",
+            "dynamodb:BatchWriteItem",
+            "dynamodb:ConditionCheckItem",
+            "dynamodb:PutItem",
+            "dynamodb:DescribeTable",
+            "dynamodb:DeleteItem",
+            "dynamodb:GetItem",
+            "dynamodb:Scan",
+            "dynamodb:Query",
+            "dynamodb:UpdateItem"
           ]
           Effect   = "Allow"
           Resource = "*"
@@ -202,19 +202,19 @@ resource "aws_security_group" "vpclink_sg" {
   name        = "vpclink_sg"
   description = "security group for api gw vpclink"
   vpc_id      = module.vpc.vpc_id
-  
+
   ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -222,7 +222,7 @@ resource "aws_security_group" "vpclink_sg" {
 resource "aws_apigatewayv2_vpc_link" "vpclink" {
   name               = "vpclink"
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]
-  subnet_ids         =  module.vpc.private_subnets
+  subnet_ids         = module.vpc.private_subnets
 
   depends_on = [
     aws_security_group.vpclink_sg

@@ -27,7 +27,7 @@ spec:
         name: api-dynamo
         ports:
         - containerPort: 3000 # match with expose port in dockerfile
-        env: 
+        env:
         - name: tableName     # match with your dynamo table setting
           value: "<your table name>"
         - name: aws_region

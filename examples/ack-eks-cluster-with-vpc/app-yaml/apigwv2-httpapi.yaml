@@ -36,7 +36,7 @@ spec:
     from:
       name: "vpc-integration"
 ---
-# hook with route. this one uses a public http site as backend 
+# hook with route. this one uses a public http site as backend
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Integration
 metadata:

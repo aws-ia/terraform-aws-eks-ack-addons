@@ -5,8 +5,8 @@ metadata:
 spec:
   name: staticwebsitevicast1
 
-  website: 
-    errorDocument: 
+  website:
+    errorDocument:
       key: error.html
-    indexDocument: 
+    indexDocument:
       suffix: index.html

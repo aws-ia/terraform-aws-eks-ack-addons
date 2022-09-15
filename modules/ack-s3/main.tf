@@ -1,5 +1,5 @@
 locals {
-  name = "ack-s3"
+  name                 = "ack-s3"
   service_account_name = "ack-s3-sa"
   default_helm_config = {
     name             = local.name
@@ -49,6 +49,5 @@ module "helm_addon" {
 }
 
 data "aws_iam_policy" "s3_fullaccess" {
-   name = "AmazonS3FullAccess"
+  name = "AmazonS3FullAccess"
 }
-

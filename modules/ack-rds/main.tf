@@ -1,5 +1,5 @@
 locals {
-  name = "ack-rds"
+  name                 = "ack-rds"
   service_account_name = "ack-rds-sa"
   default_helm_config = {
     name             = local.name
@@ -49,6 +49,5 @@ module "helm_addon" {
 }
 
 data "aws_iam_policy" "rds_fullaccess" {
-   name = "AmazonRDSFullAccess"
+  name = "AmazonRDSFullAccess"
 }
-
