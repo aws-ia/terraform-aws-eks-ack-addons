@@ -39,17 +39,8 @@ module "eks_observability_accelerator" {
 
 Kubernetes is a powerful and extensible container orchestration technology that allows you to deploy and manage containerized applications at scale. The extensible nature of Kubernetes also allows you to use a wide range of popular open-source tools, commonly referred to as add-ons, in Kubernetes clusters. With such a large number of tools and design choices available, building a tailored EKS cluster that meets your application’s specific needs can take a significant amount of time. It involves integrating a wide range of open-source tools and AWS services and requires deep expertise in AWS and Kubernetes.
 
-AWS customers have asked for examples that demonstrate how to integrate the landscape of Kubernetes tools and make it easy for them to provision complete, opinionated EKS clusters that meet specific application requirements. Customers can use AWS Observability Accelerator to configure and deploy purpose built EKS clusters, and start onboarding workloads in days, rather than months.
+Some AWS customers need a solution to provision and configure AWS service resources directly from Kubernetes. With ACK, you can take advantage of AWS-managed services for your Kubernetes applications without needing to define resources outside of the cluster or run services that provide supporting capabilities like databases or message queues within the cluster. ACK has a set of controllers to provide services. It is time consuming to install ACK controllers manually one by one. By leveraging EKS Blueprints and this addon, user can quickly install the ACK controllers they need.
 
-## Support & Feedback
-
-AWS Observability Accelerator for Terraform is maintained by AWS Solution Architects. It is not part of an AWS service and support is provided best-effort by the AWS Observability Accelerator community.
-
-To post feedback, submit feature ideas, or report bugs, please use the [Issues](https://github.com/aws-observability/terraform-aws-observability-accelerator/issues) section of this GitHub repo.
-
-If you are interested in contributing to EKS Blueprints, see the [Contribution guide](https://github.com/aws-observability/terraform-aws-observability-accelerator/blob/main/CONTRIBUTING.md).
-
----
 
 ## Requirements
 
@@ -88,11 +79,11 @@ If you are interested in contributing to EKS Blueprints, see the [Contribution g
 | <a name="input_enable_ack-apigw"></a> [enable\_aws\_ack\_apigw](#input\_enable\_aws\_ack\_apigw) | Enable ACK API gateway | `bool` | `false` | no |
 | <a name="input_ack_apigw_helm_config"></a> [_ack\_apigw\_helm\_config](#input\_ack\_apigw\_helm\_config) | ACK API gateway Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_ack-dynamodb"></a> [enable\_aws\_ack\_dynamodb](#input\_enable\_aws\_ack\_dynamodb) | Enable ACK dynamodb | `bool` | `false` | no |
-| <a name="input_ack_dynamodb_config"></a> [_dynamodb\_helm\_config](#input\_ack\_dynamodb\_helm\_config) | ACK DynamoDB Helm Chart config | `any` | `{}` | no |
+| <a name="input_ack_dynamodb_config"></a> [_ack\_dynamodb\_helm\_config](#input\_ack\_dynamodb\_helm\_config) | ACK DynamoDB Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_ack-s3"></a> [enable\_aws\_ack\_s3_](#input\_enable\_aws\_ack\_s3) | Enable ACK s3 | `bool` | `false` | no |
-| <a name="input_ack_s3_config"></a> [_s3\_helm\_config](#input\_ack\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
+| <a name="input_ack_s3_config"></a> [_ack\_s3\_helm\_config](#input\_ack\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_ack-rds"></a> [enable\_aws\_ack\_rds](#input\_enable\_aws\_ack\_rds) | Enable ACK RDS | `bool` | `false` | no |
-| <a name="input_ack_rds_config"></a> [_rds\_helm\_config](#input\_ack\_rds\_helm\_config) | ACK RDS Helm Chart config | `any` | `{}` | no |
+| <a name="input_ack_rds_config"></a> [_ack\_rds\_helm\_config](#input\_ack\_rds\_helm\_config) | ACK RDS Helm Chart config | `any` | `{}` | no |
 ## Outputs 
 N/A
 
