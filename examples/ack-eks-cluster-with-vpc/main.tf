@@ -33,7 +33,7 @@ locals {
 
   tags = {
     Blueprint  = local.name
-    GithubRepo = "github.com/aws-ia/terraform-aws-eks-blueprints"
+    GithubRepo = "github.com/aws-ia/terraform-aws-eks-ack-addons"
   }
 }
 
@@ -87,7 +87,6 @@ module "eks_blueprints_kubernetes_addons" {
 
 # deploys the base module
 module "eks_ack_controllers" {
-  # source = "aws-observability/terrarom-aws-observability-accelerator"
   source = "../../"
 
   eks_cluster_id       = module.eks_blueprints.eks_cluster_id

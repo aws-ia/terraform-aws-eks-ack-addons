@@ -20,7 +20,7 @@ The base module allows you to configure ACK controllers for your cluster. You do
 
 
 ```hcl
-module "eks_observability_accelerator" {
+module "eks_ack_controllers" {
   source = "https://github.com/aws-ia/terraform-aws-eks-ack-addons"
 
   eks_cluster_id       = "my-eks-cluster"
@@ -93,4 +93,4 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 ## License
 
-Apache-2.0 Licensed. See [LICENSE](https://github.com/aws-observability/terraform-aws-eks-blueprints/blob/main/LICENSE).
+Apache-2.0 Licensed. See [LICENSE](https://github.com/aws-ia/terraform-aws-eks-ack-addons/blob/main/LICENSE).
