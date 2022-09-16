@@ -1,87 +1,105 @@
-<!-- BEGIN_TF_DOCS --> checkin test
-# Creating modules for AWS I&A Organization
+# EKS Blueprints Terraform for AWS Controllers for Kubernetes (ACK)
 
-This repo template is used to seed Terraform Module templates for the [AWS I&A GitHub organization](https://github.com/aws-ia). Usage of this template is allowed per included license. PRs to this template will be considered but are not guaranteed to be included. Consider creating an issue to discuss a feature you want to include before taking the time to create a PR.
-### TL;DR
+Welcome to EKS Blueprints Terraform for AWS Controllers for Kubernetes (ACK)!
 
-1. [install pre-commit](https://pre-commit.com/)
-2. configure pre-commit: `pre-commit install`
-3. install required tools
-    - [tflint](https://github.com/terraform-linters/tflint)
-    - [tfsec](https://aquasecurity.github.io/tfsec/v1.0.11/)
-    - [terraform-docs](https://github.com/terraform-docs/terraform-docs)
-    - [golang](https://go.dev/doc/install) (for macos you can use `brew`)
-    - [coreutils](https://www.gnu.org/software/coreutils/)
+This repo includes a set of EKS Blueprints Terraform modules to help you configure ACK controllers for your Amazon EKS clusters.
 
-Write code according to [I&A module standards](https://aws-ia.github.io/standards-terraform/)
+We will be leveraging [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)
+repository to deploy the solution.
 
-## Module Documentation
+## Getting started
+To quickstart a Amazon EKS cluster with ACK controllers, visit the [EKS cluster with ack module example](./examples/ack-eks-cluster-with-vpc/)
 
-**Do not manually update README.md**. `terraform-docs` is used to generate README files. For any instructions an content, please update [.header.md](./.header.md) then simply run `terraform-docs ./` or allow the `pre-commit` to do so.
+## How it works
 
-## Terratest
+The sections below demonstrate how you can leverage EKS Blueprints Terraform for ACK
+to enable ACK controllers to an existing EKS cluster.
 
-Please include tests to validate your examples/<> root modules, at a minimum. This can be accomplished with usually only slight modifications to the [boilerplate test provided in this template](./test/examples\_basic\_test.go)
+### Base Module
+The base module allows you to configure ACK controllers for your cluster. You don't have to install all the ACK controllers. Just enable the ones you need.
 
-### Configure and run Terratest
 
-1. Install
+```hcl
+module "eks_observability_accelerator" {
+  source = "https://github.com/aws-ia/terraform-aws-eks-ack-addons"
 
-    [golang](https://go.dev/doc/install) (for macos you can use `brew`)
-2. Change directory into the test folder.
+  eks_cluster_id       = "my-eks-cluster"
+  eks_cluster_endpoint = "https://xxxxxxxxxxxxxxxxxxx.gr7.us-east-2.eks.amazonaws.com"
+  eks_oidc_provider    = "https://oidc.eks.us-east-2.amazonaws.com/id/xxxxxxxxxxxxxxxxxxxxxxxxxx"
+  eks_cluster_version  = "1.23"
 
-    `cd test`
-3. Initialize your test
+  enable_ack-apigw     = true
+  enable_ack-dynamodb  = true
+  enable_ack-s3        = true
+  enable_ack-rds       = true
+}
+```
 
-    go mod init github.com/[github org]/[repository]
+## Motivation
 
-    `go mod init github.com/aws-ia/terraform-aws-vpc`
-4. Run tidy
+Kubernetes is a powerful and extensible container orchestration technology that allows you to deploy and manage containerized applications at scale. The extensible nature of Kubernetes also allows you to use a wide range of popular open-source tools, commonly referred to as add-ons, in Kubernetes clusters. With such a large number of tools and design choices available, building a tailored EKS cluster that meets your application’s specific needs can take a significant amount of time. It involves integrating a wide range of open-source tools and AWS services and requires deep expertise in AWS and Kubernetes.
 
-    `git mod tidy`
-5. Install Terratest
+AWS customers have asked for examples that demonstrate how to integrate the landscape of Kubernetes tools and make it easy for them to provision complete, opinionated EKS clusters that meet specific application requirements. Customers can use AWS Observability Accelerator to configure and deploy purpose built EKS clusters, and start onboarding workloads in days, rather than months.
 
-    `go get github.com/gruntwork-io/terratest/modules/terraform`
-6. Run test (You can have multiple test files).
-    - Run all tests
+## Support & Feedback
 
-        `go test`
-    - Run a specific test with a timeout
+AWS Observability Accelerator for Terraform is maintained by AWS Solution Architects. It is not part of an AWS service and support is provided best-effort by the AWS Observability Accelerator community.
 
-        `go test -run TestExamplesBasic -timeout 45m`
-## Module Standards
+To post feedback, submit feature ideas, or report bugs, please use the [Issues](https://github.com/aws-observability/terraform-aws-observability-accelerator/issues) section of this GitHub repo.
 
-For best practices and information on developing with Terraform, see the [I&A Module Standards](https://aws-ia.github.io/standards-terraform/)
+If you are interested in contributing to EKS Blueprints, see the [Contribution guide](https://github.com/aws-observability/terraform-aws-observability-accelerator/blob/main/CONTRIBUTING.md).
 
-## Continuous Integration
-
-The I&A team uses AWS CodeBuild to perform continuous integration (CI) within the organization. Our CI uses the a repo's `.pre-commit-config.yaml` file as well as some other checks. All PRs with other CI will be rejected. See our [FAQ](https://aws-ia.github.io/standards-terraform/faq/#are-modules-protected-by-ci-automation) for more details.
+---
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.7 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0.0, < 5.0.0 |
-| <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 0.24.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0.0 |
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0.0 |
 
 ## Modules
 
-No modules.
-
-## Resources
-
-No resources.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="ack-apigw"></a> [operator](#module\_operator) | ./modules/ack-apigw | n/a |
+| <a name="ack-dynamo"></a> [operator](#module\_operator) | ./modules/ack-dynamo | n/a |
+| <a name="ack-s3"></a> [operator](#module\_operator) | ./modules/ack-s3 | n/a |
+| <a name="ack-rds"></a> [operator](#module\_operator) | ./modules/ack-rds | n/a |
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_eks_cluster_domain"></a> [eks\_cluster\_domain](#input\_eks\_cluster\_domain) | The domain for the EKS cluster | `string` | `""` | no |
+| <a name="input_eks_cluster_endpoint"></a> [eks\_cluster\_endpoint](#input\_eks\_cluster\_endpoint) | Endpoint for your Kubernetes API server | `string` | `null` | no |
+| <a name="input_eks_cluster_id"></a> [eks\_cluster\_id](#input\_eks\_cluster\_id) | EKS Cluster Id | `string` | n/a | yes |
+| <a name="input_eks_cluster_version"></a> [eks\_cluster\_version](#input\_eks\_cluster\_version) | The Kubernetes version for the cluster | `string` | `null` | no |
+| <a name="input_eks_oidc_provider"></a> [eks\_oidc\_provider](#input\_eks\_oidc\_provider) | The OpenID Connect identity provider (issuer URL without leading `https://`) | `string` | `null` | no |
+| <a name="input_irsa_iam_permissions_boundary"></a> [irsa\_iam\_permissions\_boundary](#input\_irsa\_iam\_permissions\_boundary) | IAM permissions boundary for IRSA roles | `string` | `""` | no |
+| <a name="input_irsa_iam_role_path"></a> [irsa\_iam\_role\_path](#input\_irsa\_iam\_role\_path) | IAM role path for IRSA roles | `string` | `"/"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
+| <a name="input_enable_ack-apigw"></a> [enable\_aws\_ack\_apigw](#input\_enable\_aws\_ack\_apigw) | Enable ACK API gateway | `bool` | `false` | no |
+| <a name="input_ack_apigw_helm_config"></a> [_ack\_apigw\_helm\_config](#input\_ack\_apigw\_helm\_config) | ACK API gateway Helm Chart config | `any` | `{}` | no |
+| <a name="input_enable_ack-dynamodb"></a> [enable\_aws\_ack\_dynamodb](#input\_enable\_aws\_ack\_dynamodb) | Enable ACK dynamodb | `bool` | `false` | no |
+| <a name="input_ack_dynamodb_config"></a> [_dynamodb\_helm\_config](#input\_ack\_dynamodb\_helm\_config) | ACK DynamoDB Helm Chart config | `any` | `{}` | no |
+| <a name="input_enable_ack-s3"></a> [enable\_aws\_ack\_s3_](#input\_enable\_aws\_ack\_s3) | Enable ACK s3 | `bool` | `false` | no |
+| <a name="input_ack_s3_config"></a> [_s3\_helm\_config](#input\_ack\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
+| <a name="input_enable_ack-rds"></a> [enable\_aws\_ack\_rds](#input\_enable\_aws\_ack\_rds) | Enable ACK RDS | `bool` | `false` | no |
+| <a name="input_ack_rds_config"></a> [_rds\_helm\_config](#input\_ack\_rds\_helm\_config) | ACK RDS Helm Chart config | `any` | `{}` | no |
+## Outputs 
+N/A
 
-## Outputs
+## Contributing
 
-No outputs.
-<!-- END_TF_DOCS -->
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+Apache-2.0 Licensed. See [LICENSE](https://github.com/aws-observability/terraform-aws-eks-blueprints/blob/main/LICENSE).

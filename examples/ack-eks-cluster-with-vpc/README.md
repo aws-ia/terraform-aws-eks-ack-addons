@@ -93,9 +93,9 @@ get the newly deployed ALB listener arn
 ```sh
 export AGW_AWS_REGION=<your region>
 aws elbv2 describe-listeners \
-  --load-balancer-arn $(aws elbv2 describe-load-balancers \  
-  --region $AGW_AWS_REGION \  
-  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \  
+  --load-balancer-arn $(aws elbv2 describe-load-balancers \
+  --region $AGW_AWS_REGION \
+  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
   --output text) \
   --region $AGW_AWS_REGION \
   --query "Listeners[0].ListenerArn" \
