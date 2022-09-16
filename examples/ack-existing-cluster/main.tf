@@ -37,10 +37,10 @@ locals {
 module "eks_ack_controllers" {
   source = "../../"
 
-  eks_cluster_id       = module.eks_blueprints.eks_cluster_id
-  eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
-  eks_oidc_provider    = module.eks_blueprints.oidc_provider
-  eks_cluster_version  = module.eks_blueprints.eks_cluster_version
+  eks_cluster_id       = var.eks_cluster_id
+  eks_cluster_endpoint = var.eks_cluster_endpoint
+  eks_oidc_provider    = var.eks_oidc_provider
+  eks_cluster_version  = var.eks_cluster_version
 
   # install ack api gateway controller and ack dynamodb controller in this example
   enable_ack-apigw    = true
@@ -48,8 +48,5 @@ module "eks_ack_controllers" {
   enable_ack-s3       = true
   enable_ack-rds      = true
 
-  depends_on = [
-    module.eks_blueprints
-  ]
   tags = local.tags
 }

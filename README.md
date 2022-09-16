@@ -84,7 +84,7 @@ Some AWS customers need a solution to provision and configure AWS service resour
 | <a name="input_ack_s3_config"></a> [_ack\_s3\_helm\_config](#input\_ack\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_ack-rds"></a> [enable\_aws\_ack\_rds](#input\_enable\_aws\_ack\_rds) | Enable ACK RDS | `bool` | `false` | no |
 | <a name="input_ack_rds_config"></a> [_ack\_rds\_helm\_config](#input\_ack\_rds\_helm\_config) | ACK RDS Helm Chart config | `any` | `{}` | no |
-## Outputs 
+## Outputs
 N/A
 
 ## Contributing
