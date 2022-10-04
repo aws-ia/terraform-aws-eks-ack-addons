@@ -8,7 +8,6 @@ locals {
     version          = "v0.1.4"
     namespace        = local.name
     create_namespace = true
-    values           = [templatefile("${path.module}/values.yaml", {})]
     description      = "ACK API Gateway Controller v2 Helm chart deployment configuration"
   }
 
@@ -41,7 +40,7 @@ locals {
 # ACK API Gateway Controller V2 Helm Add-on
 #-------------------------------------------------
 module "helm_addon" {
-  source        = "github.com/aws-ia/terraform-aws-eks-blueprints/modules/kubernetes-addons/helm-addon"
+  source        = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.0"
   helm_config   = local.helm_config
   irsa_config   = local.irsa_config
   set_values    = local.set_values
@@ -49,17 +48,15 @@ module "helm_addon" {
 }
 
 resource "aws_iam_policy" "apigw_fullaccess" {
-  name        = "${var.addon_context.eks_cluster_id}-apigw_fullaccess"
+  name        = "${var.addon_context.eks_cluster_id}-apigw-fullaccess"
   description = "apigw_fullaccess"
   policy      = data.aws_iam_policy_document.apigw_fullaccess.json
   path        = "/"
-
 }
 
 resource "aws_iam_policy" "apigw_admin" {
-  name        = "${var.addon_context.eks_cluster_id}-apigw_admin"
+  name        = "${var.addon_context.eks_cluster_id}-apigw-admin"
   description = "apigw_admin"
   policy      = data.aws_iam_policy_document.apigw_admin.json
   path        = "/"
-
 }

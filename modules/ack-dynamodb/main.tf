@@ -1,6 +1,6 @@
 locals {
-  name                 = "ack-dynamo"
-  service_account_name = "ack-dynamo-sa"
+  name                 = "ack-dynamodb"
+  service_account_name = "ack-dynamodb-sa"
   default_helm_config = {
     name             = local.name
     chart            = "dynamodb-chart"
@@ -8,7 +8,6 @@ locals {
     version          = "v0-stable"
     namespace        = local.name
     create_namespace = true
-    values           = [templatefile("${path.module}/values.yaml", {})]
     description      = "ACK dynamodb Controller Helm chart deployment configuration"
   }
 
@@ -41,7 +40,7 @@ locals {
 # ACK API Gateway Controller V2 Helm Add-on
 #-------------------------------------------------
 module "helm_addon" {
-  source        = "github.com/aws-ia/terraform-aws-eks-blueprints/modules/kubernetes-addons/helm-addon"
+  source        = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.0"
   helm_config   = local.helm_config
   irsa_config   = local.irsa_config
   set_values    = local.set_values

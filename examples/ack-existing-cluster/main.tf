@@ -42,11 +42,11 @@ module "eks_ack_controllers" {
   eks_oidc_provider    = var.eks_oidc_provider
   eks_cluster_version  = var.eks_cluster_version
 
-  # install ack api gateway controller and ack dynamodb controller in this example
-  enable_ack-apigw    = true
-  enable_ack-dynamodb = true
-  enable_ack-s3       = true
-  enable_ack-rds      = true
+  # install ack addons
+  enable_ack_apigw    = true
+  enable_ack_dynamodb = true
+  enable_ack_s3       = true
+  enable_ack_rds      = true
 
   tags = local.tags
 }

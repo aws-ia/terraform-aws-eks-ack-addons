@@ -8,7 +8,6 @@ locals {
     version          = "v0.1.5"
     namespace        = local.name
     create_namespace = true
-    values           = [templatefile("${path.module}/values.yaml", {})]
     description      = "ACK s3 Controller Helm chart deployment configuration"
   }
 
@@ -41,7 +40,7 @@ locals {
 # ACK API Gateway Controller V2 Helm Add-on
 #-------------------------------------------------
 module "helm_addon" {
-  source        = "github.com/aws-ia/terraform-aws-eks-blueprints/modules/kubernetes-addons/helm-addon"
+  source        = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.0"
   helm_config   = local.helm_config
   irsa_config   = local.irsa_config
   set_values    = local.set_values

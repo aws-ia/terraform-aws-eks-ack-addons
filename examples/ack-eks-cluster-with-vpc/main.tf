@@ -42,7 +42,7 @@ locals {
 #---------------------------------------------------------------
 
 module "eks_blueprints" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.12.0"
 
   cluster_name    = local.cluster_name
   cluster_version = "1.23"
@@ -63,7 +63,7 @@ module "eks_blueprints" {
 }
 
 module "eks_blueprints_kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints/modules/kubernetes-addons"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.12.0"
 
   eks_cluster_id       = module.eks_blueprints.eks_cluster_id
   eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
@@ -94,11 +94,11 @@ module "eks_ack_controllers" {
   eks_oidc_provider    = module.eks_blueprints.oidc_provider
   eks_cluster_version  = module.eks_blueprints.eks_cluster_version
 
-  # install ack api gateway controller and ack dynamodb controller in this example
-  enable_ack-apigw    = true
-  enable_ack-dynamodb = true
-  enable_ack-s3       = true
-  enable_ack-rds      = true
+  # install ack addons
+  enable_ack_apigw    = true
+  enable_ack_dynamodb = true
+  enable_ack_s3       = true
+  enable_ack_rds      = true
 
   depends_on = [
     module.eks_blueprints

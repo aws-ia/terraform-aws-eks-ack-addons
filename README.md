@@ -28,10 +28,10 @@ module "eks_ack_controllers" {
   eks_oidc_provider    = "https://oidc.eks.us-east-2.amazonaws.com/id/xxxxxxxxxxxxxxxxxxxxxxxxxx"
   eks_cluster_version  = "1.23"
 
-  enable_ack-apigw     = true
-  enable_ack-dynamodb  = true
-  enable_ack-s3        = true
-  enable_ack-rds       = true
+  enable_ack_apigw     = true
+  enable_ack_dynamodb  = true
+  enable_ack_s3        = true
+  enable_ack_rds       = true
 }
 ```
 
@@ -59,10 +59,10 @@ Some AWS customers need a solution to provision and configure AWS service resour
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="ack-apigw"></a> [operator](#module\_operator) | ./modules/ack-apigw | n/a |
-| <a name="ack-dynamo"></a> [operator](#module\_operator) | ./modules/ack-dynamo | n/a |
-| <a name="ack-s3"></a> [operator](#module\_operator) | ./modules/ack-s3 | n/a |
-| <a name="ack-rds"></a> [operator](#module\_operator) | ./modules/ack-rds | n/a |
+| <a name="ack_apigw"></a> [operator](#module\_operator) | ./modules/ack_apigw | n/a |
+| <a name="ack_dynamo"></a> [operator](#module\_operator) | ./modules/ack_dynamo | n/a |
+| <a name="ack_s3"></a> [operator](#module\_operator) | ./modules/ack_s3 | n/a |
+| <a name="ack_rds"></a> [operator](#module\_operator) | ./modules/ack_rds | n/a |
 
 ## Inputs
 
@@ -76,13 +76,13 @@ Some AWS customers need a solution to provision and configure AWS service resour
 | <a name="input_irsa_iam_permissions_boundary"></a> [irsa\_iam\_permissions\_boundary](#input\_irsa\_iam\_permissions\_boundary) | IAM permissions boundary for IRSA roles | `string` | `""` | no |
 | <a name="input_irsa_iam_role_path"></a> [irsa\_iam\_role\_path](#input\_irsa\_iam\_role\_path) | IAM role path for IRSA roles | `string` | `"/"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
-| <a name="input_enable_ack-apigw"></a> [enable\_aws\_ack\_apigw](#input\_enable\_aws\_ack\_apigw) | Enable ACK API gateway | `bool` | `false` | no |
+| <a name="input_enable_ack_apigw"></a> [enable\_aws\_ack\_apigw](#input\_enable\_aws\_ack\_apigw) | Enable ACK API gateway | `bool` | `false` | no |
 | <a name="input_ack_apigw_helm_config"></a> [_ack\_apigw\_helm\_config](#input\_ack\_apigw\_helm\_config) | ACK API gateway Helm Chart config | `any` | `{}` | no |
-| <a name="input_enable_ack-dynamodb"></a> [enable\_aws\_ack\_dynamodb](#input\_enable\_aws\_ack\_dynamodb) | Enable ACK dynamodb | `bool` | `false` | no |
+| <a name="input_enable_ack_dynamodb"></a> [enable\_aws\_ack\_dynamodb](#input\_enable\_aws\_ack\_dynamodb) | Enable ACK dynamodb | `bool` | `false` | no |
 | <a name="input_ack_dynamodb_config"></a> [_ack\_dynamodb\_helm\_config](#input\_ack\_dynamodb\_helm\_config) | ACK DynamoDB Helm Chart config | `any` | `{}` | no |
-| <a name="input_enable_ack-s3"></a> [enable\_aws\_ack\_s3_](#input\_enable\_aws\_ack\_s3) | Enable ACK s3 | `bool` | `false` | no |
+| <a name="input_enable_ack_s3"></a> [enable\_aws\_ack\_s3_](#input\_enable\_aws\_ack\_s3) | Enable ACK s3 | `bool` | `false` | no |
 | <a name="input_ack_s3_config"></a> [_ack\_s3\_helm\_config](#input\_ack\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
-| <a name="input_enable_ack-rds"></a> [enable\_aws\_ack\_rds](#input\_enable\_aws\_ack\_rds) | Enable ACK RDS | `bool` | `false` | no |
+| <a name="input_enable_ack_rds"></a> [enable\_aws\_ack\_rds](#input\_enable\_aws\_ack\_rds) | Enable ACK RDS | `bool` | `false` | no |
 | <a name="input_ack_rds_config"></a> [_ack\_rds\_helm\_config](#input\_ack\_rds\_helm\_config) | ACK RDS Helm Chart config | `any` | `{}` | no |
 ## Outputs
 N/A
