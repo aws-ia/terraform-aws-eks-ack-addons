@@ -1,5 +1,5 @@
 # Existing Cluster with EKS Blueprints ACK module
-This example demonstrates how to use EKS Blueprints ACK module with your existing EKS. 
+This example demonstrates how to use EKS Blueprints ACK module with your existing EKS.
 If you don't have an EKS cluster yet, please refer to [EKS cluster with ack module example](./ack-eks-cluster-with-vpc/).
 
 

@@ -46,52 +46,52 @@ variable "eks_cluster_version" {
 }
 
 #-----------ACK API gateway ADDON-------------
-variable "enable_ack-apigw" {
+variable "enable_ack_apigw" {
   description = "Enable ACK API gateway add-on"
   type        = bool
   default     = false
 }
 
-variable "ack-apigw_helm_config" {
+variable "ack_apigw_helm_config" {
   description = "ACK API gateway v2 Helm Chart config"
   type        = any
   default     = {}
 }
 
 #-----------ACK dynamodb ADDON-------------
-variable "enable_ack-dynamodb" {
+variable "enable_ack_dynamodb" {
   description = "Enable ACK dynamodb add-on"
   type        = bool
   default     = false
 }
 
-variable "ack-dynamo_helm_config" {
+variable "ack_dynamo_helm_config" {
   description = "ACK dynamodb Helm Chart config"
   type        = any
   default     = {}
 }
 
 #-----------ACK s3 ADDON-------------
-variable "enable_ack-s3" {
+variable "enable_ack_s3" {
   description = "Enable ACK s3 add-on"
   type        = bool
   default     = false
 }
 
-variable "ack-s3_helm_config" {
+variable "ack_s3_helm_config" {
   description = "ACK s3 Helm Chart config"
   type        = any
   default     = {}
 }
 
 #-----------ACK rds ADDON-------------
-variable "enable_ack-rds" {
+variable "enable_ack_rds" {
   description = "Enable ACK rds add-on"
   type        = bool
   default     = false
 }
 
-variable "ack-rds_helm_config" {
+variable "ack_rds_helm_config" {
   description = "ACK rds Helm Chart config"
   type        = any
   default     = {}
