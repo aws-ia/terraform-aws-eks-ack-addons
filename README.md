@@ -21,7 +21,7 @@ The base module allows you to configure ACK controllers for your cluster. You do
 
 ```hcl
 module "eks_ack_controllers" {
-  source = "https://github.com/aws-ia/terraform-aws-eks-ack_addons"
+  source = "https://github.com/aws-ia/terraform-aws-eks-ack-addons"
 
   eks_cluster_id       = "my-eks-cluster"
   eks_cluster_endpoint = "https://xxxxxxxxxxxxxxxxxxx.gr7.us-east-2.eks.amazonaws.com"
