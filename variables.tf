@@ -65,7 +65,7 @@ variable "enable_ack_dynamodb" {
   default     = false
 }
 
-variable "ack_dynamo_helm_config" {
+variable "ack_dynamodb_helm_config" {
   description = "ACK dynamodb Helm Chart config"
   type        = any
   default     = {}

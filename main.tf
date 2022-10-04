@@ -8,7 +8,7 @@ module "ack_apigw" {
 module "ack_dynamodb" {
   count         = var.enable_ack_dynamodb ? 1 : 0
   source        = "./modules/ack-dynamodb"
-  helm_config   = var.ack_dynamo_helm_config
+  helm_config   = var.ack_dynamodb_helm_config
   addon_context = local.addon_context
 }
 
