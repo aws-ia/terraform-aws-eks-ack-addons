@@ -90,20 +90,17 @@ kubectl apply -f sample-app/app.yaml
 ```
 
 Get the newly deployed ALB listener arn
+
 ```sh
-export AGW_AWS_REGION=<your region>
 aws elbv2 describe-listeners \
   --load-balancer-arn $(aws elbv2 describe-load-balancers \
-  --region $AGW_AWS_REGION \
-  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
+  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamodb -n ack-demo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
   --output text) \
-  --region $AGW_AWS_REGION \
   --query "Listeners[0].ListenerArn" \
   --output text
 ```
-
-
 #### Step 7: Update apigwv2-httpapi.yaml file and deploy
+
 ```codeblock
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Integration
@@ -151,9 +148,11 @@ kubectl apply -f dynamodb-table.yaml
 
 #### Step 9: Test API
 Get your api domain
+
 ```sh
-kubectl get api  ack-api  -o jsonpath="{.status.apiEndpoint}"
+kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}"
 ```
+
 then post data to dynamodb with post and query data with get
 
 post {your api domain}/rows/add with json payload { "name": "external" }
