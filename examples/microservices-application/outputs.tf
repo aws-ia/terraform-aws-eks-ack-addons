@@ -12,3 +12,8 @@ output "region" {
   description = "AWS region"
   value       = local.region
 }
+
+output "apigw_vpclink_id" {
+  description = "API Gataway vpclink id"
+  value       = resource.aws_apigatewayv2_vpc_link.vpclink.id
+}

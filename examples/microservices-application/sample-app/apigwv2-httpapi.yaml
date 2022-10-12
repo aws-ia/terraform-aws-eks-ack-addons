@@ -1,18 +1,20 @@
+---
 # create http api gw
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: API
 metadata:
   name: "ack-api"
+  namespace: ack-demo
 spec:
   name: "ack-api"
   protocolType: HTTP
-
 ---
 # stage
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Stage
 metadata:
   name: "default-stage"
+  namespace: ack-demo
 spec:
   apiRef:
     from:
@@ -20,13 +22,13 @@ spec:
   stageName: "$default"
   autoDeploy: true
   description: "auto deployed stage for ack-api"
-
 ---
 # route-key used in path
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Route
 metadata:
   name: "ack-route-vpclink"
+  namespace: ack-demo
 spec:
   apiRef:
     from:
@@ -41,6 +43,7 @@ apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Integration
 metadata:
   name: "vpc-integration"
+  namespace: ack-demo
 spec:
   apiRef:
     from:

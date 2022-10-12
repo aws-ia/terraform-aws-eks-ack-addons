@@ -2,7 +2,7 @@ apiVersion: dynamodb.services.k8s.aws/v1alpha1
 kind: Table
 metadata:
   name: ack-demo
-  namespace: ack-dynamo
+  namespace: ack-demo
 spec:
   keySchema:
     - attributeName: Id
@@ -13,4 +13,4 @@ spec:
   provisionedThroughput:
     readCapacityUnits: 1
     writeCapacityUnits: 1
-  tableName: "<your table name>" # match with the table name used by sample application
+  tableName: "ack-demo-table" # match with the table name used by sample application
