@@ -69,7 +69,7 @@ This following command used to update the `kubeconfig` in your local machine whe
     aws eks --region <enter-your-region> update-kubeconfig --name <cluster-name>
 
 #### Step 6: Update app.yaml file and deploy
-```
+```yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -101,7 +101,7 @@ aws elbv2 describe-listeners \
 ```
 #### Step 7: Update apigwv2-httpapi.yaml file and deploy
 
-```codeblock
+```yaml
 apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
 kind: Integration
 metadata:
@@ -123,7 +123,7 @@ kubectl apply -f apigwv2-httpapi.yaml
 ```
 #### Step 8: Update dynamodb-table.yaml file and deploy
 
-```codeblock
+```yaml
 apiVersion: dynamodb.services.k8s.aws/v1alpha1
 kind: Table
 metadata:

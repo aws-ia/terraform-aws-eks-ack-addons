@@ -13,20 +13,20 @@ Ensure that you have the following tools installed locally:
 
 ## Setup
 1. Clone the repo using the command below
-```
+```sh
 git clone https://github.com/aws-ia/terraform-aws-eks-ack-addons.git
 ```
 
 2. Initialize terraform
 
-```console
+```sh
 cd examples/ack-existing-cluster
 terraform init
 ```
 
 3. Review and update the base.tfvars
 Create a Terraform variable definition file called base.tfvars and update the values for the variables. The following shows an example for the variables for ACK module.
-```shell script
+```sh
 aws_region           = "us-west-2"
 eks_cluster_id       = "<your eks cluster name>"
 eks_cluster_endpoint = "https://xxxxxxxxxxxxxxxxx.sk1.us-west-2.eks.amazonaws.com"
