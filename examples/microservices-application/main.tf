@@ -195,7 +195,7 @@ module "irsa" {
   eks_oidc_provider_arn       = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks_blueprints.oidc_provider}"
 }
 
-//security group for api gw vpclink
+#security group for api gw vpclink
 resource "aws_security_group" "vpclink_sg" {
   name        = "vpclink_sg"
   description = "security group for api gw vpclink"
@@ -216,7 +216,7 @@ resource "aws_security_group" "vpclink_sg" {
   }
 }
 
-//api gw vpclink
+# api gw vpclink
 resource "aws_apigatewayv2_vpc_link" "vpclink" {
   name               = "vpclink"
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]
