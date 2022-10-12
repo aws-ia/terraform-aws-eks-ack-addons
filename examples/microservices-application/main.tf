@@ -22,6 +22,8 @@ data "aws_eks_cluster_auth" "this" {
 
 data "aws_availability_zones" "available" {}
 
+data "aws_caller_identity" "current" {}
+
 locals {
   name = basename(path.cwd)
   # var.cluster_name is for Terratest
@@ -38,7 +40,7 @@ locals {
 }
 
 #---------------------------------------------------------------
-# EKS Cluster
+# EKS Blueprints
 #---------------------------------------------------------------
 module "eks_blueprints" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.12.2"
@@ -62,6 +64,31 @@ module "eks_blueprints" {
 }
 
 #---------------------------------------------------------------
+# EKS Blueprints AddOns
+#---------------------------------------------------------------
+module "eks_blueprints_kubernetes_addons" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons"
+
+  eks_cluster_id       = module.eks_blueprints.eks_cluster_id
+  eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
+  eks_oidc_provider    = module.eks_blueprints.oidc_provider
+  eks_cluster_version  = module.eks_blueprints.eks_cluster_version
+
+  # wait on node-groups to be available
+  data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]
+
+  # EKS Managed Add-ons
+  enable_amazon_eks_vpc_cni    = true
+  enable_amazon_eks_coredns    = true
+  enable_amazon_eks_kube_proxy = true
+
+  # Add-ons
+  enable_aws_load_balancer_controller = true
+
+  tags = local.tags
+}
+
+#---------------------------------------------------------------
 # ACK Controllers
 #---------------------------------------------------------------
 module "eks_ack_controllers" {
@@ -78,12 +105,9 @@ module "eks_ack_controllers" {
   # install ack addons
   enable_ack_apigw    = true
   enable_ack_dynamodb = true
-  enable_ack_s3       = true
-  enable_ack_rds      = true
 
   tags = local.tags
 }
-
 
 #---------------------------------------------------------------
 # Supporting Resources
@@ -120,4 +144,79 @@ module "vpc" {
   }
 
   tags = local.tags
+}
+
+# create irsa for api app read and write dynamodb
+data "aws_iam_policy_document" "dynamodb_access" {
+  statement {
+    actions = [
+      "dynamodb:BatchGet*",
+      "dynamodb:DescribeStream",
+      "dynamodb:DescribeTable",
+      "dynamodb:Get*",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:BatchWrite*",
+      "dynamodb:CreateTable",
+      "dynamodb:Delete*",
+      "dynamodb:Update*",
+      "dynamodb:PutItem"
+    ]
+    resources = ["arn:aws:dynamodb:${local.region}:${data.aws_caller_identity.current.account_id}:table/ack-demo-table"]
+  }
+
+  statement {
+    actions = [
+      "dynamodb:List*",
+      "dynamodb:DescribeReservedCapacity*",
+      "dynamodb:DescribeLimits",
+      "dynamodb:DescribeTimeToLive"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "dynamodb_access" {
+  name        = "${module.eks_blueprints.eks_cluster_id}-dynamodb-irsa-policy"
+  description = "iam policy for dynamodb access"
+  policy      = data.aws_iam_policy_document.dynamodb_access.json
+}
+
+module "irsa" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa"
+
+  create_kubernetes_namespace = true
+  kubernetes_namespace        = "ack-demo"
+  kubernetes_service_account  = "ack-demo-sa"
+  irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
+  eks_cluster_id              = module.eks_blueprints.eks_cluster_id
+  eks_oidc_provider_arn       = module.eks_blueprints.oidc_provider
+}
+
+//security group for api gw vpclink
+resource "aws_security_group" "vpclink_sg" {
+  name        = "vpclink_sg"
+  description = "security group for api gw vpclink"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [local.vpc_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [local.vpc_cidr]
+  }
+}
+
+//api gw vpclink
+resource "aws_apigatewayv2_vpc_link" "vpclink" {
+  name               = "vpclink"
+  security_group_ids = [resource.aws_security_group.vpclink_sg.id]
+  subnet_ids         = module.vpc.private_subnets
 }

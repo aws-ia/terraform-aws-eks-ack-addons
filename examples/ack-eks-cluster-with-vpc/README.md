@@ -6,9 +6,7 @@ This example deploys the following components:
 - Creates Internet gateway for Public Subnets and NAT Gateway for Private Subnets
 - Creates EKS Cluster Control plane with one managed node group
 - Enable EKS Managed Add-ons: VPC_CNI, CoreDNS, Kube_Proxy, EBS_CSI_Driver
-- Install ALB controller and ACK controllers for API Gateway and DynamoDB
-- API Gateway VpcLink
-- DynamoDB read/write IAM role for sample API application
+- Install ALB controller and ACK controllers
 
 ## How to Deploy
 
@@ -68,97 +66,28 @@ This following command used to update the `kubeconfig` in your local machine whe
 
     aws eks --region <enter-your-region> update-kubeconfig --name <cluster-name>
 
-#### Step 6: Update app.yaml file and deploy
-```
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: dynamo-sa
-  annotations:
-    eks.amazonaws.com/role-arn: "<DynamoDB RW role for API app>" # dynamo-rw_role_arn in terraform output
+#### Step 6: Run `kubectl get pods -A` command
 
-....
+Verify ACK controllers for the services that are enabled are running.
 
-    env:
-    - name: tableName     # match with your DynamoDB table setting
-        value: "<your table name>"
-    - name: aws_region
-        value: "<same region as your eks cluster>"
-```
 
 ```sh
-kubectl apply -f app.yaml
+kubectl get pods -A
+
+NAMESPACE      NAME                                          READY   STATUS    RESTARTS        AGE
+ack-apigw      ack-apigw-apigatewayv2-chart-555c4c78-mhldg   1/1     Running   0               18s
+ack-dynamodb   ack-dynamodb-dynamodb-chart-5565c975d-5gkwl   1/1     Running   0               21s
+ack-rds        ack-rds-rds-chart-777c864d89-prz6k            1/1     Running   0               19s
+ack-s3         ack-s3-s3-chart-d8677478f-4g78p               1/1     Running   0               23s
+kube-system    aws-node-2jgp6                                1/1     Running   1 (2m56s ago)   4m49s
+kube-system    aws-node-7rx5z                                1/1     Running   1 (2m57s ago)   4m47s
+kube-system    aws-node-bsrgz                                1/1     Running   1 (2m50s ago)   4m48s
+kube-system    coredns-d5b9bfc4-ldsq7                        1/1     Running   0               12m
+kube-system    coredns-d5b9bfc4-txx29                        1/1     Running   0               12m
+kube-system    kube-proxy-knsm4                              1/1     Running   0               4m49s
+kube-system    kube-proxy-lcncg                              1/1     Running   0               4m48s
+kube-system    kube-proxy-lt2dw                              1/1     Running   0               4m47s
 ```
-get the newly deployed ALB listener arn
-```sh
-export AGW_AWS_REGION=<your region>
-aws elbv2 describe-listeners \
-  --load-balancer-arn $(aws elbv2 describe-load-balancers \
-  --region $AGW_AWS_REGION \
-  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
-  --output text) \
-  --region $AGW_AWS_REGION \
-  --query "Listeners[0].ListenerArn" \
-  --output text
-```
-
-
-#### Step 7: Update apigwv2-httpapi.yaml file and deploy
-```codeblock
-apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
-kind: Integration
-metadata:
-  name: "vpc-integration"
-spec:
-  apiRef:
-    from:
-      name: "ack-api"
-  integrationType: HTTP_PROXY
-  integrationURI: "<your ALB listener arn>"
-  integrationMethod: ANY
-  payloadFormatVersion: "1.0"
-  connectionID: "<your vpclink id>" # apigw_vpclink_id in terraform output
-  connectionType: "VPC_LINK"
-```
-
-```sh
-kubectl apply -f apigwv2-httpapi.yaml
-```
-#### Step 8: Update dynamodb-table.yaml file and deploy
-
-```codeblock
-apiVersion: dynamodb.services.k8s.aws/v1alpha1
-kind: Table
-metadata:
-  name: ack-demo
-  namespace: ack-dynamo
-spec:
-  keySchema:
-    - attributeName: Id
-      keyType: HASH
-  attributeDefinitions:
-    - attributeName: Id
-      attributeType: 'S'
-  provisionedThroughput:
-    readCapacityUnits: 1
-    writeCapacityUnits: 1
-  tableName: "<your table name>" # match with the table name used by sample application
-```
-
-```sh
-kubectl apply -f dynamodb-table.yaml
-```
-
-#### Step 9: Test API
-Get your api domain
-```sh
-kubectl get api  ack-api  -o jsonpath="{.status.apiEndpoint}"
-```
-then post data to dynamodb with post and query data with get
-
-post {your api domain}/rows/add with json payload { "name": "external" }
-
-get {your api domain}/rows/all
 
 ## Cleanup
 
@@ -168,7 +97,6 @@ Destroy the Kubernetes Add-ons, EKS cluster with Node groups and VPC
 
 ```sh
 terraform destroy -target="module.eks_ack_controllers" -auto-approve
-terraform destroy -target="module.eks_blueprints_kubernetes_addons" -auto-approve
 terraform destroy -target="module.eks_blueprints" -auto-approve
 terraform destroy -target="module.vpc" -auto-approve
 ```

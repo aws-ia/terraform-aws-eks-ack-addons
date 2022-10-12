@@ -45,6 +45,12 @@ variable "eks_cluster_version" {
   default     = null
 }
 
+variable "data_plane_wait_arn" {
+  description = "Addon deployment will not proceed until this value is known. Set to node group/Fargate profile ARN to wait for data plane to be ready before provisioning addons"
+  type        = string
+  default     = ""
+}
+
 #-----------ACK API gateway ADDON-------------
 variable "enable_ack_apigw" {
   description = "Enable ACK API gateway add-on"
