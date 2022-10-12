@@ -24,6 +24,8 @@ data "aws_availability_zones" "available" {}
 
 data "aws_caller_identity" "current" {}
 
+data "aws_partition" "current" {}
+
 locals {
   name = basename(path.cwd)
   # var.cluster_name is for Terratest
@@ -190,7 +192,7 @@ module "irsa" {
   kubernetes_service_account  = "ack-demo-sa"
   irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
   eks_cluster_id              = module.eks_blueprints.eks_cluster_id
-  eks_oidc_provider_arn       = module.eks_blueprints.oidc_provider
+  eks_oidc_provider_arn       = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks_blueprints.oidc_provider}"
 }
 
 //security group for api gw vpclink
