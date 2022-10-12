@@ -25,8 +25,7 @@ spec:
         - name: tableName     # match with your dynamodb table setting
           value: ack-demo-table
         - name: aws_region
-          #value: "<same region as your eks cluster>"
-          value: "us-east-1"
+          value: "<same region as your eks cluster>"
         resources:
           requests:
             memory: "64Mi"

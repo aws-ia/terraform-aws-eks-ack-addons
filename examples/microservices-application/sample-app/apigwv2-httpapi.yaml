@@ -49,10 +49,8 @@ spec:
     from:
       name: "ack-api"
   integrationType: HTTP_PROXY
-  #integrationURI: "<your ALB listener arn>"
-  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:829527579886:listener/app/k8s-ackdemo-ingressa-3a34f0aaf8/fd4c27112b8f73b0/240e68880a9440e5"
+  integrationURI: "<your ALB listener arn>"
   integrationMethod: ANY
   payloadFormatVersion: "1.0"
-  #connectionID: "<your vpclink id>" # apigw_vpclink_id in terraform output
-  connectionID: "a77584" # apigw_vpclink_id in terraform output
+  connectionID: "<your vpclink id>" # apigw_vpclink_id in terraform output
   connectionType: "VPC_LINK"
