@@ -27,7 +27,6 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-
   name = basename(path.cwd)
   # var.cluster_name is for Terratest
   cluster_name = coalesce(var.cluster_name, local.name)
@@ -40,12 +39,6 @@ locals {
     Blueprint  = local.name
     GithubRepo = "github.com/aws-ia/terraform-aws-eks-ack-addons"
   }
-}
-
-
-resource "random_id" "this" {
-
-  byte_length = 4
 }
 
 #---------------------------------------------------------------
