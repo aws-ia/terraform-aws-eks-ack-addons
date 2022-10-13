@@ -17,7 +17,6 @@ The sections below demonstrate how you can leverage EKS Blueprints Terraform for
 ### Base Module
 The base module allows you to configure ACK controllers for your cluster. You don't have to install all the ACK controllers. Just enable the ones you need.
 
-
 ```hcl
 module "eks_ack_controllers" {
   source = "https://github.com/aws-ia/terraform-aws-eks-ack-addons"
@@ -40,7 +39,7 @@ Kubernetes is a powerful and extensible container orchestration technology that 
 
 Some AWS customers need a solution to provision and configure AWS service resources directly from Kubernetes. With ACK, you can take advantage of AWS-managed services for your Kubernetes applications without needing to define resources outside of the cluster or run services that provide supporting capabilities like databases or message queues within the cluster. ACK has a set of controllers to provide services. It is time consuming to install ACK controllers manually one by one. By leveraging EKS Blueprints and this addon, user can quickly install the ACK controllers they need.
 
-
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
@@ -52,7 +51,7 @@ Some AWS customers need a solution to provision and configure AWS service resour
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.33.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.72 |
 | <a name="provider_time"></a> [time](#provider\_time) | n/a |
 
 ## Modules
@@ -99,10 +98,13 @@ Some AWS customers need a solution to provision and configure AWS service resour
 ## Outputs
 
 No outputs.
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
-## Contributing
+## Community
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+- [Code of conduct](.github/CODE_OF_CONDUCT.md)
+- [Contributing](.github/CONTRIBUTING.md)
+- [Security issue notifications](.github/CONTRIBUTING.md#security-issue-notifications)
 
 ## License
 

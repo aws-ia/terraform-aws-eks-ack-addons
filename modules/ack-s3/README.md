@@ -21,7 +21,7 @@ Checkout the docs for more details [docs](../../../docs/add-ons/ack.md)
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_helm_addon"></a> [helm\_addon](#module\_helm\_addon) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.0 |
+| <a name="module_helm_addon"></a> [helm\_addon](#module\_helm\_addon) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 
 ## Resources
 
