@@ -155,17 +155,26 @@ kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}"
 
 then post data to dynamodb with post and query data with get
 
-post {your api domain}/rows/add with json payload { "name": "external" }
-
-get {your api domain}/rows/all
+```
+URL=$(kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}") 
+curl -X POST $URL/rows/add -H 'Content-Type: application/json' -d '{"name": "external"}' 
+curl $URL/rows/all
+```
 
 ## Cleanup
 
-To clean up your environment, destroy the Terraform modules in reverse order.
+To cleanup, first delete the application ressources we just created, that will cascade delete AWS resources created by ACK
+
+```
+kubectl delete -f sample-app/.
+```
+
+Then, to clean up your environment, destroy the Terraform modules in reverse order.
 
 Destroy the Kubernetes Add-ons, EKS cluster with Node groups and VPC
 
 ```sh
+### Please wait a couple of minutes for ACK deleting resources before running code below
 terraform destroy -target="module.eks_ack_controllers" -auto-approve
 terraform destroy -target="module.eks_blueprints_kubernetes_addons" -auto-approve
 terraform destroy -target="module.eks_blueprints" -auto-approve

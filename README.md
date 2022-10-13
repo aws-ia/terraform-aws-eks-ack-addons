@@ -1,19 +1,18 @@
 # Terraform EKS Blueprints AddOns for AWS Controllers for Kubernetes (ACK)
 
-Welcome to Terraform EKS Blueprints AddOns for AWS Controllers for Kubernetes (ACK)!
+Welcome to Terraform EKS Blueprints AddOns for [AWS Controllers for Kubernetes (ACK)](https://aws-controllers-k8s.github.io/community/docs/community/overview/)!
 
 This repo includes a set of EKS Blueprints Terraform modules to help you configure ACK controllers for your Amazon EKS clusters.
 
-We will be leveraging [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)
-repository to deploy the solution.
+We will be leveraging [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints) repository to deploy the solution.
 
 ## Getting started
+
 To quickstart a Amazon EKS cluster with ACK controllers, visit the [EKS cluster with ack module example](./examples/ack-eks-cluster-with-vpc/)
 
 ## How it works
 
-The sections below demonstrate how you can leverage EKS Blueprints Terraform for ACK
-to enable ACK controllers to an existing EKS cluster.
+The sections below demonstrate how you can leverage EKS Blueprints Terraform for ACK to enable ACK controllers to an existing EKS cluster.
 
 ### Base Module
 The base module allows you to configure ACK controllers for your cluster. You don't have to install all the ACK controllers. Just enable the ones you need.
