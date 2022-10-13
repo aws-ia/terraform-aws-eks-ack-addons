@@ -2,7 +2,7 @@
 
 Configuration in this directory creates an AWS EKS cluster with the following ACK addons:
 
-- ACK API Gateway controller
+- ACK API Gateway v2 controller
 - ACK DynamoDB controller
 - ACK RDS controller
 - ACK S3 controller
