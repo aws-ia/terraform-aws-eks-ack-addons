@@ -52,13 +52,18 @@ module "api_gateway" {
 
   helm_config = merge(
     {
-      name             = local.api_gateway_name
-      chart            = "apigatewayv2-chart"
-      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
-      version          = "v0.1.4"
-      namespace        = local.api_gateway_name
-      create_namespace = true
-      description      = "ACK API Gateway Controller v2 Helm chart deployment configuration"
+      name        = local.api_gateway_name
+      chart       = "apigatewayv2-chart"
+      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
+      version     = "v0.1.4"
+      namespace   = local.api_gateway_name
+      description = "ACK API Gateway Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-api-gateway-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gateway-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-api-gateway
+        EOT
+      ]
     },
     var.api_gateway_helm_config
   )
@@ -79,7 +84,7 @@ module "api_gateway" {
   ]
 
   irsa_config = {
-    create_kubernetes_namespace = false
+    create_kubernetes_namespace = true
     kubernetes_namespace        = try(var.api_gateway_helm_config.namespace, local.api_gateway_name)
 
     create_kubernetes_service_account = true
@@ -121,13 +126,18 @@ module "dynamodb" {
 
   helm_config = merge(
     {
-      name             = local.dynamodb_name
-      chart            = "dynamodb-chart"
-      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
-      version          = "v0-stable"
-      namespace        = local.dynamodb_name
-      create_namespace = true
-      description      = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
+      name        = local.dynamodb_name
+      chart       = "dynamodb-chart"
+      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
+      version     = "v0-stable"
+      namespace   = local.dynamodb_name
+      description = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-dynamodb-dynamodb-chart-xxxxxxxxxxxxx` to `ack-dynamodb-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-dynamodb
+        EOT
+      ]
     },
     var.dynamodb_helm_config
   )
@@ -148,7 +158,7 @@ module "dynamodb" {
   ]
 
   irsa_config = {
-    create_kubernetes_namespace = false
+    create_kubernetes_namespace = true
     kubernetes_namespace        = try(var.dynamodb_helm_config.namespace, local.dynamodb_name)
 
     create_kubernetes_service_account = true
@@ -181,13 +191,18 @@ module "s3" {
 
   helm_config = merge(
     {
-      name             = local.s3_name
-      chart            = "s3-chart"
-      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
-      version          = "v0.1.5"
-      namespace        = local.s3_name
-      create_namespace = true
-      description      = "ACK S3 Controller v2 Helm chart deployment configuration"
+      name        = local.s3_name
+      chart       = "s3-chart"
+      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
+      version     = "v0.1.5"
+      namespace   = local.s3_name
+      description = "ACK S3 Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-s3-s3-chart-xxxxxxxxxxxxx` to `ack-s3-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-s3
+        EOT
+      ]
     },
     var.s3_helm_config
   )
@@ -208,7 +223,7 @@ module "s3" {
   ]
 
   irsa_config = {
-    create_kubernetes_namespace = false
+    create_kubernetes_namespace = true
     kubernetes_namespace        = try(var.s3_helm_config.namespace, local.s3_name)
 
     create_kubernetes_service_account = true
@@ -248,6 +263,12 @@ module "rds" {
       namespace        = local.rds_name
       create_namespace = true
       description      = "ACK RDS Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-rds-rds-chart-xxxxxxxxxxxxx` to `ack-rds-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-rds
+        EOT
+      ]
     },
     var.rds_helm_config
   )
@@ -268,7 +289,7 @@ module "rds" {
   ]
 
   irsa_config = {
-    create_kubernetes_namespace = false
+    create_kubernetes_namespace = true
     kubernetes_namespace        = try(var.rds_helm_config.namespace, local.rds_name)
 
     create_kubernetes_service_account = true

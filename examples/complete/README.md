@@ -43,19 +43,21 @@ aws eks --region <REGION> update-kubeconfig --name <CLUSTER_NAME>
 ```sh
 kubectl get pods -A
 
-NAMESPACE      NAME                                          READY   STATUS    RESTARTS        AGE
-ack-apigw      ack-apigw-apigatewayv2-chart-555c4c78-mhldg   1/1     Running   0               18s
-ack-dynamodb   ack-dynamodb-dynamodb-chart-5565c975d-5gkwl   1/1     Running   0               21s
-ack-rds        ack-rds-rds-chart-777c864d89-prz6k            1/1     Running   0               19s
-ack-s3         ack-s3-s3-chart-d8677478f-4g78p               1/1     Running   0               23s
-kube-system    aws-node-2jgp6                                1/1     Running   0               4m49s
-kube-system    aws-node-7rx5z                                1/1     Running   0               4m47s
-kube-system    aws-node-bsrgz                                1/1     Running   0               4m48s
-kube-system    coredns-d5b9bfc4-ldsq7                        1/1     Running   0               12m
-kube-system    coredns-d5b9bfc4-txx29                        1/1     Running   0               12m
-kube-system    kube-proxy-knsm4                              1/1     Running   0               4m49s
-kube-system    kube-proxy-lcncg                              1/1     Running   0               4m48s
-kube-system    kube-proxy-lt2dw                              1/1     Running   0               4m47s
+NAMESPACE         NAME                                            READY   STATUS    RESTARTS   AGE
+ack-api-gateway   ack-api-gateway-75499bfcfd-d5627                1/1     Running   0          26s
+ack-dynamodb      ack-dynamodb-76fdf5cf77-jpwd9                   1/1     Running   0          26s
+ack-rds           ack-rds-85c7ccdbf6-tkpvz                        1/1     Running   0          26s
+ack-s3            ack-s3-7f4c79cbc8-g4tgl                         1/1     Running   0          26s
+kube-system       aws-load-balancer-controller-596d8cb765-wwmzt   1/1     Running   0          26s
+kube-system       aws-load-balancer-controller-596d8cb765-zpkw5   1/1     Running   0          26s
+kube-system       aws-node-cvt8c                                  1/1     Running   0          26s
+kube-system       aws-node-dhk98                                  1/1     Running   0          26s
+kube-system       aws-node-fk4bb                                  1/1     Running   0          26s
+kube-system       coredns-57ff979f67-6vmrg                        1/1     Running   0          26s
+kube-system       coredns-57ff979f67-xnwvn                        1/1     Running   0          26s
+kube-system       kube-proxy-5ww6m                                1/1     Running   0          26s
+kube-system       kube-proxy-84fk2                                1/1     Running   0          26s
+kube-system       kube-proxy-jwwkl                                1/1     Running   0          26s
 ```
 
 ## Sample Application Deployment
@@ -63,14 +65,12 @@ kube-system    kube-proxy-lt2dw                              1/1     Running   0
 1. Update `sample-app/app.yaml` file and deploy:
 
 ```yaml
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: deploy-api-dynamodb
   namespace: ack-demo
-....
-
+    ... <Truncated for brevity>
     env:
     - name: tableName     # match with your DynamoDB table setting
         value: "<your table name>"

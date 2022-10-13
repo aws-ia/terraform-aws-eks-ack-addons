@@ -24,7 +24,7 @@ data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  name = basename(path.cwd)
+  name = "ack-eks-${basename(path.cwd)}"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -92,7 +92,8 @@ module "eks_ack_addons" {
 
   cluster_id = module.eks_blueprints.eks_cluster_id
 
-  data_plane_wait_arn = module.eks_blueprints.managed_node_groups["example"].managed_nodegroup_arn
+  # Wait for data plane to be ready
+  data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]
 
   enable_api_gateway = true
   enable_dynamodb    = true
@@ -181,13 +182,12 @@ module "irsa" {
 
   create_kubernetes_namespace = true
   kubernetes_namespace        = "ack-demo"
-  kubernetes_service_account  = "ack-demo-sa"
+  kubernetes_service_account  = "ack-demo"
   irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
   eks_cluster_id              = module.eks_blueprints.eks_cluster_id
   eks_oidc_provider_arn       = module.eks_blueprints.eks_oidc_provider_arn
 }
 
-#security group for api gw vpclink
 resource "aws_security_group" "vpclink_sg" {
   name        = "vpclink_sg"
   description = "security group for api gw vpclink"
@@ -208,7 +208,6 @@ resource "aws_security_group" "vpclink_sg" {
   }
 }
 
-# api gw vpclink
 resource "aws_apigatewayv2_vpc_link" "vpclink" {
   name               = "vpclink"
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]

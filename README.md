@@ -1,6 +1,6 @@
 # AWS EKS ACK Addons Terraform module
 
-Terraform module which provisions (AWS controllers for Kubernetes)[https://aws-controllers-k8s.github.io/community/docs/community/overview/] on EKS.
+Terraform module which provisions [AWS controllers for Kubernetes](https://aws-controllers-k8s.github.io/community/docs/community/overview/) on EKS.
 
 ## Usage
 
@@ -92,9 +92,9 @@ No outputs.
 
 ## Community
 
-- [Code of conduct](.github/CODE_OF_CONDUCT.md)
-- [Contributing](.github/CONTRIBUTING.md)
-- [Security issue notifications](.github/CONTRIBUTING.md#security-issue-notifications)
+- [Code of conduct](https://github.com/aws-ia/terraform-aws-eks-ack-addons/blob/refactor/flatten-modules/.github/CODE_OF_CONDUCT.md)
+- [Contributing](https://github.com/aws-ia/terraform-aws-eks-ack-addons/blob/refactor/flatten-modules/.github/CONTRIBUTING.md)
+- [Security issue notifications](https://github.com/aws-ia/terraform-aws-eks-ack-addons/blob/refactor/flatten-modules/.github/CONTRIBUTING.md#security-issue-notifications)
 
 ## License
 
