@@ -44,7 +44,7 @@ aws eks --region <REGION> update-kubeconfig --name <CLUSTER_NAME>
 kubectl get pods -A
 
 NAMESPACE         NAME                                            READY   STATUS    RESTARTS   AGE
-ack-api-gateway   ack-api-gateway-75499bfcfd-d5627                1/1     Running   0          26s
+ack-api-gatewayv2   ack-api-gateway-75499bfcfd-d5627                1/1     Running   0          26s
 ack-dynamodb      ack-dynamodb-76fdf5cf77-jpwd9                   1/1     Running   0          26s
 ack-rds           ack-rds-85c7ccdbf6-tkpvz                        1/1     Running   0          26s
 ack-s3            ack-s3-7f4c79cbc8-g4tgl                         1/1     Running   0          26s
