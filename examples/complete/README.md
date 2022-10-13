@@ -113,7 +113,23 @@ spec:
 ```
 
 ```sh
-kubectl apply -f apigwv2-httpapi.yaml
+kubectl apply -f sample-app/apigwv2-httpapi.yaml
+```
+
+Verify the status
+```sh
+echo API=$(kubectl get api.apigatewayv2.services.k8s.aws/ack-api -o jsonpath='{.status.conditions[?(@.type=="ACK.ResourceSynced")].status}')
+echo Stage=$(kubectl get stage.apigatewayv2.services.k8s.aws/default-stage -o jsonpath='{.status.conditions[?(@.type=="ACK.ResourceSynced")].status}')
+echo Route=$(kubectl get route.apigatewayv2.services.k8s.aws/ack-route-vpclink -o jsonpath='{.status.conditions[?(@.type=="ACK.ResourceSynced")].status}')
+echo Integration=$(kubectl get integration.apigatewayv2.services.k8s.aws/vpc-integration -o jsonpath='{.status.conditions[?(@.type=="ACK.ResourceSynced")].status}')
+```
+
+Expected output
+```
+API=True
+Stage=True
+Route=True
+Integration=True
 ```
 
 4. Update `sample-app/dynamodb-table.yaml` file and deploy
@@ -137,8 +153,19 @@ spec:
   tableName: '<your table name>' # match with the table name used by sample application
 ```
 
+Deploy
 ```sh
-kubectl apply -f dynamodb-table.yaml
+kubectl apply -f sample-app/dynamodb-table.yaml
+```
+
+Verify the status
+```sh
+echo DynamoDB=$(kubectl get table.dynamodb.services.k8s.aws/ack-demo -o jsonpath='{.status.conditions[?(@.type=="ACK.ResourceSynced")].status}')
+```
+
+Expected output
+```
+DynamoDB=True
 ```
 
 5. Test the API created. Get the api domain:
@@ -150,9 +177,12 @@ kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}"
 6. Post data to dynamodb with `post` and query data with `get`
 
 ```
-post {your api domain}/rows/add with json payload { "name": "external" }
+curl -X POST \
+ -H 'Content-Type: application/json' \
+ -d '{ "name": "external" }' \
+ $(kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}")/rows/add
 
-get {your api domain}/rows/all
+curl $(kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}")/rows/all
 ```
 
 ## Destroy
