@@ -14,7 +14,7 @@ spec:
       labels:
         app.kubernetes.io/name: api-dynamodb
     spec:
-      serviceAccountName: ack-demo-sa
+      serviceAccountName: ack-demo
       containers:
       - image: victorgucanada/new-dynamo-nodejs:latest
         imagePullPolicy: Always
