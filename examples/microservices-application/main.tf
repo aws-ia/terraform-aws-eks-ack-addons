@@ -197,7 +197,7 @@ module "irsa" {
 
 #security group for api gw vpclink
 resource "aws_security_group" "vpclink_sg" {
-  name        = "vpclink_sg"
+  name        = "${module.eks_blueprints.eks_cluster_id}-vpclink_sg"
   description = "security group for api gw vpclink"
   vpc_id      = module.vpc.vpc_id
 
@@ -218,7 +218,7 @@ resource "aws_security_group" "vpclink_sg" {
 
 # api gw vpclink
 resource "aws_apigatewayv2_vpc_link" "vpclink" {
-  name               = "vpclink"
+  name               = "${module.eks_blueprints.eks_cluster_id}-vpclink"
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]
   subnet_ids         = module.vpc.private_subnets
 }
