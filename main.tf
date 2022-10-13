@@ -42,36 +42,36 @@ resource "time_sleep" "dataplane" {
 ################################################################################
 
 locals {
-  api_gateway_name = "ack-api-gateway"
+  api_gatewayv2_name = "ack-api-gateway"
 }
 
-module "api_gateway" {
+module "api_gatewayv2" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
 
-  count = var.enable_api_gateway ? 1 : 0
+  count = var.enable_api_gatewayv2 ? 1 : 0
 
   helm_config = merge(
     {
-      name        = local.api_gateway_name
+      name        = local.api_gatewayv2_name
       chart       = "apigatewayv2-chart"
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
       version     = "v0.1.4"
-      namespace   = local.api_gateway_name
+      namespace   = local.api_gatewayv2_name
       description = "ACK API Gateway Controller v2 Helm chart deployment configuration"
       values = [
-        # shortens pod name from `ack-api-gateway-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gateway-xxxxxxxxxxxxx`
+        # shortens pod name from `ack-api-gatewayv2-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gatewayv2-xxxxxxxxxxxxx`
         <<-EOT
-          nameOverride: ack-api-gateway
+          nameOverride: ack-api-gatewayv2
         EOT
       ]
     },
-    var.api_gateway_helm_config
+    var.api_gatewayv2_helm_config
   )
 
   set_values = [
     {
       name  = "serviceAccount.name"
-      value = local.api_gateway_name
+      value = local.api_gatewayv2_name
     },
     {
       name  = "serviceAccount.create"
@@ -85,28 +85,28 @@ module "api_gateway" {
 
   irsa_config = {
     create_kubernetes_namespace = true
-    kubernetes_namespace        = try(var.api_gateway_helm_config.namespace, local.api_gateway_name)
+    kubernetes_namespace        = try(var.api_gatewayv2_helm_config.namespace, local.api_gatewayv2_name)
 
     create_kubernetes_service_account = true
-    kubernetes_service_account        = local.api_gateway_name
+    kubernetes_service_account        = local.api_gatewayv2_name
 
     irsa_iam_policies = [
-      data.aws_iam_policy.api_gateway_invoke[0].arn,
-      data.aws_iam_policy.api_gateway_admin[0].arn,
+      data.aws_iam_policy.api_gatewayv2_invoke[0].arn,
+      data.aws_iam_policy.api_gatewayv2_admin[0].arn,
     ]
   }
 
   addon_context = local.addon_context
 }
 
-data "aws_iam_policy" "api_gateway_invoke" {
-  count = var.enable_api_gateway ? 1 : 0
+data "aws_iam_policy" "api_gatewayv2_invoke" {
+  count = var.enable_api_gatewayv2 ? 1 : 0
 
   name = "AmazonAPIGatewayInvokeFullAccess"
 }
 
-data "aws_iam_policy" "api_gateway_admin" {
-  count = var.enable_api_gateway ? 1 : 0
+data "aws_iam_policy" "api_gatewayv2_admin" {
+  count = var.enable_api_gatewayv2 ? 1 : 0
 
   name = "AmazonAPIGatewayAdministrator"
 }

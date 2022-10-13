@@ -31,13 +31,13 @@ variable "tags" {
 # API Gateway
 ################################################################################
 
-variable "enable_api_gateway" {
-  description = "Enable ACK API gateway add-on"
+variable "enable_api_gatewayv2" {
+  description = "Enable ACK API gateway v2 add-on"
   type        = bool
   default     = false
 }
 
-variable "api_gateway_helm_config" {
+variable "api_gatewayv2_helm_config" {
   description = "ACK API gateway v2 Helm Chart config"
   type        = any
   default     = {}
