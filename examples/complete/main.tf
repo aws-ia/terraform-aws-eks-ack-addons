@@ -175,6 +175,8 @@ resource "aws_iam_policy" "dynamodb_access" {
   name        = "${module.eks_blueprints.eks_cluster_id}-dynamodb-irsa-policy"
   description = "iam policy for dynamodb access"
   policy      = data.aws_iam_policy_document.dynamodb_access.json
+
+  tags = local.tags
 }
 
 module "irsa" {
@@ -188,9 +190,9 @@ module "irsa" {
   eks_oidc_provider_arn       = module.eks_blueprints.eks_oidc_provider_arn
 }
 
-resource "aws_security_group" "vpclink_sg" {
-  name        = "vpclink_sg"
-  description = "security group for api gw v2 vpclink"
+resource "aws_security_group" "vpc_link" {
+  name        = "${local.name}-vpc-link"
+  description = "Security group for API Gateway v2 VPC link"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -206,10 +208,14 @@ resource "aws_security_group" "vpclink_sg" {
     protocol    = "-1"
     cidr_blocks = [local.vpc_cidr]
   }
+
+  tags = local.tags
 }
 
-resource "aws_apigatewayv2_vpc_link" "vpclink" {
-  name               = "vpclink"
-  security_group_ids = [resource.aws_security_group.vpclink_sg.id]
+resource "aws_apigatewayv2_vpc_link" "vpc_link" {
+  name               = local.name
+  security_group_ids = [resource.aws_security_group.vpc_link.id]
   subnet_ids         = module.vpc.private_subnets
+
+  tags = local.tags
 }

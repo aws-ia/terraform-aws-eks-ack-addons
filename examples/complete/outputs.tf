@@ -3,7 +3,7 @@ output "configure_kubectl" {
   value       = module.eks_blueprints.configure_kubectl
 }
 
-output "apigw_vpclink_id" {
-  description = "API Gataway vpclink id"
-  value       = resource.aws_apigatewayv2_vpc_link.vpclink.id
+output "api_gatewayv2_vpc_link_id" {
+  description = "API Gataway v2  VPC link ID"
+  value       = resource.aws_apigatewayv2_vpc_link.vpc_link.id
 }
