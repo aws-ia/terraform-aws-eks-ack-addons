@@ -190,7 +190,7 @@ module "irsa" {
 
 resource "aws_security_group" "vpclink_sg" {
   name        = "vpclink_sg"
-  description = "security group for api gw vpclink"
+  description = "security group for api gw v2 vpclink"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
