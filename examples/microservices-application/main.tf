@@ -27,6 +27,7 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
+
   name = basename(path.cwd)
   # var.cluster_name is for Terratest
   cluster_name = coalesce(var.cluster_name, local.name)
@@ -39,6 +40,12 @@ locals {
     Blueprint  = local.name
     GithubRepo = "github.com/aws-ia/terraform-aws-eks-ack-addons"
   }
+}
+
+
+resource "random_id" "this" {
+
+  byte_length = 4
 }
 
 #---------------------------------------------------------------
@@ -197,7 +204,7 @@ module "irsa" {
 
 #security group for api gw vpclink
 resource "aws_security_group" "vpclink_sg" {
-  name        = "vpclink_sg"
+  name        = "${module.eks_blueprints.eks_cluster_id}-vpclink_sg"
   description = "security group for api gw vpclink"
   vpc_id      = module.vpc.vpc_id
 
@@ -218,7 +225,7 @@ resource "aws_security_group" "vpclink_sg" {
 
 # api gw vpclink
 resource "aws_apigatewayv2_vpc_link" "vpclink" {
-  name               = "vpclink"
+  name               = "${module.eks_blueprints.eks_cluster_id}-vpclink"
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]
   subnet_ids         = module.vpc.private_subnets
 }
