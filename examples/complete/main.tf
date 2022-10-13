@@ -1,5 +1,5 @@
 provider "aws" {
-  region = local.region
+  region = var.aws_region
 }
 
 provider "kubernetes" {
@@ -21,16 +21,10 @@ data "aws_eks_cluster_auth" "this" {
 }
 
 data "aws_availability_zones" "available" {}
-
 data "aws_caller_identity" "current" {}
 
-data "aws_partition" "current" {}
-
 locals {
-  name = basename(path.cwd)
-  # var.cluster_name is for Terratest
-  cluster_name = coalesce(var.cluster_name, local.name)
-  region       = var.region
+  name = "ack-eks-${basename(path.cwd)}"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -41,21 +35,22 @@ locals {
   }
 }
 
-#---------------------------------------------------------------
-# EKS Blueprints
-#---------------------------------------------------------------
+################################################################################
+# EKS Cluster
+################################################################################
+
 module "eks_blueprints" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.12.2"
 
-  cluster_name    = local.cluster_name
+  cluster_name    = local.name
   cluster_version = "1.23"
 
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
 
   managed_node_groups = {
-    mg_5 = {
-      node_group_name = "managed-ondemand"
+    example = {
+      node_group_name = "example"
       instance_types  = ["m5.large"]
       min_size        = 3
       subnet_ids      = module.vpc.private_subnets
@@ -65,19 +60,17 @@ module "eks_blueprints" {
   tags = local.tags
 }
 
-#---------------------------------------------------------------
-# EKS Blueprints AddOns
-#---------------------------------------------------------------
+################################################################################
+# EKS Blueprints Addons
+################################################################################
+
 module "eks_blueprints_kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.12.2"
 
   eks_cluster_id       = module.eks_blueprints.eks_cluster_id
   eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
   eks_oidc_provider    = module.eks_blueprints.oidc_provider
   eks_cluster_version  = module.eks_blueprints.eks_cluster_version
-
-  # wait on node-groups to be available
-  data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]
 
   # EKS Managed Add-ons
   enable_amazon_eks_vpc_cni    = true
@@ -90,30 +83,30 @@ module "eks_blueprints_kubernetes_addons" {
   tags = local.tags
 }
 
-#---------------------------------------------------------------
-# ACK Controllers
-#---------------------------------------------------------------
-module "eks_ack_controllers" {
+################################################################################
+# ACK Addons
+################################################################################
+
+module "eks_ack_addons" {
   source = "../../"
 
-  eks_cluster_id       = module.eks_blueprints.eks_cluster_id
-  eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
-  eks_oidc_provider    = module.eks_blueprints.oidc_provider
-  eks_cluster_version  = module.eks_blueprints.eks_cluster_version
+  cluster_id = module.eks_blueprints.eks_cluster_id
 
-  # wait on node-groups to be available
+  # Wait for data plane to be ready
   data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]
 
-  # install ack addons
-  enable_ack_apigw    = true
-  enable_ack_dynamodb = true
+  enable_api_gatewayv2 = true
+  enable_dynamodb      = true
+  enable_s3            = true
+  enable_rds           = true
 
   tags = local.tags
 }
 
-#---------------------------------------------------------------
+################################################################################
 # Supporting Resources
-#---------------------------------------------------------------
+################################################################################
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 3.0"
@@ -164,7 +157,7 @@ data "aws_iam_policy_document" "dynamodb_access" {
       "dynamodb:Update*",
       "dynamodb:PutItem"
     ]
-    resources = ["arn:aws:dynamodb:${local.region}:${data.aws_caller_identity.current.account_id}:table/ack-demo-table"]
+    resources = ["arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/ack-demo-table"]
   }
 
   statement {
@@ -182,23 +175,24 @@ resource "aws_iam_policy" "dynamodb_access" {
   name        = "${module.eks_blueprints.eks_cluster_id}-dynamodb-irsa-policy"
   description = "iam policy for dynamodb access"
   policy      = data.aws_iam_policy_document.dynamodb_access.json
+
+  tags = local.tags
 }
 
 module "irsa" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa?ref=v4.12.2"
 
   create_kubernetes_namespace = true
   kubernetes_namespace        = "ack-demo"
-  kubernetes_service_account  = "ack-demo-sa"
+  kubernetes_service_account  = "ack-demo"
   irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
   eks_cluster_id              = module.eks_blueprints.eks_cluster_id
-  eks_oidc_provider_arn       = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks_blueprints.oidc_provider}"
+  eks_oidc_provider_arn       = module.eks_blueprints.eks_oidc_provider_arn
 }
 
-#security group for api gw vpclink
-resource "aws_security_group" "vpclink_sg" {
-  name        = "${module.eks_blueprints.eks_cluster_id}-vpclink_sg"
-  description = "security group for api gw vpclink"
+resource "aws_security_group" "vpc_link" {
+  name        = "${local.name}-vpc-link"
+  description = "Security group for API Gateway v2 VPC link"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -214,11 +208,14 @@ resource "aws_security_group" "vpclink_sg" {
     protocol    = "-1"
     cidr_blocks = [local.vpc_cidr]
   }
+
+  tags = local.tags
 }
 
-# api gw vpclink
-resource "aws_apigatewayv2_vpc_link" "vpclink" {
-  name               = "${module.eks_blueprints.eks_cluster_id}-vpclink"
-  security_group_ids = [resource.aws_security_group.vpclink_sg.id]
+resource "aws_apigatewayv2_vpc_link" "vpc_link" {
+  name               = local.name
+  security_group_ids = [resource.aws_security_group.vpc_link.id]
   subnet_ids         = module.vpc.private_subnets
+
+  tags = local.tags
 }
