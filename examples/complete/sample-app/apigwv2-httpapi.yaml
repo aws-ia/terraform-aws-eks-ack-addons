@@ -52,5 +52,5 @@ spec:
   integrationURI: "<your ALB listener arn>"
   integrationMethod: ANY
   payloadFormatVersion: "1.0"
-  connectionID: "<your vpclink id>" # apigw_vpclink_id in terraform output
+  connectionID: "<your vpclink id>" # api_gatewayv2_vpc_link_id in terraform output
   connectionType: "VPC_LINK"

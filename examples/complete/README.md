@@ -72,8 +72,8 @@ metadata:
   namespace: ack-demo
     ... <Truncated for brevity>
     env:
-    - name: tableName     # match with your DynamoDB table setting
-        value: "<your table name>"
+    - name: tableName     # match with your dynamodb table setting
+        value: ack-demo-table
     - name: aws_region
         value: "<same region as your eks cluster>"
 ```
@@ -132,28 +132,8 @@ Route=True
 Integration=True
 ```
 
-4. Update `sample-app/dynamodb-table.yaml` file and deploy
+4. Deploy DynamoDB table
 
-```yaml
-apiVersion: dynamodb.services.k8s.aws/v1alpha1
-kind: Table
-metadata:
-  name: ack-demo
-  namespace: ack-dynamo
-spec:
-  keySchema:
-    - attributeName: Id
-      keyType: HASH
-  attributeDefinitions:
-    - attributeName: Id
-      attributeType: 'S'
-  provisionedThroughput:
-    readCapacityUnits: 1
-    writeCapacityUnits: 1
-  tableName: '<your table name>' # match with the table name used by sample application
-```
-
-Deploy
 ```sh
 kubectl apply -f sample-app/dynamodb-table.yaml
 ```
