@@ -192,7 +192,7 @@ module "irsa" {
 }
 
 resource "aws_security_group" "vpc_link_sg" {
-  name        = "${local.name}-vpc-link-sg"
+  name        = "${local.name}-vpc-link"
   description = "Security group for API Gateway v2 VPC link"
   vpc_id      = module.vpc.vpc_id
 
@@ -214,7 +214,7 @@ resource "aws_security_group" "vpc_link_sg" {
 }
 
 resource "aws_apigatewayv2_vpc_link" "vpc_link" {
-  name               = "${local.name}-vpc-link"
+  name               = local.name
   security_group_ids = [resource.aws_security_group.vpc_link_sg.id]
   subnet_ids         = module.vpc.private_subnets
 
