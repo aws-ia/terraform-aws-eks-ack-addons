@@ -9,7 +9,7 @@ Configuration in this directory creates an AWS EKS cluster with the following AC
 
 In addition, this example provisions a sample application which demonstrates using the ACK controllers for resource provisioning.
 The arhchitecture looks like this:
-![overall architecture](../../images/ACK microservice.png)
+![overall architecture](images/ACK_microservice.png)
 
 ## Prerequisites:
 
