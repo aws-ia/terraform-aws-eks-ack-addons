@@ -8,6 +8,8 @@ Configuration in this directory creates an AWS EKS cluster with the following AC
 - ACK S3 controller
 
 In addition, this example provisions a sample application which demonstrates using the ACK controllers for resource provisioning.
+The arhchitecture looks like this:
+![overall architecture](../../images/ACK microservice.png)
 
 ## Prerequisites:
 
@@ -81,6 +83,8 @@ metadata:
 ```sh
 kubectl apply -f sample-app/app.yaml
 ```
+
+Note: app.yaml deplys a simple nodeJS image from dockerhub. The source code can be found [here](https://github.com/season1946/ack-microservices/tree/main/sample-app-code)
 
 2. Get the listener ARN of the provisioned ALB:
 
