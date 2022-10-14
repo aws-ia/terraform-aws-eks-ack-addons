@@ -22,6 +22,7 @@ data "aws_eks_cluster_auth" "this" {
 
 data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
+data "aws_partition" "current" {}
 
 locals {
   name = "ack-eks-${basename(path.cwd)}"
@@ -187,11 +188,11 @@ module "irsa" {
   kubernetes_service_account  = "ack-demo"
   irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
   eks_cluster_id              = module.eks_blueprints.eks_cluster_id
-  eks_oidc_provider_arn       = module.eks_blueprints.eks_oidc_provider_arn
+  eks_oidc_provider_arn       = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks_blueprints.oidc_provider}"
 }
 
-resource "aws_security_group" "vpc_link" {
-  name        = "${local.name}-vpc-link"
+resource "aws_security_group" "vpc_link_sg" {
+  name        = "${local.name}-vpc-link-sg"
   description = "Security group for API Gateway v2 VPC link"
   vpc_id      = module.vpc.vpc_id
 
@@ -213,8 +214,8 @@ resource "aws_security_group" "vpc_link" {
 }
 
 resource "aws_apigatewayv2_vpc_link" "vpc_link" {
-  name               = local.name
-  security_group_ids = [resource.aws_security_group.vpc_link.id]
+  name               = "${local.name}-vpc-link"
+  security_group_ids = [resource.aws_security_group.vpc_link_sg.id]
   subnet_ids         = module.vpc.private_subnets
 
   tags = local.tags
