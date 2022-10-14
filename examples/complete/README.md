@@ -86,12 +86,16 @@ kubectl apply -f sample-app/app.yaml
 
 ```sh
 aws elbv2 describe-listeners \
+  --region <aws_region> \
   --load-balancer-arn $(aws elbv2 describe-load-balancers \
+  --region <aws_region> \
   --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamodb -n ack-demo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
   --output text) \
   --query "Listeners[0].ListenerArn" \
   --output text
 ```
+
+> Replace `<aws_region>` in the command above with the correspoding region you deployed the cluster
 
 3. Update `sample-app/apigwv2-httpapi.yaml` file and deploy:
 
@@ -170,6 +174,8 @@ curl $(kubectl get -n ack-demo api ack-api -o jsonpath="{.status.apiEndpoint}")/
 To teardown and remove the resources created in this example:
 
 ```sh
+kubectl delete -f sample-app
+
 terraform destroy -target="module.eks_ack_addons" -target="module.eks_blueprints_kubernetes_addons" -auto-approve
 terraform destroy -target="module.eks_blueprints" -auto-approve
 terraform destroy -auto-approve

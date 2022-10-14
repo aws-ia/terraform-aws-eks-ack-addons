@@ -4,6 +4,6 @@ output "configure_kubectl" {
 }
 
 output "api_gatewayv2_vpc_link_id" {
-  description = "API Gataway v2  VPC link ID"
+  description = "API Gateway v2 VPC link ID"
   value       = resource.aws_apigatewayv2_vpc_link.vpc_link.id
 }
