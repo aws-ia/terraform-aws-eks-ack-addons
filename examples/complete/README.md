@@ -8,7 +8,7 @@ Configuration in this directory creates an AWS EKS cluster with the following AC
 - ACK S3 controller
 
 In addition, this example provisions a sample application which demonstrates using the ACK controllers for resource provisioning.
-The arhchitecture looks like this:
+The arhchitecture looks like this: <br>
 ![overall architecture](images/ACK_microservice.png)
 
 ## Prerequisites:
