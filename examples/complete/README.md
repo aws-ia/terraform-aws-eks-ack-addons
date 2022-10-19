@@ -84,7 +84,7 @@ metadata:
 kubectl apply -f sample-app/app.yaml
 ```
 
-Note: app.yaml deplys a simple nodeJS image from docker hub. The source code can be found [here](https://github.com/season1946/ack-microservices/tree/main/sample-app-code)
+Note: app.yaml deploys a simple nodeJS image from docker hub. The source code can be found [here](https://github.com/season1946/ack-microservices/tree/main/sample-app-code)
 
 2. Get the listener ARN of the provisioned ALB:
 
