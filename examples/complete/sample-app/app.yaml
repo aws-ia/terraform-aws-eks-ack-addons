@@ -15,24 +15,48 @@ spec:
         app.kubernetes.io/name: api-dynamodb
     spec:
       serviceAccountName: ack-demo
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-      - image: victorgucanada/new-dynamo-nodejs:latest
-        imagePullPolicy: Always
-        name: api-dynamodb
-        ports:
-        - containerPort: 3000 # match with expose port in dockerfile
-        env:
-        - name: tableName     # match with your dynamodb table setting
-          value: ack-demo-table
-        - name: aws_region
-          value: "<same region as your eks cluster>"
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+          # https://github.com/season1946/ack-microservices/tree/main/sample-app-code
+        - image: victorgucanada/new-dynamo-nodejs:@sha256:2f32dd3ef1e51a4d2d6dcf55fbf766434df5b3ada802b087d5761f2fa0cdebf5
+          imagePullPolicy: Always
+          name: api-dynamodb
+          ports:
+            - containerPort: 3000 # match with expose port in dockerfile
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop:
+                - NET_RAW
+                - ALL
+          env:
+            - name: tableName # match with your dynamodb table setting
+              value: ack-demo-table
+            - name: aws_region
+              value: '<same region as your eks cluster>'
+          resources:
+            requests:
+              memory: '64Mi'
+              cpu: '250m'
+            limits:
+              memory: '128Mi'
+              cpu: '500m'
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -61,10 +85,10 @@ spec:
   rules:
     - http:
         paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: service-api-dynamodb
-              port:
-                number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: service-api-dynamodb
+                port:
+                  number: 80
