@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
           # https://github.com/season1946/ack-microservices/tree/main/sample-app-code
-        - image: victorgucanada/new-dynamo-nodejs:@sha256:2f32dd3ef1e51a4d2d6dcf55fbf766434df5b3ada802b087d5761f2fa0cdebf5
+        - image: victorgucanada/new-dynamo-nodejs@sha256:457d364897719c6136b21685ee950c19fa0df0ad45aa20fa4790bc4304a940c1
           imagePullPolicy: Always
           name: api-dynamodb
           ports:
