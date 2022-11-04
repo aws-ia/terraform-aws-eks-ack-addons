@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: ack-demo
       containers:
-      - image: victorgucanada/new-dynamo-nodejs:latest
+      - image: victorgucanada/new-dynamo-nodejs:1.0
         imagePullPolicy: Always
         name: api-dynamodb
         ports:
