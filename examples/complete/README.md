@@ -24,7 +24,6 @@ Ensure that you have the following tools installed locally:
 To provision this example:
 
 ```sh
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 terraform init
 terraform apply -var aws_region=<aws_region> # defaults to us-west-2
 ```
