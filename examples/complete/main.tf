@@ -100,6 +100,7 @@ module "eks_ack_addons" {
   enable_dynamodb      = true
   enable_s3            = true
   enable_rds           = true
+  enable_amp           = true
 
   tags = local.tags
 }

@@ -90,3 +90,19 @@ variable "rds_helm_config" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# AMP
+################################################################################
+
+variable "enable_amp" {
+  description = "Enable ACK amp add-on"
+  type        = bool
+  default     = false
+}
+
+variable "amp_helm_config" {
+  description = "ACK amp Helm Chart config"
+  type        = any
+  default     = {}
+}
