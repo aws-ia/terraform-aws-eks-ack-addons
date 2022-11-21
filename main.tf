@@ -306,3 +306,69 @@ data "aws_iam_policy" "rds" {
 
   name = "AmazonRDSFullAccess"
 }
+
+################################################################################
+# Amazon Managed Service for Prometheus
+################################################################################
+
+locals {
+  amp_name = "ack-amp"
+}
+
+module "amp" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+
+  count = var.enable_amp ? 1 : 0
+
+  helm_config = merge(
+    {
+      name             = local.amp_name
+      chart            = "prometheusservice-chart"
+      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
+      version          = "v0.1.1"
+      namespace        = local.amp_name
+      create_namespace = true
+      description      = "ACK amp Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-amp-amp-chart-xxxxxxxxxxxxx` to `ack-amp-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-amp
+        EOT
+      ]
+    },
+    var.amp_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.amp_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.amp_helm_config.namespace, local.amp_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.amp_name
+
+    irsa_iam_policies = [data.aws_iam_policy.amp[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+data "aws_iam_policy" "amp" {
+  count = var.enable_amp ? 1 : 0
+
+  name = "AmazonPrometheusFullAccess"
+}
