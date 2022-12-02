@@ -441,7 +441,7 @@ resource "aws_iam_policy" "emrcontainers" {
   policy      = data.aws_iam_policy_document.emrcontainers.json
 }
 
-// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
   statement {
     effect = "Allow"
@@ -513,4 +513,70 @@ data "aws_iam_policy_document" "emrcontainers" {
     resources = ["*"]
   }
 
+}
+
+################################################################################
+# Elastic Container Registry
+################################################################################
+
+locals {
+  ecr_name = "ack-ecr"
+}
+
+module "ecr" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+
+  count = var.enable_ecr ? 1 : 0
+
+  helm_config = merge(
+    {
+      name             = local.ecr_name
+      chart            = "ecr-chart"
+      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
+      version          = "v0.1.7"
+      namespace        = local.ecr_name
+      create_namespace = true
+      description      = "ACK ecr Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-ecr-ecr-chart-xxxxxxxxxxxxx` to `ack-ecr-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-ecr
+        EOT
+      ]
+    },
+    var.ecr_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.ecr_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.ecr_helm_config.namespace, local.ecr_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.ecr_name
+
+    irsa_iam_policies = [data.aws_iam_policy.ecr[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+data "aws_iam_policy" "ecr" {
+  count = var.enable_ecr ? 1 : 0
+
+  name = "AmazonEC2ContainerRegistryFullAccess"
 }
