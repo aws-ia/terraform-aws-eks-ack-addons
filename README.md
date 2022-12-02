@@ -52,6 +52,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_amp"></a> [amp](#module\_amp) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_api_gatewayv2"></a> [api\_gatewayv2](#module\_api\_gatewayv2) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
+| <a name="module_eks"></a> [eks](#module\_eks) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.0 |
 | <a name="module_rds"></a> [rds](#module\_rds) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_s3"></a> [s3](#module\_s3) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
@@ -60,6 +61,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 
 | Name | Type |
 |------|------|
+| [aws_iam_policy.ack_eks_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [time_sleep.dataplane](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -68,8 +70,10 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | [aws_iam_policy.api_gatewayv2_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.api_gatewayv2_invoke](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy.eks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy_document.ack_eks_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
@@ -83,10 +87,12 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | EKS Cluster Id | `string` | n/a | yes |
 | <a name="input_data_plane_wait_arn"></a> [data\_plane\_wait\_arn](#input\_data\_plane\_wait\_arn) | Addon deployment will not proceed until this value is known. Set to node group/Fargate profile ARN to wait for data plane to be ready before provisioning addons | `string` | `""` | no |
 | <a name="input_dynamodb_helm_config"></a> [dynamodb\_helm\_config](#input\_dynamodb\_helm\_config) | ACK dynamodb Helm Chart config | `any` | `{}` | no |
+| <a name="input_eks_helm_config"></a> [eks\_helm\_config](#input\_eks\_helm\_config) | ACK eks Helm Chart config | `any` | `{}` | no |
 | <a name="input_emrcontainers_helm_config"></a> [emrcontainers\_helm\_config](#input\_emrcontainers\_helm\_config) | ACK EMR container Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_amp"></a> [enable\_amp](#input\_enable\_amp) | Enable ACK amp add-on | `bool` | `false` | no |
 | <a name="input_enable_api_gatewayv2"></a> [enable\_api\_gatewayv2](#input\_enable\_api\_gatewayv2) | Enable ACK API gateway v2 add-on | `bool` | `false` | no |
 | <a name="input_enable_dynamodb"></a> [enable\_dynamodb](#input\_enable\_dynamodb) | Enable ACK dynamodb add-on | `bool` | `false` | no |
+| <a name="input_enable_eks"></a> [enable\_eks](#input\_enable\_eks) | Enable ACK eks add-on | `bool` | `false` | no |
 | <a name="input_enable_emrcontainers"></a> [enable\_emrcontainers](#input\_enable\_emrcontainers) | Enable ACK EMR container add-on | `bool` | `false` | no |
 | <a name="input_enable_rds"></a> [enable\_rds](#input\_enable\_rds) | Enable ACK rds add-on | `bool` | `false` | no |
 | <a name="input_enable_s3"></a> [enable\_s3](#input\_enable\_s3) | Enable ACK s3 add-on | `bool` | `false` | no |

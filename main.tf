@@ -13,6 +13,7 @@ locals {
 
   eks_oidc_issuer_url = replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
 
+  tags = var.tags
   addon_context = {
     aws_caller_identity_account_id = data.aws_caller_identity.current.account_id
     aws_caller_identity_arn        = data.aws_caller_identity.current.arn
@@ -22,7 +23,7 @@ locals {
     eks_cluster_id                 = var.cluster_id
     eks_oidc_issuer_url            = local.eks_oidc_issuer_url
     eks_oidc_provider_arn          = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.eks_oidc_issuer_url}"
-    tags                           = var.tags
+    tags                           = local.tags
     irsa_iam_role_path             = var.irsa_iam_role_path
     irsa_iam_permissions_boundary  = var.irsa_iam_permissions_boundary
   }
@@ -441,7 +442,7 @@ resource "aws_iam_policy" "emrcontainers" {
   policy      = data.aws_iam_policy_document.emrcontainers.json
 }
 
-// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
   statement {
     effect = "Allow"
@@ -513,4 +514,115 @@ data "aws_iam_policy_document" "emrcontainers" {
     resources = ["*"]
   }
 
+}
+
+################################################################################
+# Elastic Kubernetes Service
+################################################################################
+
+locals {
+  eks_name = "ack-eks"
+}
+
+module "eks" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+
+  count = var.enable_eks ? 1 : 0
+
+  helm_config = merge(
+    {
+      name             = local.eks_name
+      chart            = "eks-chart"
+      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
+      version          = "v0.1.7"
+      namespace        = local.eks_name
+      create_namespace = true
+      description      = "ACK eks Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-eks-eks-chart-xxxxxxxxxxxxx` to `ack-eks-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-eks
+        EOT
+      ]
+    },
+    var.eks_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.eks_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.eks_helm_config.namespace, local.eks_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.eks_name
+
+    irsa_iam_policies = [aws_iam_policy.ack_eks_policy[0].arn, data.aws_iam_policy.eks[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+resource "aws_iam_policy" "ack_eks_policy" {
+  count = var.enable_eks ? 1 : 0
+
+  name        = "${local.cluster_id}-ack-eks-sa-policy"
+  description = "IAM policy for ${local.eks_name} Service Account"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.ack_eks_policy_document[0].json
+
+  tags = local.tags
+}
+
+data "aws_iam_policy_document" "ack_eks_policy_document" {
+  count = var.enable_eks ? 1 : 0
+
+  statement {
+    sid       = "ACKEKSPolicy1" # Recommended ACK inline Policy, see https://github.com/aws-controllers-k8s/eks-controller/blob/main/config/iam/recommended-inline-policy
+    effect    = "Allow"
+    actions   = ["eks:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ACKEKSPolicy2" # iam:GetRole is required to create NodeGroups and iam:CreateServiceLinkedRole is required to create FargateProfiles
+    effect = "Allow"
+    actions = [
+      "iam:GetRole",
+      "iam:CreateServiceLinkedRole"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "ACKEKSPolicy3" # Required to create NodeGroups
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["eks.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy" "eks" {
+  count = var.enable_eks ? 1 : 0
+
+  name = "AmazonEKSServicePolicy"
 }
