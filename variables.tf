@@ -92,6 +92,22 @@ variable "rds_helm_config" {
 }
 
 ################################################################################
+# EMR Containers
+################################################################################
+
+variable "enable_emrcontainers" {
+  description = "Enable ACK EMR container add-on"
+  type        = bool
+  default     = false
+}
+
+variable "emrcontainers_helm_config" {
+  description = "ACK EMR container Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # AMP
 ################################################################################
 

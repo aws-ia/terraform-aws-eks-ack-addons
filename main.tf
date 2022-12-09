@@ -441,78 +441,76 @@ data "aws_iam_policy" "emrcontainers" {
   policy      = data.aws_iam_policy_document.emrcontainers.json
 }
 
+// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
-      Statement {
-        effect = "Allow"
-        actions = [
-            "iam:CreateServiceLinkedRole"
-        ]
-        resources = "*"
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole"
+    ]
+    resources = "*"
 
-        condition {
-          test     = "StringLike"
-          variable = "iam:AWSServiceName"
-          values   = ["emr-containers.amazonaws.com"]
-        }
-      }
+    condition {
+      test     = "StringLike"
+      variable = "iam:AWSServiceName"
+      values   = ["emr-containers.amazonaws.com"]
+    }
+  }
 
-      Statement {
-        effect = "Allow"
-        actions = [
-            "emr-containers:CreateVirtualCluster",
-            "emr-containers:ListVirtualClusters",
-            "emr-containers:DescribeVirtualCluster",
-            "emr-containers:DeleteVirtualCluster"
-        ]
-        resources = "*"
-      }
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:CreateVirtualCluster",
+      "emr-containers:ListVirtualClusters",
+      "emr-containers:DescribeVirtualCluster",
+      "emr-containers:DeleteVirtualCluster"
+    ]
+    resources = "*"
+  }
 
-      Statement {
-        effect = "Allow"
-        actions = [
-            "emr-containers:StartJobRun",
-            "emr-containers:ListJobRuns",
-            "emr-containers:DescribeJobRun",
-            "emr-containers:CancelJobRun"
-        ]
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:StartJobRun",
+      "emr-containers:ListJobRuns",
+      "emr-containers:DescribeJobRun",
+      "emr-containers:CancelJobRun"
+    ]
 
-        resources = "*"
-      }
+    resources = "*"
+  }
 
-      Statement {
-        effect = "Allow"
-        actions = [
-            "emr-containers:DescribeJobRun",
-            "emr-containers:TagResource",
-            "elasticmapreduce:CreatePersistentAppUI",
-            "elasticmapreduce:DescribePersistentAppUI",
-            "elasticmapreduce:GetPersistentAppUIPresignedURL"
-        ]
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:DescribeJobRun",
+      "emr-containers:TagResource",
+      "elasticmapreduce:CreatePersistentAppUI",
+      "elasticmapreduce:DescribePersistentAppUI",
+      "elasticmapreduce:GetPersistentAppUIPresignedURL"
+    ]
 
-        resources = "*"
-      }
+    resources = "*"
+  }
 
-      Statement {
-        effect = "Allow"
-        actions = [
-            "s3:GetObject",
-            "s3:ListBucket"
-        ]
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
 
-        resources = "*"
-      }
+    resources = "*"
+  }
 
-      Statement {
-        effect = "Allow"
-        actions = [
-          "logs:Get*",
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams"
-        ]
-        resources = "*"
-      }
-      
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:Get*",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams"
+    ]
+    resources = "*"
+  }
+
 }
-
-
-
