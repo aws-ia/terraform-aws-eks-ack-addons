@@ -448,7 +448,7 @@ data "aws_iam_policy_document" "emrcontainers" {
     actions = [
       "iam:CreateServiceLinkedRole"
     ]
-    resources = "*"
+    resources = ["*"]
 
     condition {
       test     = "StringLike"
@@ -465,7 +465,7 @@ data "aws_iam_policy_document" "emrcontainers" {
       "emr-containers:DescribeVirtualCluster",
       "emr-containers:DeleteVirtualCluster"
     ]
-    resources = "*"
+    resources = ["*"]
   }
 
   statement {
@@ -477,7 +477,7 @@ data "aws_iam_policy_document" "emrcontainers" {
       "emr-containers:CancelJobRun"
     ]
 
-    resources = "*"
+    resources = ["*"]
   }
 
   statement {
@@ -490,7 +490,7 @@ data "aws_iam_policy_document" "emrcontainers" {
       "elasticmapreduce:GetPersistentAppUIPresignedURL"
     ]
 
-    resources = "*"
+    resources = ["*"]
   }
 
   statement {
@@ -500,7 +500,7 @@ data "aws_iam_policy_document" "emrcontainers" {
       "s3:ListBucket"
     ]
 
-    resources = "*"
+    resources = ["*"]
   }
 
   statement {
@@ -510,7 +510,7 @@ data "aws_iam_policy_document" "emrcontainers" {
       "logs:DescribeLogGroups",
       "logs:DescribeLogStreams"
     ]
-    resources = "*"
+    resources = ["*"]
   }
 
 }
