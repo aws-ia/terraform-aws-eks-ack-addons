@@ -15,6 +15,7 @@ module "eks_ack_addons" {
   enable_s3            = true
   enable_rds           = true
   enable_amp           = true
+  enable_emrcontainers = true
 
   tags = {
     Environment = "dev"
@@ -51,6 +52,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_amp"></a> [amp](#module\_amp) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_api_gatewayv2"></a> [api\_gatewayv2](#module\_api\_gatewayv2) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
+| <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.0 |
 | <a name="module_rds"></a> [rds](#module\_rds) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_s3"></a> [s3](#module\_s3) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 
@@ -65,6 +67,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | [aws_iam_policy.api_gatewayv2_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.api_gatewayv2_invoke](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
