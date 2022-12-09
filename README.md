@@ -68,6 +68,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | [aws_iam_policy.api_gatewayv2_invoke](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy_document.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy.rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
@@ -92,7 +93,8 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_rds_helm_config"></a> [rds\_helm\_config](#input\_rds\_helm\_config) | ACK rds Helm Chart config | `any` | `{}` | no |
 | <a name="input_s3_helm_config"></a> [s3\_helm\_config](#input\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
-
+| <a name="input_emrcontainers_helm_config"></a> [emrcontainers\_helm\_config](#input\_emrcontainers\_helm\_config) | ACK EMR container Helm Chart config | `any` | `{}` | no |
+| <a name="input_enable_emrcontainers"></a> [enable\_emrcontainers](#input\_enable\_emrcontainers) | Enable ACK EMR container add-on | `bool` | `false` | no |
 ## Outputs
 
 No outputs.
