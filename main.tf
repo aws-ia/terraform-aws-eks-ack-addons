@@ -426,7 +426,7 @@ module "emrcontainers" {
     create_kubernetes_service_account = true
     kubernetes_service_account        = local.emr_name
 
-    irsa_iam_policies = [aws_iam_policy.emrcontainers.arn]
+    irsa_iam_policies = [aws_iam_policy.emrcontainers[0].arn]
   }
 
   addon_context = local.addon_context
