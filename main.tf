@@ -391,7 +391,7 @@ module "emrcontainers" {
       name        = local.emr_name
       chart       = "emrcontainers-chart"
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
-      version     = "v0-stable"
+      version     = "v0.1.0"
       namespace   = local.emr_name
       description = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
       values = [
