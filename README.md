@@ -95,6 +95,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_rds_helm_config"></a> [rds\_helm\_config](#input\_rds\_helm\_config) | ACK rds Helm Chart config | `any` | `{}` | no |
 | <a name="input_s3_helm_config"></a> [s3\_helm\_config](#input\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
+
 ## Outputs
 
 No outputs.
