@@ -25,7 +25,7 @@ To provision this example:
 
 ```sh
 terraform init
-terraform apply
+terraform apply -var aws_region=<aws_region> # defaults to us-west-2
 ```
 
 Enter `yes` at command prompt to apply

@@ -372,3 +372,145 @@ data "aws_iam_policy" "amp" {
 
   name = "AmazonPrometheusFullAccess"
 }
+
+################################################################################
+# EMR Containers
+################################################################################
+
+locals {
+  emr_name = "ack-emrcontainers"
+}
+
+module "emrcontainers" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+
+  count = var.enable_emrcontainers ? 1 : 0
+
+  helm_config = merge(
+    {
+      name        = local.emr_name
+      chart       = "emrcontainers-chart"
+      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
+      version     = "v0-stable"
+      namespace   = local.emr_name
+      description = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
+      values = [
+        # shortens pod name from `ack-emrcontainers-emrcontainers-chart-xxxxxxxxxxxxx` to `ack-emrcontainers-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-emrcontainers
+        EOT
+      ]
+    },
+    var.emrcontainers_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.emr_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.emrcontainers_helm_config.namespace, local.emr_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.emr_name
+
+    irsa_iam_policies = [aws_iam_policy.emrcontainers[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+resource "aws_iam_policy" "emrcontainers" {
+  count = var.enable_emrcontainers ? 1 : 0
+
+  name        = format("%s-%s", local.emr_name, "controller-iam-policies")
+  description = "IAM policy for EMRcontainers controller"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.emrcontainers.json
+}
+
+// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "emrcontainers" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole"
+    ]
+    resources = ["*"]
+
+    condition {
+      test     = "StringLike"
+      variable = "iam:AWSServiceName"
+      values   = ["emr-containers.amazonaws.com"]
+    }
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:CreateVirtualCluster",
+      "emr-containers:ListVirtualClusters",
+      "emr-containers:DescribeVirtualCluster",
+      "emr-containers:DeleteVirtualCluster"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:StartJobRun",
+      "emr-containers:ListJobRuns",
+      "emr-containers:DescribeJobRun",
+      "emr-containers:CancelJobRun"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "emr-containers:DescribeJobRun",
+      "emr-containers:TagResource",
+      "elasticmapreduce:CreatePersistentAppUI",
+      "elasticmapreduce:DescribePersistentAppUI",
+      "elasticmapreduce:GetPersistentAppUIPresignedURL"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:Get*",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams"
+    ]
+    resources = ["*"]
+  }
+
+}
