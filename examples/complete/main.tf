@@ -103,7 +103,8 @@ module "eks_ack_addons" {
   enable_s3            = true
   enable_rds           = true
   enable_amp           = true
-
+  enable_emrcontainers = true
+  
   tags = local.tags
 }
 
