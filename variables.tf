@@ -122,3 +122,19 @@ variable "amp_helm_config" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# ECR
+################################################################################
+
+variable "enable_ecr" {
+  description = "Enable ACK ecr add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ecr_helm_config" {
+  description = "ACK ecr Helm Chart config"
+  type        = any
+  default     = {}
+}
