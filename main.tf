@@ -13,6 +13,7 @@ locals {
 
   eks_oidc_issuer_url = replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
 
+  tags = var.tags
   addon_context = {
     aws_caller_identity_account_id = data.aws_caller_identity.current.account_id
     aws_caller_identity_arn        = data.aws_caller_identity.current.arn
@@ -22,7 +23,7 @@ locals {
     eks_cluster_id                 = var.cluster_id
     eks_oidc_issuer_url            = local.eks_oidc_issuer_url
     eks_oidc_provider_arn          = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.eks_oidc_issuer_url}"
-    tags                           = var.tags
+    tags                           = local.tags
     irsa_iam_role_path             = var.irsa_iam_role_path
     irsa_iam_permissions_boundary  = var.irsa_iam_permissions_boundary
   }
@@ -441,7 +442,7 @@ resource "aws_iam_policy" "emrcontainers" {
   policy      = data.aws_iam_policy_document.emrcontainers.json
 }
 
-// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
   statement {
     effect = "Allow"
@@ -513,4 +514,98 @@ data "aws_iam_policy_document" "emrcontainers" {
     resources = ["*"]
   }
 
+}
+
+
+################################################################################
+# Key Management Service
+################################################################################
+
+locals {
+  kms_name = "ack-kms"
+}
+
+module "kms" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+
+  count = var.enable_kms ? 1 : 0
+
+  helm_config = merge(
+    {
+      name             = local.kms_name
+      chart            = "kms-chart"
+      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
+      version          = "v0.1.3"
+      namespace        = local.kms_name
+      create_namespace = true
+      description      = "ACK kms Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-kms-kms-chart-xxxxxxxxxxxxx` to `ack-kms-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-kms
+        EOT
+      ]
+    },
+    var.kms_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.kms_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.kms_helm_config.namespace, local.kms_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.kms_name
+
+    irsa_iam_policies = [aws_iam_policy.ack_kms_policy[0].arn, data.aws_iam_policy.kms[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+resource "aws_iam_policy" "ack_kms_policy" {
+  count = var.enable_kms ? 1 : 0
+
+  name        = "${local.cluster_id}-ack-kms-sa-policy"
+  description = "IAM policy for ${local.kms_name} Service Account"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.ack_kms_policy_document[0].json
+
+  tags = local.tags
+}
+
+data "aws_iam_policy_document" "ack_kms_policy_document" {
+  count = var.enable_kms ? 1 : 0
+
+  statement {
+    sid    = "ACKKMSPolicy"
+    effect = "Allow"
+    actions = [
+      "kms:ScheduleKeyDeletion",
+      "kms:EnableKeyRotation",
+      "kms:CreateGrant",
+      "kms:RevokeGrant"
+    ]
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy" "kms" {
+  count = var.enable_kms ? 1 : 0
+
+  name = "AWSKeyManagementServicePowerUser"
 }

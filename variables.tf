@@ -122,3 +122,19 @@ variable "amp_helm_config" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# KMS
+################################################################################
+
+variable "enable_kms" {
+  description = "Enable ACK kms add-on"
+  type        = bool
+  default     = false
+}
+
+variable "kms_helm_config" {
+  description = "ACK kms Helm Chart config"
+  type        = any
+  default     = {}
+}

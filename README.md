@@ -53,6 +53,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_api_gatewayv2"></a> [api\_gatewayv2](#module\_api\_gatewayv2) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.0 |
+| <a name="module_kms"></a> [kms](#module\_kms) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_rds"></a> [rds](#module\_rds) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 | <a name="module_s3"></a> [s3](#module\_s3) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.12.2 |
 
@@ -60,6 +61,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 
 | Name | Type |
 |------|------|
+| [aws_iam_policy.ack_kms_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [time_sleep.dataplane](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -68,8 +70,10 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | [aws_iam_policy.api_gatewayv2_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.api_gatewayv2_invoke](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy.kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.rds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
 | [aws_iam_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy) | data source |
+| [aws_iam_policy_document.ack_kms_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
@@ -88,10 +92,12 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_enable_api_gatewayv2"></a> [enable\_api\_gatewayv2](#input\_enable\_api\_gatewayv2) | Enable ACK API gateway v2 add-on | `bool` | `false` | no |
 | <a name="input_enable_dynamodb"></a> [enable\_dynamodb](#input\_enable\_dynamodb) | Enable ACK dynamodb add-on | `bool` | `false` | no |
 | <a name="input_enable_emrcontainers"></a> [enable\_emrcontainers](#input\_enable\_emrcontainers) | Enable ACK EMR container add-on | `bool` | `false` | no |
+| <a name="input_enable_kms"></a> [enable\_kms](#input\_enable\_kms) | Enable ACK kms add-on | `bool` | `false` | no |
 | <a name="input_enable_rds"></a> [enable\_rds](#input\_enable\_rds) | Enable ACK rds add-on | `bool` | `false` | no |
 | <a name="input_enable_s3"></a> [enable\_s3](#input\_enable\_s3) | Enable ACK s3 add-on | `bool` | `false` | no |
 | <a name="input_irsa_iam_permissions_boundary"></a> [irsa\_iam\_permissions\_boundary](#input\_irsa\_iam\_permissions\_boundary) | IAM permissions boundary for IRSA roles | `string` | `""` | no |
 | <a name="input_irsa_iam_role_path"></a> [irsa\_iam\_role\_path](#input\_irsa\_iam\_role\_path) | IAM role path for IRSA roles | `string` | `"/"` | no |
+| <a name="input_kms_helm_config"></a> [kms\_helm\_config](#input\_kms\_helm\_config) | ACK kms Helm Chart config | `any` | `{}` | no |
 | <a name="input_rds_helm_config"></a> [rds\_helm\_config](#input\_rds\_helm\_config) | ACK rds Helm Chart config | `any` | `{}` | no |
 | <a name="input_s3_helm_config"></a> [s3\_helm\_config](#input\_s3\_helm\_config) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
