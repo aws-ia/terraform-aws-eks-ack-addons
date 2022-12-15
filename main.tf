@@ -6,6 +6,9 @@ data "aws_eks_cluster" "this" {
   name = local.cluster_id
 }
 
+# Equivalent of aws ecr get-login
+data "aws_ecrpublic_authorization_token" "token" {}
+
 locals {
   # this makes downstream resources wait for data plane to be ready
   cluster_id = time_sleep.dataplane.triggers["cluster_id"]
@@ -393,6 +396,8 @@ module "emrcontainers" {
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
       version     = "v0-stable"
       namespace   = local.emr_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       description = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
       values = [
         # shortens pod name from `ack-emrcontainers-emrcontainers-chart-xxxxxxxxxxxxx` to `ack-emrcontainers-xxxxxxxxxxxxx`
