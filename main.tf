@@ -55,14 +55,14 @@ module "api_gatewayv2" {
 
   helm_config = merge(
     {
-      name        = local.api_gatewayv2_name
-      chart       = "apigatewayv2-chart"
-      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
-      version     = "v0.1.4"
-      namespace   = local.api_gatewayv2_name
+      name                = local.api_gatewayv2_name
+      chart               = "apigatewayv2-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.4"
+      namespace           = local.api_gatewayv2_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      description = "ACK API Gateway Controller v2 Helm chart deployment configuration"
+      description         = "ACK API Gateway Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-api-gatewayv2-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gatewayv2-xxxxxxxxxxxxx`
         <<-EOT
@@ -131,14 +131,14 @@ module "dynamodb" {
 
   helm_config = merge(
     {
-      name        = local.dynamodb_name
-      chart       = "dynamodb-chart"
-      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
-      version     = "v0-stable"
-      namespace   = local.dynamodb_name
+      name                = local.dynamodb_name
+      chart               = "dynamodb-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0-stable"
+      namespace           = local.dynamodb_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      description = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
+      description         = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-dynamodb-dynamodb-chart-xxxxxxxxxxxxx` to `ack-dynamodb-xxxxxxxxxxxxx`
         <<-EOT
@@ -198,14 +198,14 @@ module "s3" {
 
   helm_config = merge(
     {
-      name        = local.s3_name
-      chart       = "s3-chart"
-      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
-      version     = "v0.1.5"
-      namespace   = local.s3_name
+      name                = local.s3_name
+      chart               = "s3-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.5"
+      namespace           = local.s3_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      description = "ACK S3 Controller v2 Helm chart deployment configuration"
+      description         = "ACK S3 Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-s3-s3-chart-xxxxxxxxxxxxx` to `ack-s3-xxxxxxxxxxxxx`
         <<-EOT
@@ -265,15 +265,15 @@ module "rds" {
 
   helm_config = merge(
     {
-      name             = local.rds_name
-      chart            = "rds-chart"
-      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
-      version          = "v0.1.1"
-      namespace        = local.rds_name
+      name                = local.rds_name
+      chart               = "rds-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.1"
+      namespace           = local.rds_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      create_namespace = true
-      description      = "ACK RDS Controller v2 Helm chart deployment configuration"
+      create_namespace    = true
+      description         = "ACK RDS Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-rds-rds-chart-xxxxxxxxxxxxx` to `ack-rds-xxxxxxxxxxxxx`
         <<-EOT
@@ -333,15 +333,15 @@ module "amp" {
 
   helm_config = merge(
     {
-      name             = local.amp_name
-      chart            = "prometheusservice-chart"
-      repository       = "oci://public.ecr.aws/aws-controllers-k8s"
-      version          = "v0.1.1"
-      namespace        = local.amp_name
+      name                = local.amp_name
+      chart               = "prometheusservice-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.1"
+      namespace           = local.amp_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      create_namespace = true
-      description      = "ACK amp Controller v2 Helm chart deployment configuration"
+      create_namespace    = true
+      description         = "ACK amp Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-amp-amp-chart-xxxxxxxxxxxxx` to `ack-amp-xxxxxxxxxxxxx`
         <<-EOT
@@ -401,14 +401,14 @@ module "emrcontainers" {
 
   helm_config = merge(
     {
-      name        = local.emr_name
-      chart       = "emrcontainers-chart"
-      repository  = "oci://public.ecr.aws/aws-controllers-k8s"
-      version     = "v0-stable"
-      namespace   = local.emr_name
+      name                = local.emr_name
+      chart               = "emrcontainers-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0-stable"
+      namespace           = local.emr_name
       repository_username = data.aws_ecrpublic_authorization_token.token.user_name
       repository_password = data.aws_ecrpublic_authorization_token.token.password
-      description = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
+      description         = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
       values = [
         # shortens pod name from `ack-emrcontainers-emrcontainers-chart-xxxxxxxxxxxxx` to `ack-emrcontainers-xxxxxxxxxxxxx`
         <<-EOT
