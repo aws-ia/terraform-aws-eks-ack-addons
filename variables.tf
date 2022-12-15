@@ -122,3 +122,19 @@ variable "amp_helm_config" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# EKS
+################################################################################
+
+variable "enable_eks" {
+  description = "Enable ACK eks add-on"
+  type        = bool
+  default     = false
+}
+
+variable "eks_helm_config" {
+  description = "ACK eks Helm Chart config"
+  type        = any
+  default     = {}
+}
