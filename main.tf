@@ -60,6 +60,8 @@ module "api_gatewayv2" {
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
       version     = "v0.1.4"
       namespace   = local.api_gatewayv2_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       description = "ACK API Gateway Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-api-gatewayv2-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gatewayv2-xxxxxxxxxxxxx`
@@ -134,6 +136,8 @@ module "dynamodb" {
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
       version     = "v0-stable"
       namespace   = local.dynamodb_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       description = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-dynamodb-dynamodb-chart-xxxxxxxxxxxxx` to `ack-dynamodb-xxxxxxxxxxxxx`
@@ -199,6 +203,8 @@ module "s3" {
       repository  = "oci://public.ecr.aws/aws-controllers-k8s"
       version     = "v0.1.5"
       namespace   = local.s3_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       description = "ACK S3 Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-s3-s3-chart-xxxxxxxxxxxxx` to `ack-s3-xxxxxxxxxxxxx`
@@ -264,6 +270,8 @@ module "rds" {
       repository       = "oci://public.ecr.aws/aws-controllers-k8s"
       version          = "v0.1.1"
       namespace        = local.rds_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       create_namespace = true
       description      = "ACK RDS Controller v2 Helm chart deployment configuration"
       values = [
@@ -330,6 +338,8 @@ module "amp" {
       repository       = "oci://public.ecr.aws/aws-controllers-k8s"
       version          = "v0.1.1"
       namespace        = local.amp_name
+      repository_username = data.aws_ecrpublic_authorization_token.token.user_name
+      repository_password = data.aws_ecrpublic_authorization_token.token.password
       create_namespace = true
       description      = "ACK amp Controller v2 Helm chart deployment configuration"
       values = [
