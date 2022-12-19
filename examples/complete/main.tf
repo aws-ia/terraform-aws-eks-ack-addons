@@ -9,7 +9,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_ecrpublic_authorization_token" "token" {  
+data "aws_ecrpublic_authorization_token" "token" {
   provider = aws.ecr
 }
 
@@ -36,9 +36,9 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  name = "ack-eks-${basename(path.cwd)}"
+  name               = "ack-eks-${basename(path.cwd)}"
   ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
-  ecrpublic_token = data.aws_ecrpublic_authorization_token.token.password
+  ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
 
   vpc_cidr = "10.0.0.0/16"
@@ -105,9 +105,9 @@ module "eks_blueprints_kubernetes_addons" {
 module "eks_ack_addons" {
   source = "../../"
 
-  cluster_id = module.eks_blueprints.eks_cluster_id
+  cluster_id         = module.eks_blueprints.eks_cluster_id
   ecrpublic_username = local.ecrpublic_username
-  ecrpublic_token = local.ecrpublic_token
+  ecrpublic_token    = local.ecrpublic_token
 
 
   # Wait for data plane to be ready
