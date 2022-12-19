@@ -36,7 +36,7 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  name               = "ack-eks-${basename(path.cwd)}"
+  name = "ack-eks-${basename(path.cwd)}"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
