@@ -12,7 +12,7 @@ locals {
   region     = data.aws_region.current.name
 
   eks_oidc_issuer_url = replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
-  
+
   ecrpublic_username = var.ecrpublic_username
   ecrpublic_token    = var.ecrpublic_token
 
