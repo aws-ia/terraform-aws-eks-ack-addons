@@ -4,12 +4,12 @@ variable "cluster_id" {
 }
 
 variable "ecrpublic_username" {
-  description = "EKS Cluster Id"
+  description = "User name decoded from the authorization token for accessing public ECR"
   type        = string
 }
 
 variable "ecrpublic_token" {
-  description = "EKS Cluster Id"
+  description = "Password decoded from the authorization token for accessing public ECR"
   type        = string
 }
 

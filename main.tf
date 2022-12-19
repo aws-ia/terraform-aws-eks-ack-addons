@@ -13,9 +13,6 @@ locals {
 
   eks_oidc_issuer_url = replace(data.aws_eks_cluster.this.identity[0].oidc[0].issuer, "https://", "")
 
-  ecrpublic_username = var.ecrpublic_username
-  ecrpublic_token    = var.ecrpublic_token
-
   addon_context = {
     aws_caller_identity_account_id = data.aws_caller_identity.current.account_id
     aws_caller_identity_arn        = data.aws_caller_identity.current.arn
@@ -60,8 +57,8 @@ module "api_gatewayv2" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0.1.4"
       namespace           = local.api_gatewayv2_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       description         = "ACK API Gateway Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-api-gatewayv2-apigatewayv2-chart-xxxxxxxxxxxxx` to `ack-api-gatewayv2-xxxxxxxxxxxxx`
@@ -136,8 +133,8 @@ module "dynamodb" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0-stable"
       namespace           = local.dynamodb_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       description         = "ACK DynamoDB Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-dynamodb-dynamodb-chart-xxxxxxxxxxxxx` to `ack-dynamodb-xxxxxxxxxxxxx`
@@ -203,8 +200,8 @@ module "s3" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0.1.5"
       namespace           = local.s3_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       description         = "ACK S3 Controller v2 Helm chart deployment configuration"
       values = [
         # shortens pod name from `ack-s3-s3-chart-xxxxxxxxxxxxx` to `ack-s3-xxxxxxxxxxxxx`
@@ -270,8 +267,8 @@ module "rds" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0.1.1"
       namespace           = local.rds_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       create_namespace    = true
       description         = "ACK RDS Controller v2 Helm chart deployment configuration"
       values = [
@@ -338,8 +335,8 @@ module "amp" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0.1.1"
       namespace           = local.amp_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       create_namespace    = true
       description         = "ACK amp Controller v2 Helm chart deployment configuration"
       values = [
@@ -406,8 +403,8 @@ module "emrcontainers" {
       repository          = "oci://public.ecr.aws/aws-controllers-k8s"
       version             = "v0-stable"
       namespace           = local.emr_name
-      repository_username = local.ecrpublic_username
-      repository_password = local.ecrpublic_token
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
       description         = "Helm Charts for the emrcontainers controller for AWS Controllers for Kubernetes (ACK)"
       values = [
         # shortens pod name from `ack-emrcontainers-emrcontainers-chart-xxxxxxxxxxxxx` to `ack-emrcontainers-xxxxxxxxxxxxx`
