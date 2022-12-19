@@ -456,7 +456,7 @@ resource "aws_iam_policy" "emrcontainers" {
   policy      = data.aws_iam_policy_document.emrcontainers.json
 }
 
-// inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# inline policy providered by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
   statement {
     effect = "Allow"
