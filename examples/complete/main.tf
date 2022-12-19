@@ -2,6 +2,17 @@ provider "aws" {
   region = var.aws_region
 }
 
+# This provider is required for ECR to autheticate with public repos. Please note ECR authetication requires us-east-1 as region hence its hardcoded below.
+# If your region is same as us-east-1 then you can just use one aws provider
+provider "aws" {
+  alias  = "ecr"
+  region = "us-east-1"
+}
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.ecr
+}
+
 provider "kubernetes" {
   host                   = module.eks_blueprints.eks_cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks_blueprints.eks_cluster_certificate_authority_data)
@@ -91,7 +102,10 @@ module "eks_blueprints_kubernetes_addons" {
 module "eks_ack_addons" {
   source = "../../"
 
-  cluster_id = module.eks_blueprints.eks_cluster_id
+  cluster_id         = module.eks_blueprints.eks_cluster_id
+  ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
+  ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
+
 
   # Wait for data plane to be ready
   data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]

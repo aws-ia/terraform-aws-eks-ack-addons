@@ -3,6 +3,16 @@ variable "cluster_id" {
   type        = string
 }
 
+variable "ecrpublic_username" {
+  description = "User name decoded from the authorization token for accessing public ECR"
+  type        = string
+}
+
+variable "ecrpublic_token" {
+  description = "Password decoded from the authorization token for accessing public ECR"
+  type        = string
+}
+
 variable "data_plane_wait_arn" {
   description = "Addon deployment will not proceed until this value is known. Set to node group/Fargate profile ARN to wait for data plane to be ready before provisioning addons"
   type        = string
