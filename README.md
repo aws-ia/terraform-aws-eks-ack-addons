@@ -9,6 +9,8 @@ module "eks_ack_addons" {
   source = "aws-ia/eks-ack-addons/aws"
 
   cluster_id = "example-ack"
+  ecrpublic_username = local.ecrpublic_username
+  ecrpublic_token = local.ecrpublic_token
 
   enable_api_gatewayv2 = true
   enable_dynamodb      = true
