@@ -447,6 +447,7 @@ module "emrcontainers" {
 resource "aws_iam_policy" "emrcontainers" {
   count = var.enable_emrcontainers ? 1 : 0
 
+  name_prefix        = format("%s-%s", local.emr_name, "controller-iam-policies")
   description = "IAM policy for EMRcontainers controller"
   path        = "/"
   policy      = data.aws_iam_policy_document.emrcontainers.json
