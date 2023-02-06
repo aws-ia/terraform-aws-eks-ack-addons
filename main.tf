@@ -600,7 +600,7 @@ data "aws_iam_policy" "sfn" {
 ################################################################################
 
 locals {
-  sfn_name = "ack-eb"
+  eb_name = "ack-eb"
 }
 
 data "aws_iam_policy" "eb" {
