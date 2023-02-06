@@ -526,3 +526,85 @@ data "aws_iam_policy_document" "emrcontainers" {
   }
 
 }
+
+################################################################################
+# Step Functions
+################################################################################
+
+locals {
+  sfn_name = "ack-sfn"
+}
+
+module "sfn" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+
+  count = var.enable_sfn ? 1 : 0
+
+  helm_config = merge(
+    {
+      name                = local.sfn_name
+      chart               = "sfn-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.3"
+      namespace           = local.sfn_name
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
+      create_namespace    = true
+      description         = "ACK SFN Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-sfn-sfn-chart-xxxxxxxxxxxxx` to `ack-sfn-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-sfn
+        EOT
+      ]
+    },
+    var.sfn_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.sfn_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.sfn_helm_config.namespace, local.sfn_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.sfn_name
+
+    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+data "aws_iam_policy" "sfn" {
+  count = var.enable_sfn ? 1 : 0
+
+  name = "AWSStepFunctionsFullAccess"
+}
+
+################################################################################
+# Event Bridge
+################################################################################
+
+locals {
+  sfn_name = "ack-eb"
+}
+
+data "aws_iam_policy" "eb" {
+  count = var.enable_eb ? 1 : 0
+
+  name = "AmazonEventBridgeFullAccess"
+}
