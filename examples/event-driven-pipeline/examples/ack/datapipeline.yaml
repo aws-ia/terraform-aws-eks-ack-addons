@@ -1,0 +1,37 @@
+---
+apiVersion: emrcontainers.services.k8s.aws/v1alpha1
+kind: VirtualCluster
+metadata:
+  name: my-ack-vc
+spec:
+  name: my-ack-vc
+  containerProvider:
+    id: emr-eks-ack  # your eks cluster name
+    type_: EKS
+    info:
+      eksInfo:
+        namespace: emr-data-team-a
+---
+# S3 bucket for spark job scripts and data input/output
+
+---
+# steps functions to orchestrate spark jobs in EMR on EKS
+apiVersion: sfn.services.k8s.aws/v1alpha1
+kind: StateMachine
+definition: string
+loggingConfiguration: 
+  destinations:
+    cloudWatchLogsLogGroup: 
+      logGroupARN: string
+  includeExecutionData: boolean
+  level: string
+name: string
+roleARN: string
+tags:
+- key: string
+  value: string
+tracingConfiguration: 
+  enabled: boolean
+type_: string
+---
+# Event Bridge to capture the new data upload and trigger step functions
