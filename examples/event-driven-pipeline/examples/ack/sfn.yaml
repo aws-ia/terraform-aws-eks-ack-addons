@@ -5,7 +5,7 @@ metadata:
   namespace: ack-demo
 spec:
   name: run-spark-job-ack
-  roleARN: "arn:aws:iam::349361870252:role/service-role/StepFunctions-run-emreks-job-role-624b324e"   # need to pass. need permission to access emr virtual cluster
+  roleARN: "arn:aws:iam::349361870252:role/service-role/StepFunctions-run-emreks-job-role-624b324e"   # need to pass. need permission to access emr virtual cluster. need PassRole
   tags:
   - key: owner
     value: sfn-ack

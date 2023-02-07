@@ -583,7 +583,7 @@ module "sfn" {
     create_kubernetes_service_account = true
     kubernetes_service_account        = local.sfn_name
 
-    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn, aws_iam_policy.sfn_additional[0].arn]
+    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn]
   }
 
   addon_context = local.addon_context
@@ -595,26 +595,6 @@ data "aws_iam_policy" "sfn" {
   name = "AWSStepFunctionsFullAccess"
 }
 
-resource "aws_iam_policy" "sfn_additional" {
-  count = var.enable_sfn ? 1 : 0
-
-  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
-  description = "additional IAM policy for sfn controller"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.sfn_additional.json
-}
-
-data "aws_iam_policy_document" "sfn_additional" {
-  statement {
-
-    effect    = "Allow"
-    resources = ["*"]
-
-    actions = [
-      "iam:PassRole"
-    ]
-  }
-}
 
 ################################################################################
 # Event Bridge
@@ -622,6 +602,60 @@ data "aws_iam_policy_document" "sfn_additional" {
 
 locals {
   eb_name = "ack-eb"
+}
+
+module "eventbridge" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+
+  count = var.enable_eb ? 1 : 0
+
+  helm_config = merge(
+    {
+      name                = local.eb_name
+      chart               = "eb-ack-chart"
+      repository          = "oci://public.ecr.aws/k4r0k1t7"
+      version             = "v0.0.2"
+      namespace           = local.eb_name
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
+      create_namespace    = true
+      description         = "ACK eventbridge Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-eb-eb-chart-xxxxxxxxxxxxx` to `ack-eb-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-eb
+        EOT
+      ]
+    },
+    var.eb_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.eb_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.eb_helm_config.namespace, local.eb_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.eb_name
+
+    irsa_iam_policies = [data.aws_iam_policy.eb[0].arn]
+  }
+
+  addon_context = local.addon_context
 }
 
 data "aws_iam_policy" "eb" {

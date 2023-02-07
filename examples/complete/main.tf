@@ -117,7 +117,8 @@ module "eks_ack_addons" {
   enable_amp           = true
   enable_emrcontainers = true
   enable_sfn           = true
-  
+  enable_eb            = true
+
   tags = local.tags
 }
 
