@@ -583,7 +583,7 @@ module "sfn" {
     create_kubernetes_service_account = true
     kubernetes_service_account        = local.sfn_name
 
-    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn,data.aws_iam_policy.sfn_additional[0].arn]
+    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn, aws_iam_policy.sfn_additional[0].arn]
   }
 
   addon_context = local.addon_context
@@ -594,6 +594,16 @@ data "aws_iam_policy" "sfn" {
 
   name = "AWSStepFunctionsFullAccess"
 }
+
+resource "aws_iam_policy" "sfn_additional" {
+  count = var.enable_sfn ? 1 : 0
+
+  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
+  description = "additional IAM policy for sfn controller"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.sfn_additional.json
+}
+
 data "aws_iam_policy_document" "sfn_additional" {
   statement {
 
