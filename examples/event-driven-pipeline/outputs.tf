@@ -14,12 +14,12 @@ output "emr_on_eks_role_arn" {
   value       = module.eks_blueprints.emr_on_eks_role_arn
 }
 
-output "emr_studio_service_role_arn" {
-  description = "EMR studio service role ARN"
-  value       = aws_iam_role.emr_studio_service_role.arn
+output "stepfunctions_role_arn" {
+  description = "IAM execution role arn for step functions"
+  value       = aws_iam_role.sfn_execution_role.arn
 }
 
-output "emr_studio_S3_bucket_id" {
-  description = "EMR studio s3 bucket id"
-  value       = module.s3_bucket.s3_bucket_id
+output "eventbridge_role_arn" {
+  description = "IAM execution role arn for eventbridge"
+  value       = aws_iam_role.eb_execution_role.arn
 }

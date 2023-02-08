@@ -14,8 +14,6 @@ module "eks_blueprints_kubernetes_addons" {
   enable_amazon_eks_kube_proxy         = true
   enable_amazon_eks_aws_ebs_csi_driver = true
 
-  enable_aws_load_balancer_controller = true
-  enable_cert_manager                 = true
   #---------------------------------------
   # Metrics Server
   #---------------------------------------
@@ -47,21 +45,6 @@ module "eks_blueprints_kubernetes_addons" {
       aws_region       = var.region,
       eks_cluster_id   = local.name,
       operating_system = "linux"
-    })]
-  }
-
-  #---------------------------------------
-  # CloudWatch metrics for EKS
-  #---------------------------------------
-  enable_aws_cloudwatch_metrics = true
-  aws_cloudwatch_metrics_helm_config = {
-    name       = "aws-cloudwatch-metrics"
-    chart      = "aws-cloudwatch-metrics"
-    repository = "https://aws.github.io/eks-charts"
-    version    = "0.0.7"
-    namespace  = "amazon-cloudwatch"
-    values = [templatefile("${path.module}/helm-values/aws-cloudwatch-metrics-valyes.yaml", {
-      eks_cluster_id = var.name
     })]
   }
 
@@ -100,6 +83,9 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   enable_sfn = true
-
+  enable_s3            = true
+  enable_emrcontainers = true
+  enable_eb            = true
+  
   tags = local.tags
 }

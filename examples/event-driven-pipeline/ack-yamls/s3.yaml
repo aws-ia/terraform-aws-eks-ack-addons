@@ -1,0 +1,18 @@
+apiVersion: s3.services.k8s.aws/v1alpha1
+kind: Bucket
+metadata:
+  name: sparkjobbucket
+spec:
+  name: sparkjobbucket
+  notification: 
+    EventBridgeConfiguration: 
+
+    events:
+    - string
+    filter: 
+      key: 
+        filterRules:
+        - name: string
+          value: string
+    id: string
+    topicARN: string

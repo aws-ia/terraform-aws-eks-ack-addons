@@ -1,0 +1,49 @@
+# apiVersion: eventbridge.services.k8s.aws/v1alpha1
+# kind: EventBus
+# metadata:
+#   name: eventbus-ack
+#   annotations:
+#     services.k8s.aws/region: us-east-1
+# spec:
+#   name: eventbus-ack
+#   tags:
+#     - key: tag-01
+#       value: value-01
+# ---
+apiVersion: eventbridge.services.k8s.aws/v1alpha1
+kind: Rule
+metadata:
+  name: eb-rule-ack
+  annotations:
+    services.k8s.aws/region: us-east-1
+spec:
+  name: eb-rule-ack
+  description: "ACK EventBridge Filter Rule to sfn using event bus reference"
+  #use default one if don't set
+  # eventBusRef: 
+  #   from:
+  #     name: eventbus-ack
+  eventPattern: |      # replace s3 bucket name and dir
+    {
+      "source": ["aws.s3"],
+      "detail-type": ["Object Created"],
+      "detail": {
+        "bucket": {
+          "name": ["sparkjobbucket"]    
+        },
+        "object": {
+          "key": [{
+            "prefix": "input/"
+          }]
+        }
+      }
+    }
+  targets:
+    - arn: arn:aws:states:us-east-1:349361870252:stateMachine:run-spark-job-ack # replace with your sfn arn
+      id: sfn-run-spark-job-target
+      roleARN: arn:aws:iam::349361870252:role/service-role/Amazon_EventBridge_Invoke_Step_Functions_1004390267 # replace your EventBridge_Invoke_Step_Functions role arn
+      retryPolicy:
+        maximumRetryAttempts: 0 # no retries
+  tags:
+    - key: tag-01
+      value: value-01
