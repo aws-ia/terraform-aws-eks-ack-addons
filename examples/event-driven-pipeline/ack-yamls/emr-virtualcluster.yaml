@@ -11,4 +11,3 @@ spec:
     info:
       eksInfo:
         namespace: emr-data-team-a
-

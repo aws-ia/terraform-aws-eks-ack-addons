@@ -14,21 +14,6 @@ module "eks_blueprints_kubernetes_addons" {
   enable_amazon_eks_kube_proxy         = true
   enable_amazon_eks_aws_ebs_csi_driver = true
 
-  #---------------------------------------
-  # Metrics Server
-  #---------------------------------------
-  enable_metrics_server = true
-  metrics_server_helm_config = {
-    name       = "metrics-server"
-    repository = "https://kubernetes-sigs.github.io/metrics-server/" # (Optional) Repository URL where to locate the requested chart.
-    chart      = "metrics-server"
-    version    = "3.8.2"
-    namespace  = "kube-system"
-    timeout    = "300"
-    values = [templatefile("${path.module}/helm-values/metrics-server-values.yaml", {
-      operating_system = "linux"
-    })]
-  }
 
   #---------------------------------------
   # Cluster Autoscaler
@@ -74,7 +59,7 @@ module "eks_blueprints_kubernetes_addons" {
 ################################################################################
 module "eks_ack_addons" {
 
-  source = "github.com/aws-ia/terraform-aws-eks-ack-addons"
+  source = "../../"
 
   cluster_id          = module.eks_blueprints.eks_cluster_id
   data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0] # Wait for data plane to be ready
@@ -82,10 +67,10 @@ module "eks_ack_addons" {
   ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
-  enable_sfn = true
+  enable_sfn           = true
   enable_s3            = true
   enable_emrcontainers = true
   enable_eb            = true
-  
+
   tags = local.tags
 }
