@@ -46,7 +46,7 @@ locals {
 }
 
 module "api_gatewayv2" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_api_gatewayv2 ? 1 : 0
 
@@ -122,7 +122,7 @@ locals {
 }
 
 module "dynamodb" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_dynamodb ? 1 : 0
 
@@ -189,7 +189,7 @@ locals {
 }
 
 module "s3" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_s3 ? 1 : 0
 
@@ -256,7 +256,7 @@ locals {
 }
 
 module "rds" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_rds ? 1 : 0
 
@@ -324,7 +324,7 @@ locals {
 }
 
 module "amp" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_amp ? 1 : 0
 
@@ -392,7 +392,7 @@ locals {
 }
 
 module "emrcontainers" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_emrcontainers ? 1 : 0
 
@@ -536,7 +536,7 @@ locals {
 }
 
 module "sfn" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_sfn ? 1 : 0
 
@@ -630,7 +630,7 @@ locals {
 }
 
 module "eventbridge" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.1"
 
   count = var.enable_eb ? 1 : 0
 

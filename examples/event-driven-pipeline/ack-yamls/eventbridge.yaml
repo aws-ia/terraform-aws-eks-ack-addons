@@ -1,15 +1,3 @@
-# apiVersion: eventbridge.services.k8s.aws/v1alpha1
-# kind: EventBus
-# metadata:
-#   name: eventbus-ack
-#   annotations:
-#     services.k8s.aws/region: us-east-1
-# spec:
-#   name: eventbus-ack
-#   tags:
-#     - key: tag-01
-#       value: value-01
-# ---
 apiVersion: eventbridge.services.k8s.aws/v1alpha1
 kind: Rule
 metadata:
@@ -19,11 +7,7 @@ metadata:
 spec:
   name: eb-rule-ack
   description: "ACK EventBridge Filter Rule to sfn using event bus reference"
-  #use default one if don't set
-  # eventBusRef: 
-  #   from:
-  #     name: eventbus-ack
-  eventPattern: |      # replace s3 bucket name and dir
+  eventPattern: |    
     {
       "source": ["aws.s3"],
       "detail-type": ["Object Created"],
@@ -39,9 +23,9 @@ spec:
       }
     }
   targets:
-    - arn: arn:aws:states:us-west-2:349361870252:stateMachine:run-spark-job-ack # replace with your sfn arn
+    - arn: arn:aws:states:us-west-2:xxxxxxx:stateMachine:run-spark-job-ack # replace with your sfn arn
       id: sfn-run-spark-job-target
-      roleARN: arn:aws:iam::349361870252:role/event-driven-pipeline-demo-eb-execution-role # replace your eventbridge_role_arn
+      roleARN: arn:aws:iam::xxxxxxx:role/event-driven-pipeline-demo-eb-execution-role # replace your eventbridge_role_arn
       retryPolicy:
         maximumRetryAttempts: 0 # no retries
   tags:

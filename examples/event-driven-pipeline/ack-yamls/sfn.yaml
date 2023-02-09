@@ -4,7 +4,7 @@ metadata:
   name: run-spark-job-ack
 spec:
   name: run-spark-job-ack
-  roleARN: "arn:aws:iam::349361870252:role/event-driven-pipeline-demo-sfn-execution-role"   # replace with your stepfunctions_role_arn
+  roleARN: "arn:aws:iam::xxxxxxxx:role/event-driven-pipeline-demo-sfn-execution-role"   # replace with your stepfunctions_role_arn
   tags:
   - key: owner
     value: sfn-ack
@@ -18,7 +18,7 @@ spec:
           "Resource": "arn:aws:states:::emr-containers:startJobRun.sync",
           "Parameters": {
             "VirtualClusterId": "f0u3vt3y4q2r1ot11m7v809y6",  
-            "ExecutionRoleArn": "arn:aws:iam::349361870252:role/event-driven-pipeline-demo-emr-eks-data-team-a",
+            "ExecutionRoleArn": "arn:aws:iam::xxxxxx:role/event-driven-pipeline-demo-emr-eks-data-team-a",
             "ReleaseLabel": "emr-6.7.0-latest",
             "JobDriver": {
               "SparkSubmitJobDriver": {
