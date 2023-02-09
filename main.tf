@@ -583,7 +583,7 @@ module "sfn" {
     create_kubernetes_service_account = true
     kubernetes_service_account        = local.sfn_name
 
-    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn]
+    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn, aws_iam_policy.sfnpasspolicy[0].arn]
   }
 
   addon_context = local.addon_context
@@ -593,6 +593,31 @@ data "aws_iam_policy" "sfn" {
   count = var.enable_sfn ? 1 : 0
 
   name = "AWSStepFunctionsFullAccess"
+}
+
+
+resource "aws_iam_policy" "sfnpasspolicy" {
+  count = var.enable_sfn ? 1 : 0
+
+  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
+
+  path        = "/"
+  description = "passrole policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "iam:PassRole",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 
 

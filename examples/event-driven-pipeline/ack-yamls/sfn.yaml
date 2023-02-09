@@ -2,15 +2,14 @@ apiVersion: sfn.services.k8s.aws/v1alpha1
 kind: StateMachine
 metadata:
   name: run-spark-job-ack
-  namespace: ack-demo
 spec:
   name: run-spark-job-ack
-  roleARN: "arn:aws:iam::349361870252:role/service-role/StepFunctions-run-emreks-job-role-624b324e"   # need to pass. need permission to access emr virtual cluster. need PassRole
+  roleARN: "arn:aws:iam::349361870252:role/event-driven-pipeline-demo-sfn-execution-role"   # replace with your stepfunctions_role_arn
   tags:
   - key: owner
     value: sfn-ack
   definition: |
-      {
+    {
       "Comment": "A description of my state machine",
       "StartAt": "input-output-s3",
       "States": {
@@ -18,15 +17,15 @@ spec:
           "Type": "Task",
           "Resource": "arn:aws:states:::emr-containers:startJobRun.sync",
           "Parameters": {
-            "VirtualClusterId": "yapyjlu010v917k3jxmx76fq1",
-            "ExecutionRoleArn": "arn:aws:iam::349361870252:role/emr-eks-emrstudio-emr-eks-data-team-a",
+            "VirtualClusterId": "f0u3vt3y4q2r1ot11m7v809y6",  
+            "ExecutionRoleArn": "arn:aws:iam::349361870252:role/event-driven-pipeline-demo-emr-eks-data-team-a",
             "ReleaseLabel": "emr-6.7.0-latest",
             "JobDriver": {
               "SparkSubmitJobDriver": {
-                "EntryPoint": "s3://step-functions-test2/scripts/pyspark-taxi-trip.py",
+                "EntryPoint": "s3://sparkjob-demo-bucket/scripts/pyspark-taxi-trip.py",
                 "EntryPointArguments": [
-                  "s3://step-functions-test2/input/",
-                  "s3://step-functions-test2/output/"
+                  "s3://sparkjob-demo-bucket/input/",
+                  "s3://sparkjob-demo-bucket/output/"
                 ],
                 "SparkSubmitParameters": "--conf spark.executor.instances=10"
               }
@@ -40,41 +39,15 @@ spec:
                   "spark.executor.cores":"1",
                   "spark.driver.memory": "10g",
                   "spark.executor.memory": "10g",
-                  "spark.kubernetes.driver.podTemplateFile":"s3://step-functions-test2/scripts/driver-pod-template.yaml",
-                  "spark.kubernetes.executor.podTemplateFile":"s3://step-functions-test2/scripts/executor-pod-template.yaml",
+                  "spark.kubernetes.driver.podTemplateFile":"s3://sparkjob-demo-bucket/scripts/driver-pod-template.yaml",
+                  "spark.kubernetes.executor.podTemplateFile":"s3://sparkjob-demo-bucket/scripts/executor-pod-template.yaml",
                   "spark.local.dir" : "/data1,/data2"
                 }
               }
-              ],
-              "MonitoringConfiguration": {
-                "PersistentAppUI":"ENABLED",
-                "CloudWatchMonitoringConfiguration": {
-                  "LogGroupName":"emr-on-eks",
-                  "LogStreamNamePrefix":"test1"
-                }
-              }
+              ]
             }
           },
-          "Next": "local-data"
-        },
-        "local-data": {
-          "Type": "Task",
-          "Resource": "arn:aws:states:::emr-containers:startJobRun.sync",
-          "Parameters": {
-            "VirtualClusterId": "yapyjlu010v917k3jxmx76fq1",
-            "ExecutionRoleArn": "arn:aws:iam::349361870252:role/emr-eks-emrstudio-emr-eks-data-team-a",
-            "ReleaseLabel": "emr-6.7.0-latest",
-            "JobDriver": {
-              "SparkSubmitJobDriver": {
-                "EntryPoint": "local:///usr/lib/spark/examples/src/main/python/pi.py",
-                "EntryPointArguments": [
-                  "60"
-                ],
-                "SparkSubmitParameters": "--conf spark.executor.instances=2 --conf spark.executor.memory=1G --conf spark.executor.cores=1 --conf spark.driver.cores=1"
-              }
-            }
-          },
-          "End": true
+           "End": true
         }
       }
     }

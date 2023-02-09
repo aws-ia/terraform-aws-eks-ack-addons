@@ -15,7 +15,7 @@ kind: Rule
 metadata:
   name: eb-rule-ack
   annotations:
-    services.k8s.aws/region: us-east-1
+    services.k8s.aws/region: us-west-2
 spec:
   name: eb-rule-ack
   description: "ACK EventBridge Filter Rule to sfn using event bus reference"
@@ -29,19 +29,19 @@ spec:
       "detail-type": ["Object Created"],
       "detail": {
         "bucket": {
-          "name": ["sparkjobbucket"]    
+          "name": ["sparkjob-demo-bucket"]    
         },
         "object": {
           "key": [{
-            "prefix": "input/"
+            "prefix": "scripts/"
           }]
         }
       }
     }
   targets:
-    - arn: arn:aws:states:us-east-1:349361870252:stateMachine:run-spark-job-ack # replace with your sfn arn
+    - arn: arn:aws:states:us-west-2:349361870252:stateMachine:run-spark-job-ack # replace with your sfn arn
       id: sfn-run-spark-job-target
-      roleARN: arn:aws:iam::349361870252:role/service-role/Amazon_EventBridge_Invoke_Step_Functions_1004390267 # replace your EventBridge_Invoke_Step_Functions role arn
+      roleARN: arn:aws:iam::349361870252:role/event-driven-pipeline-demo-eb-execution-role # replace your eventbridge_role_arn
       retryPolicy:
         maximumRetryAttempts: 0 # no retries
   tags:

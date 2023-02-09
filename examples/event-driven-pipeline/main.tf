@@ -50,13 +50,46 @@ module "eks_blueprints" {
   }
 
   managed_node_groups = {
-    example = {
-      node_group_name = "example"
-      instance_types  = ["m5.large"]
-      min_size        = 3
+    # Core node group for deploying all the admin add-ons
+    mng1 = {
+      node_group_name = "core-node-grp"
       subnet_ids      = module.vpc.private_subnets
-    },
 
+      instance_types = ["m5.xlarge"]
+      ami_type       = "AL2_x86_64"
+      capacity_type  = "ON_DEMAND"
+
+      disk_size = 100
+      disk_type = "gp3"
+
+      max_size               = 9
+      min_size               = 3
+      desired_size           = 3
+      create_launch_template = true
+      launch_template_os     = "amazonlinux2eks"
+
+      update_config = [{
+        max_unavailable_percentage = 50
+      }]
+
+      k8s_labels = {
+        Environment   = "preprod"
+        Zone          = "test"
+        WorkerType    = "ON_DEMAND"
+        NodeGroupType = "core"
+      }
+
+      additional_tags = {
+        Name                                                             = "core-node-grp"
+        subnet_type                                                      = "private"
+        "k8s.io/cluster-autoscaler/node-template/label/arch"             = "x86"
+        "k8s.io/cluster-autoscaler/node-template/label/kubernetes.io/os" = "linux"
+        "k8s.io/cluster-autoscaler/node-template/label/noderole"         = "core"
+        "k8s.io/cluster-autoscaler/node-template/label/node-lifecycle"   = "on-demand"
+        "k8s.io/cluster-autoscaler/experiments"                          = "owned"
+        "k8s.io/cluster-autoscaler/enabled"                              = "true"
+      }
+    },
     mng2 = {
       node_group_name = "spark-node-grp"
       subnet_ids      = [module.vpc.private_subnets[0]]

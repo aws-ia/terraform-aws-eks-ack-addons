@@ -6,8 +6,8 @@ metadata:
 spec:
   name: my-ack-vc
   containerProvider:
-    id: emr-eks-ack  # your eks cluster name
+    id: event-driven-pipeline-demo  # your eks cluster name
     type_: EKS
     info:
       eksInfo:
-        namespace: emr-data-team-a
+        namespace: emr-data-team-a # namespace binding with EMR virtual cluster
