@@ -27,5 +27,5 @@ spec:
       retryPolicy:
         maximumRetryAttempts: 0 # no retries
   tags:
-    - key: tag-01
-      value: value-01
+    - key: env
+      value: dev
