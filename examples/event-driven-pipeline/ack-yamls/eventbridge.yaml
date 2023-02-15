@@ -27,5 +27,5 @@ spec:
       retryPolicy:
         maximumRetryAttempts: 0 # no retries
   tags:
-    - key: env
-      value: dev
+    - key: owner
+      value: eb-ack
