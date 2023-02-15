@@ -2,8 +2,6 @@ apiVersion: eventbridge.services.k8s.aws/v1alpha1
 kind: Rule
 metadata:
   name: eb-rule-ack
-  annotations:
-    services.k8s.aws/region: us-west-2
 spec:
   name: eb-rule-ack
   description: "ACK EventBridge Filter Rule to sfn using event bus reference"
