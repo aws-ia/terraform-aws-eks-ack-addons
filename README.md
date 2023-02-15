@@ -53,14 +53,14 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_amp"></a> [amp](#module\_amp) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_api_gatewayv2"></a> [api\_gatewayv2](#module\_api\_gatewayv2) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_eventbridge"></a> [eventbridge](#module\_eventbridge) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_rds"></a> [rds](#module\_rds) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_s3"></a> [s3](#module\_s3) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
-| <a name="module_sfn"></a> [sfn](#module\_sfn) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.18.1 |
+| <a name="module_amp"></a> [amp](#module\_amp) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_api_gatewayv2"></a> [api\_gatewayv2](#module\_api\_gatewayv2) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_eventbridge"></a> [eventbridge](#module\_eventbridge) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_rds"></a> [rds](#module\_rds) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_s3"></a> [s3](#module\_s3) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
+| <a name="module_sfn"></a> [sfn](#module\_sfn) | github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon | v4.24.0 |
 
 ## Resources
 
