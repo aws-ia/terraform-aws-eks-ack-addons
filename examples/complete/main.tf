@@ -52,7 +52,7 @@ locals {
 ################################################################################
 
 module "eks_blueprints" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.24.0"
 
   cluster_name    = local.name
   cluster_version = "1.23"
@@ -77,7 +77,7 @@ module "eks_blueprints" {
 ################################################################################
 
 module "eks_blueprints_kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.24.0"
 
   eks_cluster_id       = module.eks_blueprints.eks_cluster_id
   eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
@@ -116,6 +116,8 @@ module "eks_ack_addons" {
   enable_rds           = true
   enable_amp           = true
   enable_emrcontainers = true
+  enable_sfn           = true
+  enable_eb            = true
 
   tags = local.tags
 }
@@ -197,7 +199,7 @@ resource "aws_iam_policy" "dynamodb_access" {
 }
 
 module "irsa" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa?ref=v4.24.0"
 
   create_kubernetes_namespace = true
   kubernetes_namespace        = "ack-demo"

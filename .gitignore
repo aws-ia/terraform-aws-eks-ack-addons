@@ -30,3 +30,5 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+**/examples/event-driven-pipeline/input/*

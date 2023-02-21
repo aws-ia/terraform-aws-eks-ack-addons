@@ -46,7 +46,7 @@ locals {
 }
 
 module "api_gatewayv2" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_api_gatewayv2 ? 1 : 0
 
@@ -122,7 +122,7 @@ locals {
 }
 
 module "dynamodb" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_dynamodb ? 1 : 0
 
@@ -189,7 +189,7 @@ locals {
 }
 
 module "s3" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_s3 ? 1 : 0
 
@@ -256,7 +256,7 @@ locals {
 }
 
 module "rds" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_rds ? 1 : 0
 
@@ -324,7 +324,7 @@ locals {
 }
 
 module "amp" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.12.2"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_amp ? 1 : 0
 
@@ -392,7 +392,7 @@ locals {
 }
 
 module "emrcontainers" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.18.0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
 
   count = var.enable_emrcontainers ? 1 : 0
 
@@ -447,7 +447,7 @@ module "emrcontainers" {
 resource "aws_iam_policy" "emrcontainers" {
   count = var.enable_emrcontainers ? 1 : 0
 
-  name        = format("%s-%s", local.emr_name, "controller-iam-policies")
+  name_prefix = format("%s-%s", local.emr_name, "controller-iam-policies")
   description = "IAM policy for EMRcontainers controller"
   path        = "/"
   policy      = data.aws_iam_policy_document.emrcontainers.json
@@ -525,4 +525,166 @@ data "aws_iam_policy_document" "emrcontainers" {
     resources = ["*"]
   }
 
+}
+
+################################################################################
+# Step Functions
+################################################################################
+
+locals {
+  sfn_name = "ack-sfn"
+}
+
+module "sfn" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
+
+  count = var.enable_sfn ? 1 : 0
+
+  helm_config = merge(
+    {
+      name                = local.sfn_name
+      chart               = "sfn-chart"
+      repository          = "oci://public.ecr.aws/aws-controllers-k8s"
+      version             = "v0.1.3"
+      namespace           = local.sfn_name
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
+      create_namespace    = true
+      description         = "ACK SFN Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-sfn-sfn-chart-xxxxxxxxxxxxx` to `ack-sfn-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-sfn
+        EOT
+      ]
+    },
+    var.sfn_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.sfn_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.sfn_helm_config.namespace, local.sfn_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.sfn_name
+
+    irsa_iam_policies = [data.aws_iam_policy.sfn[0].arn, aws_iam_policy.sfnpasspolicy[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+data "aws_iam_policy" "sfn" {
+  count = var.enable_sfn ? 1 : 0
+
+  name = "AWSStepFunctionsFullAccess"
+}
+
+
+resource "aws_iam_policy" "sfnpasspolicy" {
+  count = var.enable_sfn ? 1 : 0
+
+  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
+
+  path        = "/"
+  description = "passrole policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "iam:PassRole",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+
+################################################################################
+# Event Bridge
+################################################################################
+
+locals {
+  eb_name = "ack-eb"
+}
+
+module "eventbridge" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.24.0"
+
+  count = var.enable_eb ? 1 : 0
+
+  helm_config = merge(
+    {
+      name                = local.eb_name
+      chart               = "eb-ack-chart"
+      repository          = "oci://public.ecr.aws/k4r0k1t7"
+      version             = "v0.0.2"
+      namespace           = local.eb_name
+      repository_username = var.ecrpublic_username
+      repository_password = var.ecrpublic_token
+      create_namespace    = true
+      description         = "ACK eventbridge Controller v2 Helm chart deployment configuration"
+      values = [
+        # shortens pod name from `ack-eb-eb-chart-xxxxxxxxxxxxx` to `ack-eb-xxxxxxxxxxxxx`
+        <<-EOT
+          nameOverride: ack-eb
+        EOT
+      ]
+    },
+    var.eb_helm_config
+  )
+
+  set_values = [
+    {
+      name  = "serviceAccount.name"
+      value = local.eb_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = false
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    }
+  ]
+
+  irsa_config = {
+    create_kubernetes_namespace = true
+    kubernetes_namespace        = try(var.eb_helm_config.namespace, local.eb_name)
+
+    create_kubernetes_service_account = true
+    kubernetes_service_account        = local.eb_name
+
+    irsa_iam_policies = [data.aws_iam_policy.eb[0].arn]
+  }
+
+  addon_context = local.addon_context
+}
+
+data "aws_iam_policy" "eb" {
+  count = var.enable_eb ? 1 : 0
+
+  name = "AmazonEventBridgeFullAccess"
 }

@@ -132,3 +132,35 @@ variable "amp_helm_config" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# Step Functions
+################################################################################
+
+variable "enable_sfn" {
+  description = "Enable ACK step functions add-on"
+  type        = bool
+  default     = false
+}
+
+variable "sfn_helm_config" {
+  description = "ACK step functions Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Event Bridge
+################################################################################
+
+variable "enable_eb" {
+  description = "Enable ACK Event Bridge add-on"
+  type        = bool
+  default     = false
+}
+
+variable "eb_helm_config" {
+  description = "ACK Event Bridge Helm Chart config"
+  type        = any
+  default     = {}
+}
