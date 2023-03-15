@@ -31,7 +31,7 @@ module "eks_ack_addons" {
 
 Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws-eks-ack-addons) are intended to give users references for how to use the module as well as testing/validating changes to the source code of the module. If contributing to the project, please be sure to make any appropriate updates to the relevant examples to allow maintainers to test your changes and to keep the examples up to date for users. Thank you!
 
-- [Complete](https://github.com/aws-ia/terraform-aws-eks-addon/examples/complete)
+- [Complete](https://github.com/aws-ia/terraform-aws-eks-ack-addons/tree/main/examples/complete)
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
