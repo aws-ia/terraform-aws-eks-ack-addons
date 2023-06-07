@@ -8,18 +8,19 @@ Terraform module which provisions [AWS controllers for Kubernetes](https://aws-c
 module "eks_ack_addons" {
   source = "aws-ia/eks-ack-addons/aws"
 
-  cluster_id = "example-ack"
-  ecrpublic_username = local.ecrpublic_username
-  ecrpublic_token = local.ecrpublic_token
+  # ECR Credentials
+  ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
+  ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
-  enable_api_gatewayv2 = true
-  enable_dynamodb      = true
-  enable_s3            = true
-  enable_rds           = true
-  enable_amp           = true
-  enable_emrcontainers = true
-  enable_sfn           = true
-  enable_eb            = true
+  # Controllers to enable
+  enable_apigatewayv2      = true
+  enable_dynamodb          = true
+  enable_s3                = true
+  enable_rds               = true
+  enable_prometheusservice = true
+  enable_emrcontainers     = true
+  enable_sfn               = true
+  enable_eventbridge       = true
   
   tags = {
     Environment = "dev"
