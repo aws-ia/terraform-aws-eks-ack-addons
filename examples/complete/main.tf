@@ -1,5 +1,5 @@
 provider "aws" {
-  region = var.aws_region
+  region = local.region
 }
 
 # This provider is required for ECR to autheticate with public repos. Please note ECR authetication requires us-east-1 as region hence its hardcoded below.
@@ -14,36 +14,44 @@ data "aws_ecrpublic_authorization_token" "token" {
 }
 
 provider "kubernetes" {
-  host                   = module.eks_blueprints.eks_cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks_blueprints.eks_cluster_certificate_authority_data)
-  token                  = data.aws_eks_cluster_auth.this.token
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+  }
 }
 
 provider "helm" {
   kubernetes {
-    host                   = module.eks_blueprints.eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks_blueprints.eks_cluster_certificate_authority_data)
-    token                  = data.aws_eks_cluster_auth.this.token
-  }
-}
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
 
-data "aws_eks_cluster_auth" "this" {
-  name = module.eks_blueprints.eks_cluster_id
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      # This requires the awscli to be installed locally where Terraform is executed
+      args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    }
+  }
 }
 
 data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
-data "aws_partition" "current" {}
 
 locals {
-  name = "ack-eks-${basename(path.cwd)}"
+  name   = basename(path.cwd)
+  region = var.aws_region
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
     Blueprint  = local.name
-    GithubRepo = "github.com/aws-ia/terraform-aws-eks-ack-addons"
+    GithubRepo = "github.com/aws-ia/terraform-aws-eks-blueprints-addons"
   }
 }
 
@@ -51,21 +59,26 @@ locals {
 # EKS Cluster
 ################################################################################
 
-module "eks_blueprints" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.24.0"
+#tfsec:ignore:aws-eks-enable-control-plane-logging
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.13"
 
-  cluster_name    = local.name
-  cluster_version = "1.23"
+  cluster_name                   = local.name
+  cluster_version                = "1.27"
+  cluster_endpoint_public_access = true
 
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnets
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
 
-  managed_node_groups = {
-    example = {
-      node_group_name = "example"
-      instance_types  = ["m5.large"]
-      min_size        = 3
-      subnet_ids      = module.vpc.private_subnets
+  manage_aws_auth_configmap = true
+
+  eks_managed_node_groups = {
+    initial = {
+      instance_types = ["m5.xlarge"]
+      max_size       = 3
+      min_size       = 3
+      desired_size   = 3
     }
   }
 
@@ -76,21 +89,29 @@ module "eks_blueprints" {
 # EKS Blueprints Addons
 ################################################################################
 
-module "eks_blueprints_kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.24.0"
+module "eks_blueprints_addons" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.0.0"
 
-  eks_cluster_id       = module.eks_blueprints.eks_cluster_id
-  eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
-  eks_oidc_provider    = module.eks_blueprints.oidc_provider
-  eks_cluster_version  = module.eks_blueprints.eks_cluster_version
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
 
-  # EKS Managed Add-ons
-  enable_amazon_eks_vpc_cni    = true
-  enable_amazon_eks_coredns    = true
-  enable_amazon_eks_kube_proxy = true
+  eks_addons = {
+    coredns = {
+      timeouts = {
+        create = "25m"
+        delete = "10m"
+      }
+    }
+    vpc-cni    = {}
+    kube-proxy = {}
+  }
 
   # Add-ons
   enable_aws_load_balancer_controller = true
+  enable_metrics_server               = true
 
   tags = local.tags
 }
@@ -102,22 +123,24 @@ module "eks_blueprints_kubernetes_addons" {
 module "eks_ack_addons" {
   source = "../../"
 
-  cluster_id         = module.eks_blueprints.eks_cluster_id
+  # Cluster Info
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  # ECR Credentials
   ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
-
-  # Wait for data plane to be ready
-  data_plane_wait_arn = module.eks_blueprints.managed_node_group_arn[0]
-
-  enable_api_gatewayv2 = true
-  enable_dynamodb      = true
-  enable_s3            = true
-  enable_rds           = true
-  enable_amp           = true
-  enable_emrcontainers = true
-  enable_sfn           = true
-  enable_eb            = true
+  # Controllers to enable
+  enable_apigatewayv2      = true
+  enable_dynamodb          = true
+  enable_s3                = true
+  enable_rds               = true
+  enable_prometheusservice = true
+  enable_emrcontainers     = true
+  enable_sfn               = true
+  enable_eventbridge       = true
 
   tags = local.tags
 }
@@ -128,7 +151,7 @@ module "eks_ack_addons" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
+  version = "~> 5.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -137,17 +160,8 @@ module "vpc" {
   public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
   private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 10)]
 
-  enable_nat_gateway   = true
-  single_nat_gateway   = true
-  enable_dns_hostnames = true
-
-  # Manage so we can name
-  manage_default_network_acl    = true
-  default_network_acl_tags      = { Name = "${local.name}-default" }
-  manage_default_route_table    = true
-  default_route_table_tags      = { Name = "${local.name}-default" }
-  manage_default_security_group = true
-  default_security_group_tags   = { Name = "${local.name}-default" }
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
@@ -176,7 +190,7 @@ data "aws_iam_policy_document" "dynamodb_access" {
       "dynamodb:Update*",
       "dynamodb:PutItem"
     ]
-    resources = ["arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/ack-demo-table"]
+    resources = ["arn:aws:dynamodb:${local.region}:${data.aws_caller_identity.current.account_id}:table/ack-demo-table"]
   }
 
   statement {
@@ -190,24 +204,59 @@ data "aws_iam_policy_document" "dynamodb_access" {
   }
 }
 
+locals {
+  app = "ack-demo"
+}
+
 resource "aws_iam_policy" "dynamodb_access" {
-  name        = "${module.eks_blueprints.eks_cluster_id}-dynamodb-irsa-policy"
+  name        = "${module.eks.cluster_name}-dynamodb-irsa-policy"
   description = "iam policy for dynamodb access"
   policy      = data.aws_iam_policy_document.dynamodb_access.json
 
   tags = local.tags
 }
 
-module "irsa" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/irsa?ref=v4.24.0"
-
-  create_kubernetes_namespace = true
-  kubernetes_namespace        = "ack-demo"
-  kubernetes_service_account  = "ack-demo"
-  irsa_iam_policies           = [aws_iam_policy.dynamodb_access.arn]
-  eks_cluster_id              = module.eks_blueprints.eks_cluster_id
-  eks_oidc_provider_arn       = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${module.eks_blueprints.oidc_provider}"
+resource "kubernetes_namespace_v1" "ack_demo" {
+  metadata {
+    name = local.app
+  }
 }
+
+resource "kubernetes_service_account_v1" "ack_demo" {
+  metadata {
+    name      = local.app
+    namespace = kubernetes_namespace_v1.ack_demo.id
+  }
+  automount_service_account_token = false
+}
+
+module "irsa" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "~> 1.1.0"
+
+  # Disable helm release
+  create_release = false
+
+  # IAM role for service account (IRSA)
+  create_role          = true
+  role_name            = "${local.name}-${local.app}"
+  role_name_use_prefix = true
+  create_policy        = false
+  role_policies = {
+    DynamoDbAccess = aws_iam_policy.dynamodb_access.arn
+  }
+
+  oidc_providers = {
+    this = {
+      provider_arn    = module.eks.oidc_provider_arn
+      namespace       = kubernetes_namespace_v1.ack_demo.id
+      service_account = basename(kubernetes_service_account_v1.ack_demo.id)
+    }
+  }
+
+  tags = local.tags
+}
+
 
 resource "aws_security_group" "vpc_link_sg" {
   # checkov:skip=CKV2_AWS_5
