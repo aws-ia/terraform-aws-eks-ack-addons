@@ -1,6 +1,28 @@
-variable "cluster_id" {
-  description = "EKS Cluster Id"
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
   type        = string
+}
+
+variable "cluster_endpoint" {
+  description = "Endpoint for your Kubernetes API server"
+  type        = string
+}
+
+variable "oidc_provider_arn" {
+  description = "The ARN of the cluster OIDC Provider"
+  type        = string
+}
+
+variable "create_delay_duration" {
+  description = "The duration to wait before creating resources"
+  type        = string
+  default     = "30s"
+}
+
+variable "create_delay_dependencies" {
+  description = "Dependency attribute which must be resolved before starting the `create_delay_duration`"
+  type        = list(string)
+  default     = []
 }
 
 variable "ecrpublic_username" {
@@ -13,24 +35,6 @@ variable "ecrpublic_token" {
   type        = string
 }
 
-variable "data_plane_wait_arn" {
-  description = "Addon deployment will not proceed until this value is known. Set to node group/Fargate profile ARN to wait for data plane to be ready before provisioning addons"
-  type        = string
-  default     = ""
-}
-
-variable "irsa_iam_role_path" {
-  description = "IAM role path for IRSA roles"
-  type        = string
-  default     = "/"
-}
-
-variable "irsa_iam_permissions_boundary" {
-  description = "IAM permissions boundary for IRSA roles"
-  type        = string
-  default     = ""
-}
-
 variable "tags" {
   description = "Additional tags (e.g. `map('BusinessUnit`,`XYZ`)"
   type        = map(string)
@@ -41,13 +45,13 @@ variable "tags" {
 # API Gateway
 ################################################################################
 
-variable "enable_api_gatewayv2" {
+variable "enable_apigatewayv2" {
   description = "Enable ACK API gateway v2 add-on"
   type        = bool
   default     = false
 }
 
-variable "api_gatewayv2_helm_config" {
+variable "apigatewayv2" {
   description = "ACK API gateway v2 Helm Chart config"
   type        = any
   default     = {}
@@ -63,7 +67,7 @@ variable "enable_dynamodb" {
   default     = false
 }
 
-variable "dynamodb_helm_config" {
+variable "dynamodb" {
   description = "ACK dynamodb Helm Chart config"
   type        = any
   default     = {}
@@ -79,7 +83,7 @@ variable "enable_s3" {
   default     = false
 }
 
-variable "s3_helm_config" {
+variable "s3" {
   description = "ACK s3 Helm Chart config"
   type        = any
   default     = {}
@@ -95,7 +99,7 @@ variable "enable_rds" {
   default     = false
 }
 
-variable "rds_helm_config" {
+variable "rds" {
   description = "ACK rds Helm Chart config"
   type        = any
   default     = {}
@@ -111,7 +115,7 @@ variable "enable_emrcontainers" {
   default     = false
 }
 
-variable "emrcontainers_helm_config" {
+variable "emrcontainers" {
   description = "ACK EMR container Helm Chart config"
   type        = any
   default     = {}
@@ -121,14 +125,14 @@ variable "emrcontainers_helm_config" {
 # AMP
 ################################################################################
 
-variable "enable_amp" {
-  description = "Enable ACK amp add-on"
+variable "enable_prometheusservice" {
+  description = "Enable ACK prometheusservice add-on"
   type        = bool
   default     = false
 }
 
-variable "amp_helm_config" {
-  description = "ACK amp Helm Chart config"
+variable "prometheusservice" {
+  description = "ACK prometheusservice Helm Chart config"
   type        = any
   default     = {}
 }
@@ -143,7 +147,7 @@ variable "enable_sfn" {
   default     = false
 }
 
-variable "sfn_helm_config" {
+variable "sfn" {
   description = "ACK step functions Helm Chart config"
   type        = any
   default     = {}
@@ -153,14 +157,14 @@ variable "sfn_helm_config" {
 # Event Bridge
 ################################################################################
 
-variable "enable_eb" {
-  description = "Enable ACK Event Bridge add-on"
+variable "enable_eventbridge" {
+  description = "Enable ACK EventBridge add-on"
   type        = bool
   default     = false
 }
 
-variable "eb_helm_config" {
-  description = "ACK Event Bridge Helm Chart config"
+variable "eventbridge" {
+  description = "ACK EventBridge Helm Chart config"
   type        = any
   default     = {}
 }
