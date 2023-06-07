@@ -7,10 +7,15 @@ Terraform module which provisions [AWS controllers for Kubernetes](https://aws-c
 ```hcl
 module "eks_ack_addons" {
   source = "aws-ia/eks-ack-addons/aws"
+  
+  # Cluster Info
+  cluster_name      = "<cluster name>"
+  cluster_endpoint  = "<cluster endpoint>"
+  oidc_provider_arn = "<oidc provider arn>"
 
   # ECR Credentials
-  ecrpublic_username = data.aws_ecrpublic_authorization_token.token.user_name
-  ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
+  ecrpublic_username = "<ecr user name>"
+  ecrpublic_token    = "<ecr token>"
 
   # Controllers to enable
   enable_apigatewayv2      = true
