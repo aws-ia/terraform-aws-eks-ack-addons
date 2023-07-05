@@ -589,7 +589,7 @@ module "emrcontainers" {
   role_permissions_boundary_arn = lookup(var.emrcontainers, "role_permissions_boundary_arn", null)
   role_description              = try(var.emrcontainers.role_description, "IRSA for emrcontainers controller for ACK")
   role_policies = lookup(var.emrcontainers, "role_policies", {
-    AmazonEmrContainers = aws_iam_policy.emrcontainers[0].arn
+    AmazonEmrContainers = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
   })
   create_policy = try(var.emrcontainers.create_policy, false)
 
@@ -701,7 +701,7 @@ module "sfn" {
   source  = "aws-ia/eks-blueprints-addon/aws"
   version = "1.1.0"
 
-  create = var.enable_emrcontainers
+  create = var.enable_sfn
 
   # public.ecr.aws/aws-controllers-k8s/sfn_name-chart:1.0.2
   name             = try(var.sfn.name, local.sfn_name)
@@ -770,7 +770,7 @@ module "sfn" {
   role_description              = try(var.sfn.role_description, "IRSA for sfn controller for ACK")
   role_policies = lookup(var.sfn, "role_policies", {
     AWSStepFunctionsFullAccess  = "${local.iam_role_policy_prefix}/AWSStepFunctionsFullAccess"
-    AWSStepFunctionsIamPassRole = aws_iam_policy.sfnpasspolicy[0].arn
+    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfnpasspolicy[0].arn : null
   })
   create_policy = try(var.sfn.create_policy, false)
 
