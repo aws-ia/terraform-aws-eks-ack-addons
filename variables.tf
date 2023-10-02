@@ -28,11 +28,13 @@ variable "create_delay_dependencies" {
 variable "ecrpublic_username" {
   description = "User name decoded from the authorization token for accessing public ECR"
   type        = string
+  default     = ""
 }
 
 variable "ecrpublic_token" {
   description = "Password decoded from the authorization token for accessing public ECR"
   type        = string
+  default     = ""
 }
 
 variable "tags" {
