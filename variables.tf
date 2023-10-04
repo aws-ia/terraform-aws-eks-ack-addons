@@ -28,11 +28,13 @@ variable "create_delay_dependencies" {
 variable "ecrpublic_username" {
   description = "User name decoded from the authorization token for accessing public ECR"
   type        = string
+  default     = ""
 }
 
 variable "ecrpublic_token" {
   description = "Password decoded from the authorization token for accessing public ECR"
   type        = string
+  default     = ""
 }
 
 variable "tags" {
@@ -167,4 +169,14 @@ variable "eventbridge" {
   description = "ACK EventBridge Helm Chart config"
   type        = any
   default     = {}
+}
+
+################################################################################
+# GitOps Bridge
+################################################################################
+
+variable "create_kubernetes_resources" {
+  description = "Create Kubernetes resource with Helm or Kubernetes provider"
+  type        = bool
+  default     = true
 }

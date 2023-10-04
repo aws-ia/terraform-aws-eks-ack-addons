@@ -28,8 +28,8 @@ locals {
   iam_role_policy_prefix = "arn:${local.partition}:iam::aws:policy"
 
   # ECR Credentials
-  repository_username = var.ecrpublic_username
-  repository_password = var.ecrpublic_token
+  repository_username = var.create_kubernetes_resources ? var.ecrpublic_username : ""
+  repository_password = var.create_kubernetes_resources ? var.ecrpublic_token : ""
 }
 
 
@@ -43,9 +43,12 @@ locals {
 
 module "apigatewayv2" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_apigatewayv2
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.3
   name             = try(var.apigatewayv2.name, local.apigatewayv2_name)
@@ -139,9 +142,12 @@ locals {
 
 module "dynamodb" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_dynamodb
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.1.1
   name             = try(var.dynamodb.name, local.dynamodb_name)
@@ -234,9 +240,12 @@ locals {
 
 module "s3" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_s3
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.4
   name             = try(var.s3.name, local.s3_name)
@@ -329,9 +338,12 @@ locals {
 
 module "rds" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_rds
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/rds-chart:1.1.4
   name             = try(var.rds.name, local.rds_name)
@@ -424,9 +436,12 @@ locals {
 
 module "prometheusservice" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_prometheusservice
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/prometheusservice_name-chart:1.2.3
   name             = try(var.prometheusservice.name, local.prometheusservice_name)
@@ -519,9 +534,12 @@ locals {
 
 module "emrcontainers" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_emrcontainers
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/emrcontainers_name-chart:1.0.1
   name             = try(var.emrcontainers.name, local.emrcontainers_name)
@@ -699,9 +717,12 @@ locals {
 
 module "sfn" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_sfn
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/sfn_name-chart:1.0.2
   name             = try(var.sfn.name, local.sfn_name)
@@ -821,9 +842,12 @@ locals {
 
 module "eventbridge" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   create = var.enable_eventbridge
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
 
   # public.ecr.aws/aws-controllers-k8s/eventbridge_name-chart:1.0.1
   name             = try(var.eventbridge.name, local.eventbridge_name)
