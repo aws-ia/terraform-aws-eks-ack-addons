@@ -28,7 +28,7 @@ locals {
   iam_role_policy_prefix = "arn:${local.partition}:iam::aws:policy"
 
   # ECR Credentials
-  repository_username = var.create_kubernetes_resources ? var.ecrpublic_username: ""
+  repository_username = var.create_kubernetes_resources ? var.ecrpublic_username : ""
   repository_password = var.create_kubernetes_resources ? var.ecrpublic_token : ""
 }
 
