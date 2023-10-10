@@ -329,6 +329,104 @@ module "s3" {
 }
 
 ################################################################################
+# elasticache
+################################################################################
+
+locals {
+  elasticache_name = "ack-elasticache"
+}
+
+module "elasticache" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_elasticache
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/elasticache-chart:0.0.27
+  name             = try(var.elasticache.name, local.elasticache_name)
+  description      = try(var.elasticache.description, "Helm Chart for elasticache controller for ACK")
+  namespace        = try(var.elasticache.namespace, local.elasticache_name)
+  create_namespace = try(var.elasticache.create_namespace, true)
+  chart            = "elasticache-chart"
+  chart_version    = try(var.elasticache.chart_version, "0.0.27")
+  repository       = try(var.elasticache.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.elasticache.values, [])
+
+  timeout                    = try(var.elasticache.timeout, null)
+  repository_key_file        = try(var.elasticache.repository_key_file, null)
+  repository_cert_file       = try(var.elasticache.repository_cert_file, null)
+  repository_ca_file         = try(var.elasticache.repository_ca_file, null)
+  repository_username        = try(var.apigatewayv2.repository_username, local.repository_username)
+  repository_password        = try(var.apigatewayv2.repository_password, local.repository_password)
+  devel                      = try(var.elasticache.devel, null)
+  verify                     = try(var.elasticache.verify, null)
+  keyring                    = try(var.elasticache.keyring, null)
+  disable_webhooks           = try(var.elasticache.disable_webhooks, null)
+  reuse_values               = try(var.elasticache.reuse_values, null)
+  reset_values               = try(var.elasticache.reset_values, null)
+  force_update               = try(var.elasticache.force_update, null)
+  recreate_pods              = try(var.elasticache.recreate_pods, null)
+  cleanup_on_fail            = try(var.elasticache.cleanup_on_fail, null)
+  max_history                = try(var.elasticache.max_history, null)
+  atomic                     = try(var.elasticache.atomic, null)
+  skip_crds                  = try(var.elasticache.skip_crds, null)
+  render_subchart_notes      = try(var.elasticache.render_subchart_notes, null)
+  disable_openapi_validation = try(var.elasticache.disable_openapi_validation, null)
+  wait                       = try(var.elasticache.wait, false)
+  wait_for_jobs              = try(var.elasticache.wait_for_jobs, null)
+  dependency_update          = try(var.elasticache.dependency_update, null)
+  replace                    = try(var.elasticache.replace, null)
+  lint                       = try(var.elasticache.lint, null)
+
+  postrender = try(var.elasticache.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-elasticache-elasticache-chart-xxxxxxxxxxxxx` to `ack-elasticache-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-elasticache"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.elasticache_name
+    }],
+    try(var.elasticache.set, [])
+  )
+  set_sensitive = try(var.elasticache.set_sensitive, [])
+
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.elasticache.create_role, true)
+  role_name                     = try(var.elasticache.role_name, "ack-elasticache")
+  role_name_use_prefix          = try(var.elasticache.role_name_use_prefix, true)
+  role_path                     = try(var.elasticache.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.elasticache, "role_permissions_boundary_arn", null)
+  role_description              = try(var.elasticache.role_description, "IRSA for elasticache controller for ACK")
+  role_policies = lookup(var.elasticache, "role_policies", {
+    AmazonElastiCacheFullAccess = "${local.iam_role_policy_prefix}/AmazonElastiCacheFullAccess"
+  })
+  create_policy = try(var.elasticache.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.elasticache_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
 # RDS
 ################################################################################
 
