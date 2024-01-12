@@ -58,6 +58,12 @@ output "gitops_metadata" {
       namespace       = try(var.eventbridge.namespace, local.eventbridge_name)
       service_account = local.eventbridge_name
       } : "ack_eventbridge_${k}" => v if var.enable_eventbridge
+    },
+    { for k, v in {
+      iam_role_arn    = module.elasticache.iam_role_arn
+      namespace       = try(var.elasticache.namespace, local.elasticache_name)
+      service_account = local.elasticache_name
+      } : "ack_elasticache_${k}" => v if var.enable_elasticache
     }
   )
 }
