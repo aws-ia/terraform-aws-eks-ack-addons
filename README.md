@@ -61,6 +61,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 |------|--------|---------|
 | <a name="module_apigatewayv2"></a> [apigatewayv2](#module\_apigatewayv2) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_elasticache"></a> [elasticache](#module\_elasticache) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_emrcontainers"></a> [emrcontainers](#module\_emrcontainers) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_eventbridge"></a> [eventbridge](#module\_eventbridge) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_prometheusservice"></a> [prometheusservice](#module\_prometheusservice) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
@@ -92,9 +93,11 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_dynamodb"></a> [dynamodb](#input\_dynamodb) | ACK dynamodb Helm Chart config | `any` | `{}` | no |
 | <a name="input_ecrpublic_token"></a> [ecrpublic\_token](#input\_ecrpublic\_token) | Password decoded from the authorization token for accessing public ECR | `string` | `""` | no |
 | <a name="input_ecrpublic_username"></a> [ecrpublic\_username](#input\_ecrpublic\_username) | User name decoded from the authorization token for accessing public ECR | `string` | `""` | no |
+| <a name="input_elasticache"></a> [elasticache](#input\_elasticache) | ACK elasticache Helm Chart config | `any` | `{}` | no |
 | <a name="input_emrcontainers"></a> [emrcontainers](#input\_emrcontainers) | ACK EMR container Helm Chart config | `any` | `{}` | no |
 | <a name="input_enable_apigatewayv2"></a> [enable\_apigatewayv2](#input\_enable\_apigatewayv2) | Enable ACK API gateway v2 add-on | `bool` | `false` | no |
 | <a name="input_enable_dynamodb"></a> [enable\_dynamodb](#input\_enable\_dynamodb) | Enable ACK dynamodb add-on | `bool` | `false` | no |
+| <a name="input_enable_elasticache"></a> [enable\_elasticache](#input\_enable\_elasticache) | Enable ACK elasticache add-on | `bool` | `false` | no |
 | <a name="input_enable_emrcontainers"></a> [enable\_emrcontainers](#input\_enable\_emrcontainers) | Enable ACK EMR container add-on | `bool` | `false` | no |
 | <a name="input_enable_eventbridge"></a> [enable\_eventbridge](#input\_enable\_eventbridge) | Enable ACK EventBridge add-on | `bool` | `false` | no |
 | <a name="input_enable_prometheusservice"></a> [enable\_prometheusservice](#input\_enable\_prometheusservice) | Enable ACK prometheusservice add-on | `bool` | `false` | no |

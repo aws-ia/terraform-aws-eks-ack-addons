@@ -1,0 +1,82 @@
+---
+# https://aws-controllers-k8s.github.io/community/reference/elasticache/v1alpha1/cacheparametergroup/
+apiVersion: elasticache.services.k8s.aws/v1alpha1
+kind: CacheParameterGroup
+metadata:
+  name: # cache parameter group name
+spec:
+  cacheParameterGroupName: # cache parameter group name
+  cacheParameterGroupFamily: # cache parameter group family
+  description: # cache parameter group description
+  parameterNameValues:
+  # below is an example
+    - parameterName: "TIMEOUT" # parameter name
+      parameterValue: "100" # parameter value
+    # Add more parameter name and value pairs as needed
+
+---
+
+# https://aws-controllers-k8s.github.io/community/reference/ec2/v1alpha1/securitygroup/
+apiVersion: ec2.services.k8s.aws/v1alpha1
+kind: SecurityGroup
+metadata:
+  name: # security group name
+spec:
+  description: # security group description
+  ingressRules:
+    - fromPort: 6379 # allow redis port
+      toPort: 6379 # allow redis port
+      ipProtocol: tcp
+      ipRanges:
+        - cidrIP: # allow traffic from the same VPC ...
+          description:
+  egressRules:
+    - fromPort: 0
+      toPort: 65535
+      ipProtocol: tcp
+---
+
+# https://aws-controllers-k8s.github.io/community/reference/elasticache/v1alpha1/cachesubnetgroup/
+apiVersion: elasticache.services.k8s.aws/v1alpha1
+kind: CacheSubnetGroup
+metadata:
+  name: # cache subnet group name
+spec:
+  cacheSubnetGroupName: # cache subnet group name
+  cacheSubnetGroupDescription: # cache subnet group description
+  description: # cache subnet group description
+  subnetIDs:
+    - # subnet ID 1
+    - # subnet ID 2
+    - # subnet ID 3
+    # Add more subnet IDs as needed
+
+---
+
+# https://aws-controllers-k8s.github.io/community/reference/elasticache/v1alpha1/replicationgroup/
+apiVersion: elasticache.services.k8s.aws/v1alpha1
+kind: ReplicationGroup
+metadata:
+  name: # resource name
+spec:
+  engine: redis
+  engineVersion: 7.1 # or 6.x, check https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/supported-engine-versions.html
+  replicationGroupID: # replication group id
+  replicationGroupDescription: # replication group description
+  automaticFailoverEnabled: true # or false
+  cacheNodeType: cache.t2.micro # check https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheNodes.SupportedTypes.html
+  numNodeGroups: 1 # depending on your usage
+  replicasPerNodeGroup: 1 # depending on your usage
+  multiAZEnabled: false # or true
+  atRestEncryptionEnabled: false # or true
+  port: 6379 # or 6379
+  snapshotRetentionLimit: 0 # or any number
+  cacheParameterGroupRef:
+    from:
+      name: # cache parameter group name
+  cacheSubnetGroupRef:
+    from:
+      name: # cache subnet group name
+  securityGroupRefs:
+    from:
+      name: # security group name

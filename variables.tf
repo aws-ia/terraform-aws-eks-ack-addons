@@ -92,6 +92,22 @@ variable "s3" {
 }
 
 ################################################################################
+# S3
+################################################################################
+
+variable "enable_elasticache" {
+  description = "Enable ACK elasticache add-on"
+  type        = bool
+  default     = false
+}
+
+variable "elasticache" {
+  description = "ACK elasticache Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # RDS
 ################################################################################
 
