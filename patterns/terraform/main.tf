@@ -2,15 +2,14 @@ provider "aws" {
   region = local.region
 }
 
-# This provider is required for ECR to autheticate with public repos. Please note ECR authetication requires us-east-1 as region hence its hardcoded below.
-# If your region is same as us-east-1 then you can just use one aws provider
+# Required for public ECR where ACK artifacts are hosted
 provider "aws" {
-  alias  = "ecr"
   region = "us-east-1"
+  alias  = "virginia"
 }
 
 data "aws_ecrpublic_authorization_token" "token" {
-  provider = aws.ecr
+  provider = aws.virginia
 }
 
 provider "kubernetes" {
@@ -43,7 +42,7 @@ data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  name   = basename(path.cwd)
+  name   = "${basename(path.cwd)}-ack-blueprints"
   region = var.aws_region
 
   vpc_cidr = "10.0.0.0/16"
@@ -59,30 +58,51 @@ locals {
 # EKS Cluster
 ################################################################################
 
-#tfsec:ignore:aws-eks-enable-control-plane-logging
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.13"
+  version = "~> 20.20"
 
-  cluster_name                   = local.name
-  cluster_version                = "1.27"
-  cluster_endpoint_public_access = true
+  cluster_name    = local.name
+  cluster_version = "1.30"
+
+  cluster_endpoint_private_access = true
+  cluster_endpoint_public_access  = true
+  kms_key_enable_default_policy   = true
+
+  # Give the Terraform identity admin access to the cluster
+  # which will allow resources to be deployed into the cluster
+  enable_cluster_creator_admin_permissions = true
+
+  # EKS Addons
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      before_compute = true # Ensure the addon is configured before compute resources are created
+      most_recent    = true
+    }
+  }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  manage_aws_auth_configmap = true
-
   eks_managed_node_groups = {
     initial = {
-      instance_types = ["m5.xlarge"]
-      max_size       = 3
-      min_size       = 3
-      desired_size   = 3
+      instance_types = ["m5.large"]
+
+      min_size     = 1
+      max_size     = 5
+      desired_size = 3
     }
   }
 
   tags = local.tags
+
+  depends_on = [module.vpc]
 }
 
 ################################################################################
@@ -91,29 +111,20 @@ module "eks" {
 
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
-  version = "~> 1.0.0"
+  version = "~> 1.16"
 
   cluster_name      = module.eks.cluster_name
   cluster_endpoint  = module.eks.cluster_endpoint
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  eks_addons = {
-    coredns = {
-      timeouts = {
-        create = "25m"
-        delete = "10m"
-      }
-    }
-    vpc-cni    = {}
-    kube-proxy = {}
-  }
-
   # Add-ons
   enable_aws_load_balancer_controller = true
   enable_metrics_server               = true
 
   tags = local.tags
+
+  depends_on = [module.eks]
 }
 
 ################################################################################
@@ -121,7 +132,8 @@ module "eks_blueprints_addons" {
 ################################################################################
 
 module "eks_ack_addons" {
-  source = "../../"
+  source  = "aws-ia/eks-ack-addons/aws"
+  version = "2.2.0"
 
   # Cluster Info
   cluster_name      = module.eks.cluster_name
@@ -143,6 +155,8 @@ module "eks_ack_addons" {
   enable_eventbridge       = true
 
   tags = local.tags
+
+  depends_on = [module.eks_blueprints_addons]
 }
 
 ################################################################################
@@ -151,7 +165,7 @@ module "eks_ack_addons" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "~> 5.9"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -232,7 +246,7 @@ resource "kubernetes_service_account_v1" "ack_demo" {
 
 module "irsa" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "~> 1.1.0"
+  version = "~> 1.1.1"
 
   # Disable helm release
   create_release = false
@@ -257,9 +271,7 @@ module "irsa" {
   tags = local.tags
 }
 
-
 resource "aws_security_group" "vpc_link_sg" {
-  # checkov:skip=CKV2_AWS_5
   name        = "${local.name}-vpc-link"
   description = "Security group for API Gateway v2 VPC link"
   vpc_id      = module.vpc.vpc_id
