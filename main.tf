@@ -53,7 +53,7 @@ module "apigatewayv2" {
   # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.3
   name             = try(var.apigatewayv2.name, local.apigatewayv2_name)
   description      = try(var.apigatewayv2.description, "Helm Chart for apigatewayv2 controller for ACK")
-  namespace        = try(var.apigatewayv2.namespace, local.apigatewayv2_name)
+  namespace        = try(var.apigatewayv2.namespace, "ack-system")
   create_namespace = try(var.apigatewayv2.create_namespace, true)
   chart            = "apigatewayv2-chart"
   chart_version    = try(var.apigatewayv2.chart_version, "1.0.2")
@@ -152,7 +152,7 @@ module "dynamodb" {
   # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.1.1
   name             = try(var.dynamodb.name, local.dynamodb_name)
   description      = try(var.dynamodb.description, "Helm Chart for dynamodb controller for ACK")
-  namespace        = try(var.dynamodb.namespace, local.dynamodb_name)
+  namespace        = try(var.dynamodb.namespace, "ack-system")
   create_namespace = try(var.dynamodb.create_namespace, true)
   chart            = "dynamodb-chart"
   chart_version    = try(var.dynamodb.chart_version, "1.1.1")
@@ -250,7 +250,7 @@ module "s3" {
   # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.4
   name             = try(var.s3.name, local.s3_name)
   description      = try(var.s3.description, "Helm Chart for s3 controller for ACK")
-  namespace        = try(var.s3.namespace, local.s3_name)
+  namespace        = try(var.s3.namespace, "ack-system")
   create_namespace = try(var.s3.create_namespace, true)
   chart            = "s3-chart"
   chart_version    = try(var.s3.chart_version, "1.0.4")
@@ -348,7 +348,7 @@ module "elasticache" {
   # public.ecr.aws/aws-controllers-k8s/elasticache-chart:0.0.27
   name             = try(var.elasticache.name, local.elasticache_name)
   description      = try(var.elasticache.description, "Helm Chart for elasticache controller for ACK")
-  namespace        = try(var.elasticache.namespace, local.elasticache_name)
+  namespace        = try(var.elasticache.namespace, "ack-system")
   create_namespace = try(var.elasticache.create_namespace, true)
   chart            = "elasticache-chart"
   chart_version    = try(var.elasticache.chart_version, "0.0.27")
@@ -446,7 +446,7 @@ module "rds" {
   # public.ecr.aws/aws-controllers-k8s/rds-chart:1.1.4
   name             = try(var.rds.name, local.rds_name)
   description      = try(var.rds.description, "Helm Chart for rds controller for ACK")
-  namespace        = try(var.rds.namespace, local.rds_name)
+  namespace        = try(var.rds.namespace, "ack-system")
   create_namespace = try(var.rds.create_namespace, true)
   chart            = "rds-chart"
   chart_version    = try(var.rds.chart_version, "1.1.4")
@@ -544,7 +544,7 @@ module "prometheusservice" {
   # public.ecr.aws/aws-controllers-k8s/prometheusservice_name-chart:1.2.3
   name             = try(var.prometheusservice.name, local.prometheusservice_name)
   description      = try(var.prometheusservice.description, "Helm Chart for prometheusservice controller for ACK")
-  namespace        = try(var.prometheusservice.namespace, local.prometheusservice_name)
+  namespace        = try(var.prometheusservice.namespace, "ack-system")
   create_namespace = try(var.prometheusservice.create_namespace, true)
   chart            = "prometheusservice-chart"
   chart_version    = try(var.prometheusservice.chart_version, "1.2.3")
@@ -642,7 +642,7 @@ module "emrcontainers" {
   # public.ecr.aws/aws-controllers-k8s/emrcontainers_name-chart:1.0.1
   name             = try(var.emrcontainers.name, local.emrcontainers_name)
   description      = try(var.emrcontainers.description, "Helm Chart for emrcontainers controller for ACK")
-  namespace        = try(var.emrcontainers.namespace, local.emrcontainers_name)
+  namespace        = try(var.emrcontainers.namespace, "ack-system")
   create_namespace = try(var.emrcontainers.create_namespace, true)
   chart            = "emrcontainers-chart"
   chart_version    = try(var.emrcontainers.chart_version, "1.0.1")
@@ -825,7 +825,7 @@ module "sfn" {
   # public.ecr.aws/aws-controllers-k8s/sfn_name-chart:1.0.2
   name             = try(var.sfn.name, local.sfn_name)
   description      = try(var.sfn.description, "Helm Chart for sfn controller for ACK")
-  namespace        = try(var.sfn.namespace, local.sfn_name)
+  namespace        = try(var.sfn.namespace, "ack-system")
   create_namespace = try(var.sfn.create_namespace, true)
   chart            = "sfn-chart"
   chart_version    = try(var.sfn.chart_version, "1.0.2")
@@ -950,7 +950,7 @@ module "eventbridge" {
   # public.ecr.aws/aws-controllers-k8s/eventbridge_name-chart:1.0.1
   name             = try(var.eventbridge.name, local.eventbridge_name)
   description      = try(var.eventbridge.description, "Helm Chart for eventbridge controller for ACK")
-  namespace        = try(var.eventbridge.namespace, local.eventbridge_name)
+  namespace        = try(var.eventbridge.namespace, "ack-system")
   create_namespace = try(var.eventbridge.create_namespace, true)
   chart            = "eventbridge-chart"
   chart_version    = try(var.eventbridge.chart_version, "1.0.1")
