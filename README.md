@@ -7,7 +7,7 @@ Terraform module which provisions [AWS controllers for Kubernetes](https://aws-c
 ```hcl
 module "eks_ack_addons" {
   source = "aws-ia/eks-ack-addons/aws"
-  
+
   # Cluster Info
   cluster_name      = "<cluster name>"
   cluster_endpoint  = "<cluster endpoint>"
@@ -26,7 +26,7 @@ module "eks_ack_addons" {
   enable_emrcontainers     = true
   enable_sfn               = true
   enable_eventbridge       = true
-  
+
   tags = {
     Environment = "dev"
   }
