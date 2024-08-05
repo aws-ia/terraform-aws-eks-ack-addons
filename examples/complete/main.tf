@@ -62,16 +62,25 @@ locals {
 #tfsec:ignore:aws-eks-enable-control-plane-logging
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.13"
+  version = "~> 20.11"
 
-  cluster_name                   = local.name
-  cluster_version                = "1.27"
-  cluster_endpoint_public_access = true
+  cluster_name    = local.name
+  cluster_version = "1.30"
+
+  # Give the Terraform identity admin access to the cluster
+  # which will allow it to deploy resources into the cluster
+  enable_cluster_creator_admin_permissions = true
+  cluster_endpoint_public_access           = true
+
+  cluster_addons = {
+    coredns                = {}
+    eks-pod-identity-agent = {}
+    kube-proxy             = {}
+    vpc-cni                = {}
+  }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
-
-  manage_aws_auth_configmap = true
 
   eks_managed_node_groups = {
     initial = {
@@ -91,23 +100,12 @@ module "eks" {
 
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
-  version = "~> 1.0.0"
+  version = "~> 1.16"
 
   cluster_name      = module.eks.cluster_name
   cluster_endpoint  = module.eks.cluster_endpoint
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
-
-  eks_addons = {
-    coredns = {
-      timeouts = {
-        create = "25m"
-        delete = "10m"
-      }
-    }
-    vpc-cni    = {}
-    kube-proxy = {}
-  }
 
   # Add-ons
   enable_aws_load_balancer_controller = true
@@ -232,7 +230,7 @@ resource "kubernetes_service_account_v1" "ack_demo" {
 
 module "irsa" {
   source  = "aws-ia/eks-blueprints-addon/aws"
-  version = "~> 1.1.0"
+  version = "~> 1.1.1"
 
   # Disable helm release
   create_release = false
