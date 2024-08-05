@@ -12,6 +12,36 @@ output "gitops_metadata" {
   description = "GitOps Bridge metadata"
   value = merge(
     { for k, v in {
+      iam_role_arn    = module.iam.iam_role_arn
+      namespace       = try(var.iam.namespace, "ack-system")
+      service_account = local.iam_name
+      } : "ack_iam_${k}" => v if var.enable_iam
+    },
+    { for k, v in {
+      iam_role_arn    = module.ec2.iam_role_arn
+      namespace       = try(var.ec2.namespace, "ack-system")
+      service_account = local.ec2_name
+      } : "ack_ec2_${k}" => v if var.enable_ec2
+    },
+    { for k, v in {
+      iam_role_arn    = module.eks.iam_role_arn
+      namespace       = try(var.eks.namespace, "ack-system")
+      service_account = local.eks_name
+      } : "ack_eks_${k}" => v if var.enable_eks
+    },
+    { for k, v in {
+      iam_role_arn    = module.kms.iam_role_arn
+      namespace       = try(var.kms.namespace, "ack-system")
+      service_account = local.kms_name
+      } : "ack_kms_${k}" => v if var.enable_kms
+    },
+    { for k, v in {
+      iam_role_arn    = module.acm.iam_role_arn
+      namespace       = try(var.acm.namespace, "ack-system")
+      service_account = local.acm_name
+      } : "ack_acm_${k}" => v if var.enable_acm
+    },
+    { for k, v in {
       iam_role_arn    = module.apigatewayv2.iam_role_arn
       namespace       = try(var.apigatewayv2.namespace, "ack-system")
       service_account = local.apigatewayv2_name
