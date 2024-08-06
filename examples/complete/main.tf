@@ -131,6 +131,9 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   # Controllers to enable
+  enable_sns               = true
+  enable_sqs               = true
+  enable_lambda            = true
   enable_iam               = true
   enable_ec2               = true
   enable_eks               = true

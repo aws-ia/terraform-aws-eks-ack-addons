@@ -32,6 +32,382 @@ locals {
   repository_password = var.create_kubernetes_resources ? var.ecrpublic_token : ""
 }
 
+################################################################################
+# SNS
+################################################################################
+
+locals {
+  sns_name = "ack-sns"
+}
+
+module "sns" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_sns
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.11
+  name             = try(var.sns.name, local.sns_name)
+  description      = try(var.sns.description, "Helm Chart for SNS controller for ACK")
+  namespace        = try(var.sns.namespace, "ack-system")
+  create_namespace = try(var.sns.create_namespace, true)
+  chart            = "sns-chart"
+  chart_version    = try(var.sns.chart_version, "1.0.11")
+  repository       = try(var.sns.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.sns.values, [])
+
+  timeout                    = try(var.sns.timeout, null)
+  repository_key_file        = try(var.sns.repository_key_file, null)
+  repository_cert_file       = try(var.sns.repository_cert_file, null)
+  repository_ca_file         = try(var.sns.repository_ca_file, null)
+  repository_username        = try(var.sns.repository_username, local.repository_username)
+  repository_password        = try(var.sns.repository_password, local.repository_password)
+  devel                      = try(var.sns.devel, null)
+  verify                     = try(var.sns.verify, null)
+  keyring                    = try(var.sns.keyring, null)
+  disable_webhooks           = try(var.sns.disable_webhooks, null)
+  reuse_values               = try(var.sns.reuse_values, null)
+  reset_values               = try(var.sns.reset_values, null)
+  force_update               = try(var.sns.force_update, null)
+  recreate_pods              = try(var.sns.recreate_pods, null)
+  cleanup_on_fail            = try(var.sns.cleanup_on_fail, null)
+  max_history                = try(var.sns.max_history, null)
+  atomic                     = try(var.sns.atomic, null)
+  skip_crds                  = try(var.sns.skip_crds, null)
+  render_subchart_notes      = try(var.sns.render_subchart_notes, null)
+  disable_openapi_validation = try(var.sns.disable_openapi_validation, null)
+  wait                       = try(var.sns.wait, false)
+  wait_for_jobs              = try(var.sns.wait_for_jobs, null)
+  dependency_update          = try(var.sns.dependency_update, null)
+  replace                    = try(var.sns.replace, null)
+  lint                       = try(var.sns.lint, null)
+
+  postrender = try(var.sns.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-sns-sns-chart-xxxxxxxxxxxxx` to `ack-sns-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-sns"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.sns_name
+    }],
+    try(var.sns.set, [])
+  )
+  set_sensitive = try(var.sns.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.sns.create_role, true)
+  role_name                     = try(var.sns.role_name, "ack-sns")
+  role_name_use_prefix          = try(var.sns.role_name_use_prefix, true)
+  role_path                     = try(var.sns.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.sns, "role_permissions_boundary_arn", null)
+  role_description              = try(var.sns.role_description, "IRSA for SNS controller for ACK")
+  role_policies = lookup(var.sns, "role_policies", {
+    AWSSNSPolicy = var.enable_sns ? aws_iam_policy.snspolicy[0].arn : null
+  })
+  create_policy = try(var.sns.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.sns_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended iam-controller policy https://github.com/aws-controllers-k8s/sns-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "sns_controller" {
+  count = var.enable_sns ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:*"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "snspolicy" {
+  count = var.enable_sns ? 1 : 0
+
+  name        = "SNSController"
+  description = "IAM policy for SNS Controller"
+  policy      = data.aws_iam_policy_document.sns_controller[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# SQS
+################################################################################
+
+locals {
+  sqs_name = "ack-sqs"
+}
+
+module "sqs" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_sqs
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.14
+  name             = try(var.sqs.name, local.sqs_name)
+  description      = try(var.sqs.description, "Helm Chart for SQS controller for ACK")
+  namespace        = try(var.sqs.namespace, "ack-system")
+  create_namespace = try(var.sqs.create_namespace, true)
+  chart            = "sqs-chart"
+  chart_version    = try(var.sqs.chart_version, "1.0.14")
+  repository       = try(var.sqs.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.sqs.values, [])
+
+  timeout                    = try(var.sqs.timeout, null)
+  repository_key_file        = try(var.sqs.repository_key_file, null)
+  repository_cert_file       = try(var.sqs.repository_cert_file, null)
+  repository_ca_file         = try(var.sqs.repository_ca_file, null)
+  repository_username        = try(var.sqs.repository_username, local.repository_username)
+  repository_password        = try(var.sqs.repository_password, local.repository_password)
+  devel                      = try(var.sqs.devel, null)
+  verify                     = try(var.sqs.verify, null)
+  keyring                    = try(var.sqs.keyring, null)
+  disable_webhooks           = try(var.sqs.disable_webhooks, null)
+  reuse_values               = try(var.sqs.reuse_values, null)
+  reset_values               = try(var.sqs.reset_values, null)
+  force_update               = try(var.sqs.force_update, null)
+  recreate_pods              = try(var.sqs.recreate_pods, null)
+  cleanup_on_fail            = try(var.sqs.cleanup_on_fail, null)
+  max_history                = try(var.sqs.max_history, null)
+  atomic                     = try(var.sqs.atomic, null)
+  skip_crds                  = try(var.sqs.skip_crds, null)
+  render_subchart_notes      = try(var.sqs.render_subchart_notes, null)
+  disable_openapi_validation = try(var.sqs.disable_openapi_validation, null)
+  wait                       = try(var.sqs.wait, false)
+  wait_for_jobs              = try(var.sqs.wait_for_jobs, null)
+  dependency_update          = try(var.sqs.dependency_update, null)
+  replace                    = try(var.sqs.replace, null)
+  lint                       = try(var.sqs.lint, null)
+
+  postrender = try(var.sqs.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-sqs-sqs-chart-xxxxxxxxxxxxx` to `ack-sqs-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-sqs"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.sqs_name
+    }],
+    try(var.sqs.set, [])
+  )
+  set_sensitive = try(var.sqs.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.sqs.create_role, true)
+  role_name                     = try(var.sqs.role_name, "ack-sqs")
+  role_name_use_prefix          = try(var.sqs.role_name_use_prefix, true)
+  role_path                     = try(var.sqs.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.sqs, "role_permissions_boundary_arn", null)
+  role_description              = try(var.sqs.role_description, "IRSA for SQS controller for ACK")
+  role_policies = lookup(var.sqs, "role_policies", {
+    AWSSQSPolicy = var.enable_sqs ? aws_iam_policy.sqspolicy[0].arn : null
+  })
+  create_policy = try(var.sqs.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.sqs_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended iam-controller policy https://github.com/aws-controllers-k8s/sqs-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "sqs_controller" {
+  count = var.enable_sqs ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:*"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "sqspolicy" {
+  count = var.enable_sqs ? 1 : 0
+
+  name        = "SQSController"
+  description = "IAM policy for SQS Controller"
+  policy      = data.aws_iam_policy_document.sqs_controller[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# Lambda
+################################################################################
+
+locals {
+  lambda_name = "ack-lambda"
+}
+
+module "lambda" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_lambda
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/lambda-chart:1.5.1
+  name             = try(var.lambda.name, local.lambda_name)
+  description      = try(var.lambda.description, "Helm Chart for Lambda controller for ACK")
+  namespace        = try(var.lambda.namespace, "ack-system")
+  create_namespace = try(var.lambda.create_namespace, true)
+  chart            = "lambda-chart"
+  chart_version    = try(var.lambda.chart_version, "1.5.1")
+  repository       = try(var.lambda.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.lambda.values, [])
+
+  timeout                    = try(var.lambda.timeout, null)
+  repository_key_file        = try(var.lambda.repository_key_file, null)
+  repository_cert_file       = try(var.lambda.repository_cert_file, null)
+  repository_ca_file         = try(var.lambda.repository_ca_file, null)
+  repository_username        = try(var.lambda.repository_username, local.repository_username)
+  repository_password        = try(var.lambda.repository_password, local.repository_password)
+  devel                      = try(var.lambda.devel, null)
+  verify                     = try(var.lambda.verify, null)
+  keyring                    = try(var.lambda.keyring, null)
+  disable_webhooks           = try(var.lambda.disable_webhooks, null)
+  reuse_values               = try(var.lambda.reuse_values, null)
+  reset_values               = try(var.lambda.reset_values, null)
+  force_update               = try(var.lambda.force_update, null)
+  recreate_pods              = try(var.lambda.recreate_pods, null)
+  cleanup_on_fail            = try(var.lambda.cleanup_on_fail, null)
+  max_history                = try(var.lambda.max_history, null)
+  atomic                     = try(var.lambda.atomic, null)
+  skip_crds                  = try(var.lambda.skip_crds, null)
+  render_subchart_notes      = try(var.lambda.render_subchart_notes, null)
+  disable_openapi_validation = try(var.lambda.disable_openapi_validation, null)
+  wait                       = try(var.lambda.wait, false)
+  wait_for_jobs              = try(var.lambda.wait_for_jobs, null)
+  dependency_update          = try(var.lambda.dependency_update, null)
+  replace                    = try(var.lambda.replace, null)
+  lint                       = try(var.lambda.lint, null)
+
+  postrender = try(var.lambda.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-lambda-lambda-chart-xxxxxxxxxxxxx` to `ack-lambda-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-lambda"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.lambda_name
+    }],
+    try(var.lambda.set, [])
+  )
+  set_sensitive = try(var.lambda.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.lambda.create_role, true)
+  role_name                     = try(var.lambda.role_name, "ack-lambda")
+  role_name_use_prefix          = try(var.lambda.role_name_use_prefix, true)
+  role_path                     = try(var.lambda.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.lambda, "role_permissions_boundary_arn", null)
+  role_description              = try(var.lambda.role_description, "IRSA for Lambda controller for ACK")
+  role_policies = lookup(var.lambda, "role_policies", {
+    AWSlambdaPolicy = var.enable_lambda ? aws_iam_policy.lambdapolicy[0].arn : null
+  })
+  create_policy = try(var.lambda.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.lambda_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended iam-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "lambda_controller" {
+  count = var.enable_lambda ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:*",
+      "s3:Get*",
+      "ecr:Get*",
+      "ecr:BatchGet*",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeVpcs",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "lambdapolicy" {
+  count = var.enable_lambda ? 1 : 0
+
+  name        = "LambdaController"
+  description = "IAM policy for Lambda Controller"
+  policy      = data.aws_iam_policy_document.lambda_controller[0].json
+
+  tags = var.tags
+}
 
 ################################################################################
 # IAM

@@ -75,10 +75,13 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_eventbridge"></a> [eventbridge](#module\_eventbridge) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_iam"></a> [iam](#module\_iam) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_lambda"></a> [lambda](#module\_lambda) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_prometheusservice"></a> [prometheusservice](#module\_prometheusservice) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_rds"></a> [rds](#module\_rds) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_s3"></a> [s3](#module\_s3) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_sfn"></a> [sfn](#module\_sfn) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_sns"></a> [sns](#module\_sns) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_sqs"></a> [sqs](#module\_sqs) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 
 ## Resources
 
@@ -89,9 +92,15 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.iampolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.kmspolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.lambdapolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.sfnpasspolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.snspolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.sqspolicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [time_sleep.this](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [aws_iam_policy_document.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.lambda_controller](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.sns_controller](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.sqs_controller](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
@@ -123,18 +132,24 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_enable_eventbridge"></a> [enable\_eventbridge](#input\_enable\_eventbridge) | Enable ACK EventBridge add-on | `bool` | `false` | no |
 | <a name="input_enable_iam"></a> [enable\_iam](#input\_enable\_iam) | Enable ACK iam add-on | `bool` | `false` | no |
 | <a name="input_enable_kms"></a> [enable\_kms](#input\_enable\_kms) | Enable ACK kms add-on | `bool` | `false` | no |
+| <a name="input_enable_lambda"></a> [enable\_lambda](#input\_enable\_lambda) | Enable ACK Lambda add-on | `bool` | `false` | no |
 | <a name="input_enable_prometheusservice"></a> [enable\_prometheusservice](#input\_enable\_prometheusservice) | Enable ACK prometheusservice add-on | `bool` | `false` | no |
 | <a name="input_enable_rds"></a> [enable\_rds](#input\_enable\_rds) | Enable ACK rds add-on | `bool` | `false` | no |
 | <a name="input_enable_s3"></a> [enable\_s3](#input\_enable\_s3) | Enable ACK s3 add-on | `bool` | `false` | no |
 | <a name="input_enable_sfn"></a> [enable\_sfn](#input\_enable\_sfn) | Enable ACK step functions add-on | `bool` | `false` | no |
+| <a name="input_enable_sns"></a> [enable\_sns](#input\_enable\_sns) | Enable ACK SNS add-on | `bool` | `false` | no |
+| <a name="input_enable_sqs"></a> [enable\_sqs](#input\_enable\_sqs) | Enable ACK SQS add-on | `bool` | `false` | no |
 | <a name="input_eventbridge"></a> [eventbridge](#input\_eventbridge) | ACK EventBridge Helm Chart config | `any` | `{}` | no |
 | <a name="input_iam"></a> [iam](#input\_iam) | ACK iam Helm Chart config | `any` | `{}` | no |
 | <a name="input_kms"></a> [kms](#input\_kms) | ACK kms Helm Chart config | `any` | `{}` | no |
+| <a name="input_lambda"></a> [lambda](#input\_lambda) | ACK Lambda Helm Chart config | `any` | `{}` | no |
 | <a name="input_oidc_provider_arn"></a> [oidc\_provider\_arn](#input\_oidc\_provider\_arn) | The ARN of the cluster OIDC Provider | `string` | n/a | yes |
 | <a name="input_prometheusservice"></a> [prometheusservice](#input\_prometheusservice) | ACK prometheusservice Helm Chart config | `any` | `{}` | no |
 | <a name="input_rds"></a> [rds](#input\_rds) | ACK rds Helm Chart config | `any` | `{}` | no |
 | <a name="input_s3"></a> [s3](#input\_s3) | ACK s3 Helm Chart config | `any` | `{}` | no |
 | <a name="input_sfn"></a> [sfn](#input\_sfn) | ACK step functions Helm Chart config | `any` | `{}` | no |
+| <a name="input_sns"></a> [sns](#input\_sns) | ACK SNS Helm Chart config | `any` | `{}` | no |
+| <a name="input_sqs"></a> [sqs](#input\_sqs) | ACK SQS Helm Chart config | `any` | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | `map(string)` | `{}` | no |
 
 ## Outputs
