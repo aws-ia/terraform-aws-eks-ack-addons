@@ -44,6 +44,86 @@ variable "tags" {
 }
 
 ################################################################################
+# IAM
+################################################################################
+
+variable "enable_iam" {
+  description = "Enable ACK iam add-on"
+  type        = bool
+  default     = false
+}
+
+variable "iam" {
+  description = "ACK iam Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# EC2
+################################################################################
+
+variable "enable_ec2" {
+  description = "Enable ACK ec2 add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ec2" {
+  description = "ACK ec2 Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# EKS
+################################################################################
+
+variable "enable_eks" {
+  description = "Enable ACK eks add-on"
+  type        = bool
+  default     = false
+}
+
+variable "eks" {
+  description = "ACK eks Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# KMS
+################################################################################
+
+variable "enable_kms" {
+  description = "Enable ACK kms add-on"
+  type        = bool
+  default     = false
+}
+
+variable "kms" {
+  description = "ACK kms Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# ACM
+################################################################################
+
+variable "enable_acm" {
+  description = "Enable ACK acm add-on"
+  type        = bool
+  default     = false
+}
+
+variable "acm" {
+  description = "ACK acm Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # API Gateway
 ################################################################################
 
@@ -92,7 +172,7 @@ variable "s3" {
 }
 
 ################################################################################
-# S3
+# elasticache
 ################################################################################
 
 variable "enable_elasticache" {
