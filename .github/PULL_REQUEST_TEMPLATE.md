@@ -1,7 +1,7 @@
 ### What does this PR do?
 
 🛑 Please open an issue first to discuss any significant work and flesh out details/direction - we would hate for your time to be wasted.
-Consult the [CONTRIBUTING](https://github.com/aws-ia/terraform-aws-eks-addon/.github/blob/main/CONTRIBUTING.md#contributing-via-pull-requests) guide for submitting pull-requests.
+Consult the [CONTRIBUTING](https://github.com/aws-ia/terraform-aws-eks-ack-addons//blob/main/.github/CONTRIBUTING.md#contributing-via-pull-requests) guide for submitting pull-requests.
 
 <!-- A brief description of the change being made with this pull request. -->
 
@@ -10,9 +10,14 @@ Consult the [CONTRIBUTING](https://github.com/aws-ia/terraform-aws-eks-addon/.gi
 <!-- What inspired you to submit this pull request? -->
 - Resolves #<issue-number>
 
-### Test Results
+### More
 
-<!-- Please provide supporting evidence and steps taking to test and validation this change -->
+- [ ] Yes, I have tested the PR using my local account setup (Provide any test evidence report under Additional Notes)
+- [ ] Yes, I ran `pre-commit run -a` with this PR
+
+### For Moderators
+
+- [ ] E2E Test successfully complete before merge?
 
 ### Additional Notes
 

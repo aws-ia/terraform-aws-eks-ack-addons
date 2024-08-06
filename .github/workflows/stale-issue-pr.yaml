@@ -1,8 +1,11 @@
 name: 'Stale Issue/PR'
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
+
+permissions: read-all
 
 jobs:
   stale:
@@ -11,7 +14,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/stale@main
+      - uses: actions/stale@v9
         id: stale
         with:
           ascending: true
