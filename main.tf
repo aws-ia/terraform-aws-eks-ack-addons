@@ -114,7 +114,7 @@ module "sns" {
   role_permissions_boundary_arn = lookup(var.sns, "role_permissions_boundary_arn", null)
   role_description              = try(var.sns.role_description, "IRSA for SNS controller for ACK")
   role_policies = lookup(var.sns, "role_policies", {
-    AWSSNSPolicy = var.enable_sns ? aws_iam_policy.snspolicy[0].arn : null
+    policy = var.enable_sns ? aws_iam_policy.snspolicy[0].arn : null
   })
   create_policy = try(var.sns.create_policy, false)
 
