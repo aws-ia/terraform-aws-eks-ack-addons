@@ -44,6 +44,54 @@ variable "tags" {
 }
 
 ################################################################################
+# SNS
+################################################################################
+
+variable "enable_sns" {
+  description = "Enable ACK SNS add-on"
+  type        = bool
+  default     = false
+}
+
+variable "sns" {
+  description = "ACK SNS Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# SQS
+################################################################################
+
+variable "enable_sqs" {
+  description = "Enable ACK SQS add-on"
+  type        = bool
+  default     = false
+}
+
+variable "sqs" {
+  description = "ACK SQS Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Lambda
+################################################################################
+
+variable "enable_lambda" {
+  description = "Enable ACK Lambda add-on"
+  type        = bool
+  default     = false
+}
+
+variable "lambda" {
+  description = "ACK Lambda Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # IAM
 ################################################################################
 
