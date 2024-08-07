@@ -354,7 +354,7 @@ module "lambda" {
   role_permissions_boundary_arn = lookup(var.lambda, "role_permissions_boundary_arn", null)
   role_description              = try(var.lambda.role_description, "IRSA for Lambda controller for ACK")
   role_policies = lookup(var.lambda, "role_policies", {
-    AWSlambdaPolicy = var.enable_lambda ? aws_iam_policy.lambdapolicy[0].arn : null
+    policy = var.enable_lambda ? aws_iam_policy.lambdapolicy[0].arn : null
   })
   create_policy = try(var.lambda.create_policy, false)
 
