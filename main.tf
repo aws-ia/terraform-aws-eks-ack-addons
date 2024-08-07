@@ -234,7 +234,7 @@ module "sqs" {
   role_permissions_boundary_arn = lookup(var.sqs, "role_permissions_boundary_arn", null)
   role_description              = try(var.sqs.role_description, "IRSA for SQS controller for ACK")
   role_policies = lookup(var.sqs, "role_policies", {
-    AWSSQSPolicy = var.enable_sqs ? aws_iam_policy.sqspolicy[0].arn : null
+    policy = var.enable_sqs ? aws_iam_policy.sqspolicy[0].arn : null
   })
   create_policy = try(var.sqs.create_policy, false)
 
