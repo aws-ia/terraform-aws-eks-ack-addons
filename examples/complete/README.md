@@ -2,11 +2,23 @@
 
 Configuration in this directory creates an AWS EKS cluster with the following ACK addons:
 
-- ACK API Gateway controller
-- ACK DynamoDB controller
-- ACK RDS controller
-- ACK S3 controller
-- ACK Elasticache controller
+- Amazon ACM Controller
+- Amazon ApiGatewayV2 Controller
+- Amazon DynamoDB Controller
+- Amazon EC2 Controller
+- Amazon EKS Controller
+- Amazon ElastiCache Controller
+- Amazon EMR Containers Controller
+- Amazon EventBridge Controller
+- Amazon IAM Controller
+- Amazon KMS Controller
+- AWS Lambda Controller
+- Amazon Prometheus Service Controller
+- Amazon RDS Controller
+- Amazon S3 Controller
+- AWS SFN Controller
+- Amazon SNS Controller
+- Amazon SQS Controller
 
 In addition, this example provisions a sample application which demonstrates using the ACK controllers for resource provisioning.
 The arhchitecture looks like this: <br>
@@ -46,22 +58,38 @@ aws eks --region <REGION> update-kubeconfig --name <CLUSTER_NAME>
 ```sh
 kubectl get pods -A
 
-NAMESPACE         NAME                                            READY   STATUS    RESTARTS   AGE
-ack-api-gateway   ack-api-gateway-75499bfcfd-d5627                1/1     Running   0          26s
-ack-dynamodb      ack-dynamodb-76fdf5cf77-jpwd9                   1/1     Running   0          26s
-ack-elasticache   ack-elasticache-45eeg7dv12-m5asf                1/1     Running   0          26s
-ack-rds           ack-rds-85c7ccdbf6-tkpvz                        1/1     Running   0          26s
-ack-s3            ack-s3-7f4c79cbc8-g4tgl                         1/1     Running   0          26s
-kube-system       aws-load-balancer-controller-596d8cb765-wwmzt   1/1     Running   0          26s
-kube-system       aws-load-balancer-controller-596d8cb765-zpkw5   1/1     Running   0          26s
-kube-system       aws-node-cvt8c                                  1/1     Running   0          26s
-kube-system       aws-node-dhk98                                  1/1     Running   0          26s
-kube-system       aws-node-fk4bb                                  1/1     Running   0          26s
-kube-system       coredns-57ff979f67-6vmrg                        1/1     Running   0          26s
-kube-system       coredns-57ff979f67-xnwvn                        1/1     Running   0          26s
-kube-system       kube-proxy-5ww6m                                1/1     Running   0          26s
-kube-system       kube-proxy-84fk2                                1/1     Running   0          26s
-kube-system       kube-proxy-jwwkl                                1/1     Running   0          26s
+NAMESPACE     NAME                                            READY   STATUS    RESTARTS   AGE
+ack-system    ack-acm-5ffccbd5d5-62kx9                        1/1     Running   0          11m
+ack-system    ack-apigatewayv2-cf6cd9d67-vxhsk                1/1     Running   0          11m
+ack-system    ack-dynamodb-bd47f88b7-7jbgw                    1/1     Running   0          10m
+ack-system    ack-ec2-54dfcf968-pdbs2                         1/1     Running   0          10m
+ack-system    ack-eks-9cb44fc-95k6x                           1/1     Running   0          11m
+ack-system    ack-elasticache-5758ff66bd-6vbgc                1/1     Running   0          11m
+ack-system    ack-emrcontainers-69ffb54758-78ksb              1/1     Running   0          11m
+ack-system    ack-eventbridge-58c7d4c8f5-vvfz5                1/1     Running   0          11m
+ack-system    ack-iam-7486c996c8-kbb2h                        1/1     Running   0          11m
+ack-system    ack-kms-bb956b4fc-x69lv                         1/1     Running   0          11m
+ack-system    ack-lambda-65bd7fbc8d-6jn8k                     1/1     Running   0          11m
+ack-system    ack-prometheusservice-5bccddc6f-7tkl5           1/1     Running   0          11m
+ack-system    ack-rds-57499b447d-pg9tq                        1/1     Running   0          10m
+ack-system    ack-s3-78b44bf586-b8qnj                         1/1     Running   0          11m
+ack-system    ack-sfn-7494cbccf-vx6g7                         1/1     Running   0          10m
+ack-system    ack-sns-56bb579874-h26s5                        1/1     Running   0          11m
+ack-system    ack-sqs-5f7bc84d45-47zw4                        1/1     Running   0          11m
+kube-system   aws-load-balancer-controller-84b5bf9c5f-45fkt   1/1     Running   0          10m
+kube-system   aws-load-balancer-controller-84b5bf9c5f-vtwj4   1/1     Running   0          10m
+kube-system   aws-node-btph9                                  2/2     Running   0          10m
+kube-system   aws-node-dqh67                                  2/2     Running   0          10m
+kube-system   aws-node-kt5mp                                  2/2     Running   0          10m
+kube-system   coredns-787cb67946-hlqfm                        1/1     Running   0          14m
+kube-system   coredns-787cb67946-q8lzj                        1/1     Running   0          14m
+kube-system   eks-pod-identity-agent-lhj4d                    1/1     Running   0          10m
+kube-system   eks-pod-identity-agent-vvf46                    1/1     Running   0          10m
+kube-system   eks-pod-identity-agent-zw2qv                    1/1     Running   0          10m
+kube-system   kube-proxy-27k5q                                1/1     Running   0          10m
+kube-system   kube-proxy-6q78s                                1/1     Running   0          10m
+kube-system   kube-proxy-x5hhm                                1/1     Running   0          10m
+kube-system   metrics-server-7577444cf8-9l7h8                 1/1     Running   0          12m
 ```
 
 ## Sample Application Deployment
