@@ -18,6 +18,9 @@ module "eks_ack_addons" {
   ecrpublic_token    = "<ecr token>"
 
   # Controllers to enable
+  enable_sns               = true
+  enable_sqs               = true
+  enable_lambda            = true
   enable_iam               = true
   enable_ec2               = true
   enable_eks               = true
