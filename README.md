@@ -165,7 +165,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_enable_kms"></a> [enable\_kms](#input\_enable\_kms) | Enable ACK kms add-on | `bool` | `false` | no |
 | <a name="input_enable_lambda"></a> [enable\_lambda](#input\_enable\_lambda) | Enable ACK Lambda add-on | `bool` | `false` | no |
 | <a name="input_enable_memorydb"></a> [enable\_memorydb](#input\_enable\_memorydb) | Enable ACK MemoryDB add-on | `bool` | `false` | no |
-| <a name="input_enable_opensearchservice"></a> [enable\_opensearchservice](#input\_enable\_opensearchservice) | Enable ACK OpensearchService add-on | `bool` | `false` | no |
+| <a name="input_enable_opensearchservice"></a> [enable\_opensearchservice](#input\_enable\_opensearchservice) | Enable ACK Opensearch Service add-on | `bool` | `false` | no |
 | <a name="input_enable_prometheusservice"></a> [enable\_prometheusservice](#input\_enable\_prometheusservice) | Enable ACK prometheusservice add-on | `bool` | `false` | no |
 | <a name="input_enable_rds"></a> [enable\_rds](#input\_enable\_rds) | Enable ACK rds add-on | `bool` | `false` | no |
 | <a name="input_enable_s3"></a> [enable\_s3](#input\_enable\_s3) | Enable ACK s3 add-on | `bool` | `false` | no |
@@ -179,7 +179,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_lambda"></a> [lambda](#input\_lambda) | ACK Lambda Helm Chart config | `any` | `{}` | no |
 | <a name="input_memorydb"></a> [memorydb](#input\_memorydb) | ACK MemoryDB Helm Chart config | `any` | `{}` | no |
 | <a name="input_oidc_provider_arn"></a> [oidc\_provider\_arn](#input\_oidc\_provider\_arn) | The ARN of the cluster OIDC Provider | `string` | n/a | yes |
-| <a name="input_opensearchservice"></a> [opensearchservice](#input\_opensearchservice) | ACK OpensearchService Helm Chart config | `any` | `{}` | no |
+| <a name="input_opensearchservice"></a> [opensearchservice](#input\_opensearchservice) | ACK Opensearch Service Helm Chart config | `any` | `{}` | no |
 | <a name="input_prometheusservice"></a> [prometheusservice](#input\_prometheusservice) | ACK prometheusservice Helm Chart config | `any` | `{}` | no |
 | <a name="input_rds"></a> [rds](#input\_rds) | ACK rds Helm Chart config | `any` | `{}` | no |
 | <a name="input_s3"></a> [s3](#input\_s3) | ACK s3 Helm Chart config | `any` | `{}` | no |

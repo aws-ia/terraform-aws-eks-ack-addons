@@ -80,13 +80,13 @@ variable "memorydb" {
 ################################################################################
 
 variable "enable_opensearchservice" {
-  description = "Enable ACK OpensearchService add-on"
+  description = "Enable ACK Opensearch Service add-on"
   type        = bool
   default     = false
 }
 
 variable "opensearchservice" {
-  description = "ACK OpensearchService Helm Chart config"
+  description = "ACK Opensearch Service Helm Chart config"
   type        = any
   default     = {}
 }

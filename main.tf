@@ -1284,7 +1284,7 @@ module "lambda" {
   tags = var.tags
 }
 
-# recommended lambda policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
+# recommended lambda-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "lambda_controller" {
   count = var.enable_lambda ? 1 : 0
 
