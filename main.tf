@@ -964,13 +964,13 @@ module "sns" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.11
+  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.12
   name             = try(var.sns.name, local.sns_name)
   description      = try(var.sns.description, "Helm Chart for SNS controller for ACK")
   namespace        = try(var.sns.namespace, "ack-system")
   create_namespace = try(var.sns.create_namespace, true)
   chart            = "sns-chart"
-  chart_version    = try(var.sns.chart_version, "1.0.11")
+  chart_version    = try(var.sns.chart_version, "1.0.12")
   repository       = try(var.sns.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sns.values, [])
 
@@ -1084,13 +1084,13 @@ module "sqs" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.15
   name             = try(var.sqs.name, local.sqs_name)
   description      = try(var.sqs.description, "Helm Chart for SQS controller for ACK")
   namespace        = try(var.sqs.namespace, "ack-system")
   create_namespace = try(var.sqs.create_namespace, true)
   chart            = "sqs-chart"
-  chart_version    = try(var.sqs.chart_version, "1.0.14")
+  chart_version    = try(var.sqs.chart_version, "1.0.15")
   repository       = try(var.sqs.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sqs.values, [])
 
@@ -1341,13 +1341,13 @@ module "iam" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.10
+  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.11
   name             = try(var.iam.name, local.iam_name)
   description      = try(var.iam.description, "Helm Chart for iam controller for ACK")
   namespace        = try(var.iam.namespace, "ack-system")
   create_namespace = try(var.iam.create_namespace, true)
   chart            = "iam-chart"
-  chart_version    = try(var.iam.chart_version, "1.3.10")
+  chart_version    = try(var.iam.chart_version, "1.3.11")
   repository       = try(var.iam.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.iam.values, [])
 
@@ -1525,13 +1525,13 @@ module "ec2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.15
+  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.16
   name             = try(var.ec2.name, local.ec2_name)
   description      = try(var.ec2.description, "Helm Chart for ec2 controller for ACK")
   namespace        = try(var.ec2.namespace, "ack-system")
   create_namespace = try(var.ec2.create_namespace, true)
   chart            = "ec2-chart"
-  chart_version    = try(var.ec2.chart_version, "1.2.15")
+  chart_version    = try(var.ec2.chart_version, "1.2.16")
   repository       = try(var.ec2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.ec2.values, [])
 
@@ -1623,13 +1623,13 @@ module "eks" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.3
+  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.4
   name             = try(var.eks.name, local.eks_name)
   description      = try(var.eks.description, "Helm Chart for eks controller for ACK")
   namespace        = try(var.eks.namespace, "ack-system")
   create_namespace = try(var.eks.create_namespace, true)
   chart            = "eks-chart"
-  chart_version    = try(var.eks.chart_version, "1.4.3")
+  chart_version    = try(var.eks.chart_version, "1.4.4")
   repository       = try(var.eks.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eks.values, [])
 
@@ -1750,13 +1750,13 @@ module "kms" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.15
   name             = try(var.kms.name, local.kms_name)
   description      = try(var.kms.description, "Helm Chart for kms controller for ACK")
   namespace        = try(var.kms.namespace, "ack-system")
   create_namespace = try(var.kms.create_namespace, true)
   chart            = "kms-chart"
-  chart_version    = try(var.kms.chart_version, "1.0.14")
+  chart_version    = try(var.kms.chart_version, "1.0.15")
   repository       = try(var.kms.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.kms.values, [])
 
@@ -1888,13 +1888,13 @@ module "acm" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.17
+  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.18
   name             = try(var.acm.name, local.acm_name)
   description      = try(var.acm.description, "Helm Chart for acm controller for ACK")
   namespace        = try(var.acm.namespace, "ack-system")
   create_namespace = try(var.acm.create_namespace, true)
   chart            = "acm-chart"
-  chart_version    = try(var.acm.chart_version, "0.0.17")
+  chart_version    = try(var.acm.chart_version, "0.0.18")
   repository       = try(var.acm.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.acm.values, [])
 
@@ -2019,13 +2019,13 @@ module "apigatewayv2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.15
   name             = try(var.apigatewayv2.name, local.apigatewayv2_name)
   description      = try(var.apigatewayv2.description, "Helm Chart for apigatewayv2 controller for ACK")
   namespace        = try(var.apigatewayv2.namespace, "ack-system")
   create_namespace = try(var.apigatewayv2.create_namespace, true)
   chart            = "apigatewayv2-chart"
-  chart_version    = try(var.apigatewayv2.chart_version, "1.0.14")
+  chart_version    = try(var.apigatewayv2.chart_version, "1.0.15")
   repository       = try(var.apigatewayv2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.apigatewayv2.values, [])
 
@@ -2118,13 +2118,13 @@ module "dynamodb" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.12
+  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.13
   name             = try(var.dynamodb.name, local.dynamodb_name)
   description      = try(var.dynamodb.description, "Helm Chart for dynamodb controller for ACK")
   namespace        = try(var.dynamodb.namespace, "ack-system")
   create_namespace = try(var.dynamodb.create_namespace, true)
   chart            = "dynamodb-chart"
-  chart_version    = try(var.dynamodb.chart_version, "1.2.12")
+  chart_version    = try(var.dynamodb.chart_version, "1.2.13")
   repository       = try(var.dynamodb.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.dynamodb.values, [])
 
@@ -2216,13 +2216,13 @@ module "s3" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.13
+  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.15
   name             = try(var.s3.name, local.s3_name)
   description      = try(var.s3.description, "Helm Chart for s3 controller for ACK")
   namespace        = try(var.s3.namespace, "ack-system")
   create_namespace = try(var.s3.create_namespace, true)
   chart            = "s3-chart"
-  chart_version    = try(var.s3.chart_version, "1.0.13")
+  chart_version    = try(var.s3.chart_version, "1.0.15")
   repository       = try(var.s3.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.s3.values, [])
 
@@ -2412,13 +2412,13 @@ module "rds" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.2
+  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.3
   name             = try(var.rds.name, local.rds_name)
   description      = try(var.rds.description, "Helm Chart for rds controller for ACK")
   namespace        = try(var.rds.namespace, "ack-system")
   create_namespace = try(var.rds.create_namespace, true)
   chart            = "rds-chart"
-  chart_version    = try(var.rds.chart_version, "1.4.2")
+  chart_version    = try(var.rds.chart_version, "1.4.3")
   repository       = try(var.rds.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.rds.values, [])
 
@@ -2516,7 +2516,7 @@ module "prometheusservice" {
   namespace        = try(var.prometheusservice.namespace, "ack-system")
   create_namespace = try(var.prometheusservice.create_namespace, true)
   chart            = "prometheusservice-chart"
-  chart_version    = try(var.prometheusservice.chart_version, "1.2.12")
+  chart_version    = try(var.prometheusservice.chart_version, "1.2.13")
   repository       = try(var.prometheusservice.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.prometheusservice.values, [])
 
@@ -2614,7 +2614,7 @@ module "emrcontainers" {
   namespace        = try(var.emrcontainers.namespace, "ack-system")
   create_namespace = try(var.emrcontainers.create_namespace, true)
   chart            = "emrcontainers-chart"
-  chart_version    = try(var.emrcontainers.chart_version, "1.0.11")
+  chart_version    = try(var.emrcontainers.chart_version, "1.0.12")
   repository       = try(var.emrcontainers.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.emrcontainers.values, [])
 
@@ -2797,7 +2797,7 @@ module "sfn" {
   namespace        = try(var.sfn.namespace, "ack-system")
   create_namespace = try(var.sfn.create_namespace, true)
   chart            = "sfn-chart"
-  chart_version    = try(var.sfn.chart_version, "1.0.12")
+  chart_version    = try(var.sfn.chart_version, "1.0.13")
   repository       = try(var.sfn.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sfn.values, [])
 
@@ -2922,7 +2922,7 @@ module "eventbridge" {
   namespace        = try(var.eventbridge.namespace, "ack-system")
   create_namespace = try(var.eventbridge.create_namespace, true)
   chart            = "eventbridge-chart"
-  chart_version    = try(var.eventbridge.chart_version, "1.0.12")
+  chart_version    = try(var.eventbridge.chart_version, "1.0.13")
   repository       = try(var.eventbridge.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eventbridge.values, [])
 
