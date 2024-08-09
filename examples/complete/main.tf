@@ -131,6 +131,10 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   # Controllers to enable
+  enable_sagemaker         = true
+  enable_memorydb          = true
+  enable_opensearchservice = true
+  enable_ecr               = true
   enable_sns               = true
   enable_sqs               = true
   enable_lambda            = true

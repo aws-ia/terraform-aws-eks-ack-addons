@@ -44,6 +44,70 @@ variable "tags" {
 }
 
 ################################################################################
+# Sagemaker
+################################################################################
+
+variable "enable_sagemaker" {
+  description = "Enable ACK Sagemaker add-on"
+  type        = bool
+  default     = false
+}
+
+variable "sagemaker" {
+  description = "ACK Sagemaker Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# MemoryDB
+################################################################################
+
+variable "enable_memorydb" {
+  description = "Enable ACK MemoryDB add-on"
+  type        = bool
+  default     = false
+}
+
+variable "memorydb" {
+  description = "ACK MemoryDB Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# OpenSearch Service
+################################################################################
+
+variable "enable_opensearchservice" {
+  description = "Enable ACK Opensearch Service add-on"
+  type        = bool
+  default     = false
+}
+
+variable "opensearchservice" {
+  description = "ACK Opensearch Service Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# ECR
+################################################################################
+
+variable "enable_ecr" {
+  description = "Enable ACK ECR add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ecr" {
+  description = "ACK ECR Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # SNS
 ################################################################################
 

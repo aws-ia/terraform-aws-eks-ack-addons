@@ -33,6 +33,921 @@ locals {
 }
 
 ################################################################################
+# SageMaker
+################################################################################
+
+locals {
+  sagemaker_name = "ack-sagemaker"
+}
+
+module "sagemaker" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_sagemaker
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/sagemaker-chart:1.2.12
+  name             = try(var.sagemaker.name, local.sagemaker_name)
+  description      = try(var.sagemaker.description, "Helm Chart for Sagemaker controller for ACK")
+  namespace        = try(var.sagemaker.namespace, "ack-system")
+  create_namespace = try(var.sagemaker.create_namespace, true)
+  chart            = "sagemaker-chart"
+  chart_version    = try(var.sagemaker.chart_version, "1.2.12")
+  repository       = try(var.sagemaker.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.sagemaker.values, [])
+
+  timeout                    = try(var.sagemaker.timeout, null)
+  repository_key_file        = try(var.sagemaker.repository_key_file, null)
+  repository_cert_file       = try(var.sagemaker.repository_cert_file, null)
+  repository_ca_file         = try(var.sagemaker.repository_ca_file, null)
+  repository_username        = try(var.sagemaker.repository_username, local.repository_username)
+  repository_password        = try(var.sagemaker.repository_password, local.repository_password)
+  devel                      = try(var.sagemaker.devel, null)
+  verify                     = try(var.sagemaker.verify, null)
+  keyring                    = try(var.sagemaker.keyring, null)
+  disable_webhooks           = try(var.sagemaker.disable_webhooks, null)
+  reuse_values               = try(var.sagemaker.reuse_values, null)
+  reset_values               = try(var.sagemaker.reset_values, null)
+  force_update               = try(var.sagemaker.force_update, null)
+  recreate_pods              = try(var.sagemaker.recreate_pods, null)
+  cleanup_on_fail            = try(var.sagemaker.cleanup_on_fail, null)
+  max_history                = try(var.sagemaker.max_history, null)
+  atomic                     = try(var.sagemaker.atomic, null)
+  skip_crds                  = try(var.sagemaker.skip_crds, null)
+  render_subchart_notes      = try(var.sagemaker.render_subchart_notes, null)
+  disable_openapi_validation = try(var.sagemaker.disable_openapi_validation, null)
+  wait                       = try(var.sagemaker.wait, false)
+  wait_for_jobs              = try(var.sagemaker.wait_for_jobs, null)
+  dependency_update          = try(var.sagemaker.dependency_update, null)
+  replace                    = try(var.sagemaker.replace, null)
+  lint                       = try(var.sagemaker.lint, null)
+
+  postrender = try(var.sagemaker.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-sagemaker-sagemaker-chart-xxxxxxxxxxxxx` to `ack-sagemaker-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-sagemaker"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.sagemaker_name
+    }],
+    try(var.sagemaker.set, [])
+  )
+  set_sensitive = try(var.sagemaker.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.sagemaker.create_role, true)
+  role_name                     = try(var.sagemaker.role_name, "ack-sagemaker")
+  role_name_use_prefix          = try(var.sagemaker.role_name_use_prefix, true)
+  role_path                     = try(var.sagemaker.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.sagemaker, "role_permissions_boundary_arn", null)
+  role_description              = try(var.sagemaker.role_description, "IRSA for Sagemaker controller for ACK")
+  role_policies = lookup(var.sagemaker, "role_policies", {
+    core_policy                      = var.enable_sagemaker ? aws_iam_policy.sagemaker_core_policy[0].arn : null,
+    studio_policy                    = var.enable_sagemaker ? aws_iam_policy.sagemaker_studio_policy[0].arn : null,
+    space_management_policy          = var.enable_sagemaker ? aws_iam_policy.sagemaker_space_management_policy[0].arn : null,
+    aws_service_actions_policy       = var.enable_sagemaker ? aws_iam_policy.aws_service_actions_policy[0].arn : null,
+    resource_specific_actions_policy = var.enable_sagemaker ? aws_iam_policy.resource_specific_actions_policy[0].arn : null,
+    s3_actions_policy                = var.enable_sagemaker ? aws_iam_policy.s3_actions_policy[0].arn : null
+  })
+
+  create_policy = try(var.sagemaker.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.sagemaker_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended sagemaker-controller policy https://github.com/aws-controllers-k8s/sagemaker-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "sagemaker_core" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowAllNonAdminSageMakerActions"
+    effect = "Allow"
+    actions = [
+      "sagemaker:*",
+      "sagemaker-geospatial:*",
+    ]
+    not_resources = [
+      "arn:aws:sagemaker:*:*:domain/*",
+      "arn:aws:sagemaker:*:*:user-profile/*",
+      "arn:aws:sagemaker:*:*:app/*",
+      "arn:aws:sagemaker:*:*:space/*",
+      "arn:aws:sagemaker:*:*:flow-definition/*",
+    ]
+  }
+
+  statement {
+    sid       = "AllowAddTagsForSpace"
+    effect    = "Allow"
+    actions   = ["sagemaker:AddTags"]
+    resources = ["arn:aws:sagemaker:*:*:space/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "sagemaker:TaggingAction"
+      values   = ["CreateSpace"]
+    }
+  }
+
+  statement {
+    sid       = "AllowAddTagsForApp"
+    effect    = "Allow"
+    actions   = ["sagemaker:AddTags"]
+    resources = ["arn:aws:sagemaker:*:*:app/*"]
+  }
+}
+
+data "aws_iam_policy_document" "sagemaker_studio" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowStudioActions"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreatePresignedDomainUrl",
+      "sagemaker:DescribeDomain",
+      "sagemaker:ListDomains",
+      "sagemaker:DescribeUserProfile",
+      "sagemaker:ListUserProfiles",
+      "sagemaker:DescribeSpace",
+      "sagemaker:ListSpaces",
+      "sagemaker:DescribeApp",
+      "sagemaker:ListApps",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowAppActionsForUserProfile"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreateApp",
+      "sagemaker:DeleteApp",
+    ]
+    resources = ["arn:aws:sagemaker:*:*:app/*/*/*/*"]
+
+    condition {
+      test     = "Null"
+      variable = "sagemaker:OwnerUserProfileArn"
+      values   = ["true"]
+    }
+  }
+
+  statement {
+    sid    = "AllowAppActionsForSharedSpaces"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreateApp",
+      "sagemaker:DeleteApp",
+    ]
+    resources = ["arn:aws:sagemaker:*:*:app/$${sagemaker:DomainId}/*/*/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "sagemaker:SpaceSharingType"
+      values   = ["Shared"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "sagemaker_space_management" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowMutatingActionsOnSharedSpacesWithoutOwner"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreateSpace",
+      "sagemaker:UpdateSpace",
+      "sagemaker:DeleteSpace",
+    ]
+    resources = ["arn:aws:sagemaker:*:*:space/$${sagemaker:DomainId}/*"]
+
+    condition {
+      test     = "Null"
+      variable = "sagemaker:OwnerUserProfileArn"
+      values   = ["true"]
+    }
+  }
+
+  statement {
+    sid    = "RestrictMutatingActionsOnSpacesToOwnerUserProfile"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreateSpace",
+      "sagemaker:UpdateSpace",
+      "sagemaker:DeleteSpace",
+    ]
+    resources = ["arn:aws:sagemaker:*:*:space/$${sagemaker:DomainId}/*"]
+
+    condition {
+      test     = "ArnLike"
+      variable = "sagemaker:OwnerUserProfileArn"
+      values   = ["arn:aws:sagemaker:*:*:user-profile/$${sagemaker:DomainId}/$${sagemaker:UserProfileName}"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "sagemaker:SpaceSharingType"
+      values   = ["Private", "Shared"]
+    }
+  }
+
+  statement {
+    sid    = "RestrictMutatingActionsOnPrivateSpaceAppsToOwnerUserProfile"
+    effect = "Allow"
+    actions = [
+      "sagemaker:CreateApp",
+      "sagemaker:DeleteApp",
+    ]
+    resources = ["arn:aws:sagemaker:*:*:app/$${sagemaker:DomainId}/*/*/*"]
+
+    condition {
+      test     = "ArnLike"
+      variable = "sagemaker:OwnerUserProfileArn"
+      values   = ["arn:aws:sagemaker:*:*:user-profile/$${sagemaker:DomainId}/$${sagemaker:UserProfileName}"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "sagemaker:SpaceSharingType"
+      values   = ["Private"]
+    }
+  }
+
+  statement {
+    sid       = "AllowFlowDefinitionActions"
+    effect    = "Allow"
+    actions   = ["sagemaker:*"]
+    resources = ["arn:aws:sagemaker:*:*:flow-definition/*"]
+
+    condition {
+      test     = "StringEqualsIfExists"
+      variable = "sagemaker:WorkteamType"
+      values   = ["private-crowd", "vendor-crowd"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "aws_service_actions" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowAWSServiceActions"
+    effect = "Allow"
+    actions = [
+      "application-autoscaling:*",
+      "aws-marketplace:ViewSubscriptions",
+      "cloudformation:GetTemplateSummary",
+      "cloudwatch:*",
+      "codecommit:*",
+      "cognito-idp:*",
+      "ec2:*",
+      "ecr:*",
+      "elastic-inference:Connect",
+      "elasticfilesystem:Describe*",
+      "fsx:DescribeFileSystems",
+      "glue:*",
+      "groundtruthlabeling:*",
+      "iam:ListRoles",
+      "kms:*",
+      "lambda:ListFunctions",
+      "logs:*",
+      "robomaker:*",
+      "secretsmanager:ListSecrets",
+      "servicecatalog:*",
+      "sns:ListTopics",
+      "tag:GetResources",
+    ]
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy_document" "resource_specific_actions" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowECRActions"
+    effect = "Allow"
+    actions = [
+      "ecr:*",
+    ]
+    resources = ["arn:aws:ecr:*:*:repository/*sagemaker*"]
+  }
+
+  statement {
+    sid    = "AllowCodeCommitActions"
+    effect = "Allow"
+    actions = [
+      "codecommit:GitPull",
+      "codecommit:GitPush",
+    ]
+    resources = [
+      "arn:aws:codecommit:*:*:*sagemaker*",
+      "arn:aws:codecommit:*:*:*SageMaker*",
+      "arn:aws:codecommit:*:*:*Sagemaker*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowCodeBuildActions"
+    effect = "Allow"
+    actions = [
+      "codebuild:BatchGetBuilds",
+      "codebuild:StartBuild",
+    ]
+    resources = [
+      "arn:aws:codebuild:*:*:project/sagemaker*",
+      "arn:aws:codebuild:*:*:build/*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowStepFunctionsActions"
+    effect = "Allow"
+    actions = [
+      "states:*",
+    ]
+    resources = [
+      "arn:aws:states:*:*:statemachine:*sagemaker*",
+      "arn:aws:states:*:*:execution:*sagemaker*:*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowSecretManagerActions"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:*",
+    ]
+    resources = ["arn:aws:secretsmanager:*:*:secret:AmazonSageMaker-*"]
+  }
+
+  statement {
+    sid    = "AllowReadOnlySecretManagerActions"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetSecretValue",
+    ]
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "secretsmanager:ResourceTag/SageMaker"
+      values   = ["true"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_actions" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  statement {
+    sid    = "AllowS3ObjectActions"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:AbortMultipartUpload",
+    ]
+    resources = [
+      "arn:aws:s3:::*SageMaker*",
+      "arn:aws:s3:::*Sagemaker*",
+      "arn:aws:s3:::*sagemaker*",
+      "arn:aws:s3:::*aws-glue*",
+    ]
+  }
+
+  statement {
+    sid       = "AllowS3GetObjectWithSageMakerExistingObjectTag"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::*"]
+
+    condition {
+      test     = "StringEqualsIgnoreCase"
+      variable = "s3:ExistingObjectTag/SageMaker"
+      values   = ["true"]
+    }
+  }
+
+  statement {
+    sid       = "AllowS3GetObjectWithServiceCatalogProvisioningExistingObjectTag"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:ExistingObjectTag/servicecatalog:provisioning"
+      values   = ["true"]
+    }
+  }
+
+  statement {
+    sid    = "AllowS3BucketActions"
+    effect = "Allow"
+    actions = [
+      "s3:CreateBucket",
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+      "s3:ListAllMyBuckets",
+      "s3:GetBucketCors",
+      "s3:PutBucketCors",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowS3BucketACL"
+    effect = "Allow"
+    actions = [
+      "s3:GetBucketAcl",
+      "s3:PutObjectAcl",
+    ]
+    resources = [
+      "arn:aws:s3:::*SageMaker*",
+      "arn:aws:s3:::*Sagemaker*",
+      "arn:aws:s3:::*sagemaker*",
+    ]
+  }
+
+  statement {
+    sid     = "AllowLambdaInvokeFunction"
+    effect  = "Allow"
+    actions = ["lambda:InvokeFunction"]
+    resources = [
+      "arn:aws:lambda:*:*:function:*SageMaker*",
+      "arn:aws:lambda:*:*:function:*sagemaker*",
+      "arn:aws:lambda:*:*:function:*Sagemaker*",
+      "arn:aws:lambda:*:*:function:*LabelingFunction*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "sagemaker_core_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "SagemakerCorePolicy"
+  description = "IAM policy for SageMaker core actions"
+  policy      = data.aws_iam_policy_document.sagemaker_core[0].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "sagemaker_studio_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "SagemakerStudioPolicy"
+  description = "IAM policy for SageMaker Studio and App actions"
+  policy      = data.aws_iam_policy_document.sagemaker_studio[0].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "sagemaker_space_management_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "SagemakerSpaceManagementPolicy"
+  description = "IAM policy for SageMaker space and flow definition management"
+  policy      = data.aws_iam_policy_document.sagemaker_space_management[0].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "aws_service_actions_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "AWSServiceActionsPolicy"
+  description = "IAM policy for AWS service actions"
+  policy      = data.aws_iam_policy_document.aws_service_actions[0].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "resource_specific_actions_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "ResourceSpecificActionsPolicy"
+  description = "IAM policy for resource-specific actions"
+  policy      = data.aws_iam_policy_document.resource_specific_actions[0].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "s3_actions_policy" {
+  count = var.enable_sagemaker ? 1 : 0
+
+  name        = "S3ActionsPolicy"
+  description = "IAM policy for S3 and S3 Express actions"
+  policy      = data.aws_iam_policy_document.s3_actions[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# MemoryDB
+################################################################################
+
+locals {
+  memorydb_name = "ack-memorydb"
+}
+
+module "memorydb" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_memorydb
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/memorydb-chart:1.0.4
+  name             = try(var.memorydb.name, local.memorydb_name)
+  description      = try(var.memorydb.description, "Helm Chart for MemoryDB controller for ACK")
+  namespace        = try(var.memorydb.namespace, "ack-system")
+  create_namespace = try(var.memorydb.create_namespace, true)
+  chart            = "memorydb-chart"
+  chart_version    = try(var.memorydb.chart_version, "1.0.4")
+  repository       = try(var.memorydb.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.memorydb.values, [])
+
+  timeout                    = try(var.memorydb.timeout, null)
+  repository_key_file        = try(var.memorydb.repository_key_file, null)
+  repository_cert_file       = try(var.memorydb.repository_cert_file, null)
+  repository_ca_file         = try(var.memorydb.repository_ca_file, null)
+  repository_username        = try(var.memorydb.repository_username, local.repository_username)
+  repository_password        = try(var.memorydb.repository_password, local.repository_password)
+  devel                      = try(var.memorydb.devel, null)
+  verify                     = try(var.memorydb.verify, null)
+  keyring                    = try(var.memorydb.keyring, null)
+  disable_webhooks           = try(var.memorydb.disable_webhooks, null)
+  reuse_values               = try(var.memorydb.reuse_values, null)
+  reset_values               = try(var.memorydb.reset_values, null)
+  force_update               = try(var.memorydb.force_update, null)
+  recreate_pods              = try(var.memorydb.recreate_pods, null)
+  cleanup_on_fail            = try(var.memorydb.cleanup_on_fail, null)
+  max_history                = try(var.memorydb.max_history, null)
+  atomic                     = try(var.memorydb.atomic, null)
+  skip_crds                  = try(var.memorydb.skip_crds, null)
+  render_subchart_notes      = try(var.memorydb.render_subchart_notes, null)
+  disable_openapi_validation = try(var.memorydb.disable_openapi_validation, null)
+  wait                       = try(var.memorydb.wait, false)
+  wait_for_jobs              = try(var.memorydb.wait_for_jobs, null)
+  dependency_update          = try(var.memorydb.dependency_update, null)
+  replace                    = try(var.memorydb.replace, null)
+  lint                       = try(var.memorydb.lint, null)
+
+  postrender = try(var.memorydb.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-memorydb-memorydb-chart-xxxxxxxxxxxxx` to `ack-memorydb-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-memorydb"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.memorydb_name
+    }],
+    try(var.memorydb.set, [])
+  )
+  set_sensitive = try(var.memorydb.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.memorydb.create_role, true)
+  role_name                     = try(var.memorydb.role_name, "ack-memorydb")
+  role_name_use_prefix          = try(var.memorydb.role_name_use_prefix, true)
+  role_path                     = try(var.memorydb.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.memorydb, "role_permissions_boundary_arn", null)
+  role_description              = try(var.memorydb.role_description, "IRSA for MemoryDB controller for ACK")
+  role_policies = lookup(var.memorydb, "role_policies", {
+    policy = var.enable_memorydb ? aws_iam_policy.memorydbpolicy[0].arn : null
+  })
+  create_policy = try(var.memorydb.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.memorydb_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended memorydb-controller policy https://github.com/aws-controllers-k8s/memorydb-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "memorydb_controller" {
+  count = var.enable_memorydb ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    actions   = ["memorydb:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:CreateServiceLinkedRole"]
+    resources = ["arn:aws:iam::*:role/aws-service-role/memorydb.amazonaws.com/AWSServiceRoleForMemoryDB"]
+
+    condition {
+      test     = "StringLike"
+      variable = "iam:AWSServiceName"
+      values   = ["memorydb.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "memorydbpolicy" {
+  count = var.enable_memorydb ? 1 : 0
+
+  name        = "MemoryDBController"
+  description = "IAM policy for MemoryDB Controller"
+  policy      = data.aws_iam_policy_document.memorydb_controller[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# OpenSearch Service
+################################################################################
+
+locals {
+  opensearchservice_name = "ack-opensearchservice"
+}
+
+module "opensearchservice" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_opensearchservice
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/opensearchservice-chart:0.0.27
+  name             = try(var.opensearchservice.name, local.opensearchservice_name)
+  description      = try(var.opensearchservice.description, "Helm Chart for Opensearch Service controller for ACK")
+  namespace        = try(var.opensearchservice.namespace, "ack-system")
+  create_namespace = try(var.opensearchservice.create_namespace, true)
+  chart            = "opensearchservice-chart"
+  chart_version    = try(var.opensearchservice.chart_version, "0.0.27")
+  repository       = try(var.opensearchservice.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.opensearchservice.values, [])
+
+  timeout                    = try(var.opensearchservice.timeout, null)
+  repository_key_file        = try(var.opensearchservice.repository_key_file, null)
+  repository_cert_file       = try(var.opensearchservice.repository_cert_file, null)
+  repository_ca_file         = try(var.opensearchservice.repository_ca_file, null)
+  repository_username        = try(var.opensearchservice.repository_username, local.repository_username)
+  repository_password        = try(var.opensearchservice.repository_password, local.repository_password)
+  devel                      = try(var.opensearchservice.devel, null)
+  verify                     = try(var.opensearchservice.verify, null)
+  keyring                    = try(var.opensearchservice.keyring, null)
+  disable_webhooks           = try(var.opensearchservice.disable_webhooks, null)
+  reuse_values               = try(var.opensearchservice.reuse_values, null)
+  reset_values               = try(var.opensearchservice.reset_values, null)
+  force_update               = try(var.opensearchservice.force_update, null)
+  recreate_pods              = try(var.opensearchservice.recreate_pods, null)
+  cleanup_on_fail            = try(var.opensearchservice.cleanup_on_fail, null)
+  max_history                = try(var.opensearchservice.max_history, null)
+  atomic                     = try(var.opensearchservice.atomic, null)
+  skip_crds                  = try(var.opensearchservice.skip_crds, null)
+  render_subchart_notes      = try(var.opensearchservice.render_subchart_notes, null)
+  disable_openapi_validation = try(var.opensearchservice.disable_openapi_validation, null)
+  wait                       = try(var.opensearchservice.wait, false)
+  wait_for_jobs              = try(var.opensearchservice.wait_for_jobs, null)
+  dependency_update          = try(var.opensearchservice.dependency_update, null)
+  replace                    = try(var.opensearchservice.replace, null)
+  lint                       = try(var.opensearchservice.lint, null)
+
+  postrender = try(var.opensearchservice.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-opensearchservice-opensearchservice-chart-xxxxxxxxxxxxx` to `ack-opensearchservice-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-opensearchservice"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.opensearchservice_name
+    }],
+    try(var.opensearchservice.set, [])
+  )
+  set_sensitive = try(var.opensearchservice.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.opensearchservice.create_role, true)
+  role_name                     = try(var.opensearchservice.role_name, "ack-opensearchservice")
+  role_name_use_prefix          = try(var.opensearchservice.role_name_use_prefix, true)
+  role_path                     = try(var.opensearchservice.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.opensearchservice, "role_permissions_boundary_arn", null)
+  role_description              = try(var.opensearchservice.role_description, "IRSA for Opensearch Service controller for ACK")
+  role_policies = lookup(var.opensearchservice, "role_policies", {
+    policy = var.enable_opensearchservice ? aws_iam_policy.opensearchservicepolicy[0].arn : null
+  })
+  create_policy = try(var.opensearchservice.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.opensearchservice_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended opensearchservice-controller policy https://github.com/aws-controllers-k8s/opensearchservice-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "opensearchservice_controller" {
+  count = var.enable_opensearchservice ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    actions   = ["es:*"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "opensearchservicepolicy" {
+  count = var.enable_opensearchservice ? 1 : 0
+
+  name        = "OpensearchServiceController"
+  description = "IAM policy for OpensearchService Controller"
+  policy      = data.aws_iam_policy_document.opensearchservice_controller[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# ECR
+################################################################################
+
+locals {
+  ecr_name = "ack-ecr"
+}
+
+module "ecr" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_ecr
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/ecr-chart:1.0.17
+  name             = try(var.ecr.name, local.ecr_name)
+  description      = try(var.ecr.description, "Helm Chart for ECR controller for ACK")
+  namespace        = try(var.ecr.namespace, "ack-system")
+  create_namespace = try(var.ecr.create_namespace, true)
+  chart            = "ecr-chart"
+  chart_version    = try(var.ecr.chart_version, "1.0.17")
+  repository       = try(var.ecr.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.ecr.values, [])
+
+  timeout                    = try(var.ecr.timeout, null)
+  repository_key_file        = try(var.ecr.repository_key_file, null)
+  repository_cert_file       = try(var.ecr.repository_cert_file, null)
+  repository_ca_file         = try(var.ecr.repository_ca_file, null)
+  repository_username        = try(var.ecr.repository_username, local.repository_username)
+  repository_password        = try(var.ecr.repository_password, local.repository_password)
+  devel                      = try(var.ecr.devel, null)
+  verify                     = try(var.ecr.verify, null)
+  keyring                    = try(var.ecr.keyring, null)
+  disable_webhooks           = try(var.ecr.disable_webhooks, null)
+  reuse_values               = try(var.ecr.reuse_values, null)
+  reset_values               = try(var.ecr.reset_values, null)
+  force_update               = try(var.ecr.force_update, null)
+  recreate_pods              = try(var.ecr.recreate_pods, null)
+  cleanup_on_fail            = try(var.ecr.cleanup_on_fail, null)
+  max_history                = try(var.ecr.max_history, null)
+  atomic                     = try(var.ecr.atomic, null)
+  skip_crds                  = try(var.ecr.skip_crds, null)
+  render_subchart_notes      = try(var.ecr.render_subchart_notes, null)
+  disable_openapi_validation = try(var.ecr.disable_openapi_validation, null)
+  wait                       = try(var.ecr.wait, false)
+  wait_for_jobs              = try(var.ecr.wait_for_jobs, null)
+  dependency_update          = try(var.ecr.dependency_update, null)
+  replace                    = try(var.ecr.replace, null)
+  lint                       = try(var.ecr.lint, null)
+
+  postrender = try(var.ecr.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-ecr-ecr-chart-xxxxxxxxxxxxx` to `ack-ecr-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-ecr"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.ecr_name
+    }],
+    try(var.ecr.set, [])
+  )
+  set_sensitive = try(var.ecr.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.ecr.create_role, true)
+  role_name                     = try(var.ecr.role_name, "ack-ecr")
+  role_name_use_prefix          = try(var.ecr.role_name_use_prefix, true)
+  role_path                     = try(var.ecr.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.ecr, "role_permissions_boundary_arn", null)
+  role_description              = try(var.ecr.role_description, "IRSA for ECR controller for ACK")
+  role_policies = lookup(var.ecr, "role_policies", {
+    policy = var.enable_ecr ? aws_iam_policy.ecrpolicy[0].arn : null
+  })
+  create_policy = try(var.ecr.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.ecr_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended ecr policy https://github.com/aws-controllers-k8s/ecr-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "ecr_controller" {
+  count = var.enable_ecr ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ecr:*",
+      "cloudtrail:LookupEvents",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:CreateServiceLinkedRole"]
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+      values   = ["replication.ecr.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "ecrpolicy" {
+  count = var.enable_ecr ? 1 : 0
+
+  name        = "ECRController"
+  description = "IAM policy for ecr Controller"
+  policy      = data.aws_iam_policy_document.ecr_controller[0].json
+
+  tags = var.tags
+}
+
+################################################################################
 # SNS
 ################################################################################
 
@@ -49,13 +964,13 @@ module "sns" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.11
+  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.12
   name             = try(var.sns.name, local.sns_name)
   description      = try(var.sns.description, "Helm Chart for SNS controller for ACK")
   namespace        = try(var.sns.namespace, "ack-system")
   create_namespace = try(var.sns.create_namespace, true)
   chart            = "sns-chart"
-  chart_version    = try(var.sns.chart_version, "1.0.11")
+  chart_version    = try(var.sns.chart_version, "1.0.12")
   repository       = try(var.sns.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sns.values, [])
 
@@ -129,7 +1044,7 @@ module "sns" {
   tags = var.tags
 }
 
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/sns-controller/blob/main/config/iam/recommended-policy-arn
+# recommended sns-controller policy https://github.com/aws-controllers-k8s/sns-controller/blob/main/config/iam/recommended-policy-arn
 data "aws_iam_policy_document" "sns_controller" {
   count = var.enable_sns ? 1 : 0
 
@@ -169,13 +1084,13 @@ module "sqs" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.15
   name             = try(var.sqs.name, local.sqs_name)
   description      = try(var.sqs.description, "Helm Chart for SQS controller for ACK")
   namespace        = try(var.sqs.namespace, "ack-system")
   create_namespace = try(var.sqs.create_namespace, true)
   chart            = "sqs-chart"
-  chart_version    = try(var.sqs.chart_version, "1.0.14")
+  chart_version    = try(var.sqs.chart_version, "1.0.15")
   repository       = try(var.sqs.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sqs.values, [])
 
@@ -249,7 +1164,7 @@ module "sqs" {
   tags = var.tags
 }
 
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/sqs-controller/blob/main/config/iam/recommended-policy-arn
+# recommended sqs-controller policy https://github.com/aws-controllers-k8s/sqs-controller/blob/main/config/iam/recommended-policy-arn
 data "aws_iam_policy_document" "sqs_controller" {
   count = var.enable_sqs ? 1 : 0
 
@@ -369,7 +1284,7 @@ module "lambda" {
   tags = var.tags
 }
 
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
+# recommended lambda-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "lambda_controller" {
   count = var.enable_lambda ? 1 : 0
 
@@ -426,13 +1341,13 @@ module "iam" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.10
+  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.11
   name             = try(var.iam.name, local.iam_name)
   description      = try(var.iam.description, "Helm Chart for iam controller for ACK")
   namespace        = try(var.iam.namespace, "ack-system")
   create_namespace = try(var.iam.create_namespace, true)
   chart            = "iam-chart"
-  chart_version    = try(var.iam.chart_version, "1.3.10")
+  chart_version    = try(var.iam.chart_version, "1.3.11")
   repository       = try(var.iam.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.iam.values, [])
 
@@ -610,13 +1525,13 @@ module "ec2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.15
+  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.16
   name             = try(var.ec2.name, local.ec2_name)
   description      = try(var.ec2.description, "Helm Chart for ec2 controller for ACK")
   namespace        = try(var.ec2.namespace, "ack-system")
   create_namespace = try(var.ec2.create_namespace, true)
   chart            = "ec2-chart"
-  chart_version    = try(var.ec2.chart_version, "1.2.15")
+  chart_version    = try(var.ec2.chart_version, "1.2.16")
   repository       = try(var.ec2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.ec2.values, [])
 
@@ -708,13 +1623,13 @@ module "eks" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.3
+  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.4
   name             = try(var.eks.name, local.eks_name)
   description      = try(var.eks.description, "Helm Chart for eks controller for ACK")
   namespace        = try(var.eks.namespace, "ack-system")
   create_namespace = try(var.eks.create_namespace, true)
   chart            = "eks-chart"
-  chart_version    = try(var.eks.chart_version, "1.4.3")
+  chart_version    = try(var.eks.chart_version, "1.4.4")
   repository       = try(var.eks.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eks.values, [])
 
@@ -835,13 +1750,13 @@ module "kms" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.15
   name             = try(var.kms.name, local.kms_name)
   description      = try(var.kms.description, "Helm Chart for kms controller for ACK")
   namespace        = try(var.kms.namespace, "ack-system")
   create_namespace = try(var.kms.create_namespace, true)
   chart            = "kms-chart"
-  chart_version    = try(var.kms.chart_version, "1.0.14")
+  chart_version    = try(var.kms.chart_version, "1.0.15")
   repository       = try(var.kms.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.kms.values, [])
 
@@ -973,13 +1888,13 @@ module "acm" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.17
+  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.18
   name             = try(var.acm.name, local.acm_name)
   description      = try(var.acm.description, "Helm Chart for acm controller for ACK")
   namespace        = try(var.acm.namespace, "ack-system")
   create_namespace = try(var.acm.create_namespace, true)
   chart            = "acm-chart"
-  chart_version    = try(var.acm.chart_version, "0.0.17")
+  chart_version    = try(var.acm.chart_version, "0.0.18")
   repository       = try(var.acm.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.acm.values, [])
 
@@ -1104,13 +2019,13 @@ module "apigatewayv2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.15
   name             = try(var.apigatewayv2.name, local.apigatewayv2_name)
   description      = try(var.apigatewayv2.description, "Helm Chart for apigatewayv2 controller for ACK")
   namespace        = try(var.apigatewayv2.namespace, "ack-system")
   create_namespace = try(var.apigatewayv2.create_namespace, true)
   chart            = "apigatewayv2-chart"
-  chart_version    = try(var.apigatewayv2.chart_version, "1.0.14")
+  chart_version    = try(var.apigatewayv2.chart_version, "1.0.15")
   repository       = try(var.apigatewayv2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.apigatewayv2.values, [])
 
@@ -1203,13 +2118,13 @@ module "dynamodb" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.12
+  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.13
   name             = try(var.dynamodb.name, local.dynamodb_name)
   description      = try(var.dynamodb.description, "Helm Chart for dynamodb controller for ACK")
   namespace        = try(var.dynamodb.namespace, "ack-system")
   create_namespace = try(var.dynamodb.create_namespace, true)
   chart            = "dynamodb-chart"
-  chart_version    = try(var.dynamodb.chart_version, "1.2.12")
+  chart_version    = try(var.dynamodb.chart_version, "1.2.13")
   repository       = try(var.dynamodb.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.dynamodb.values, [])
 
@@ -1301,13 +2216,13 @@ module "s3" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.13
+  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.15
   name             = try(var.s3.name, local.s3_name)
   description      = try(var.s3.description, "Helm Chart for s3 controller for ACK")
   namespace        = try(var.s3.namespace, "ack-system")
   create_namespace = try(var.s3.create_namespace, true)
   chart            = "s3-chart"
-  chart_version    = try(var.s3.chart_version, "1.0.13")
+  chart_version    = try(var.s3.chart_version, "1.0.15")
   repository       = try(var.s3.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.s3.values, [])
 
@@ -1497,13 +2412,13 @@ module "rds" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.2
+  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.3
   name             = try(var.rds.name, local.rds_name)
   description      = try(var.rds.description, "Helm Chart for rds controller for ACK")
   namespace        = try(var.rds.namespace, "ack-system")
   create_namespace = try(var.rds.create_namespace, true)
   chart            = "rds-chart"
-  chart_version    = try(var.rds.chart_version, "1.4.2")
+  chart_version    = try(var.rds.chart_version, "1.4.3")
   repository       = try(var.rds.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.rds.values, [])
 
@@ -1601,7 +2516,7 @@ module "prometheusservice" {
   namespace        = try(var.prometheusservice.namespace, "ack-system")
   create_namespace = try(var.prometheusservice.create_namespace, true)
   chart            = "prometheusservice-chart"
-  chart_version    = try(var.prometheusservice.chart_version, "1.2.12")
+  chart_version    = try(var.prometheusservice.chart_version, "1.2.13")
   repository       = try(var.prometheusservice.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.prometheusservice.values, [])
 
@@ -1699,7 +2614,7 @@ module "emrcontainers" {
   namespace        = try(var.emrcontainers.namespace, "ack-system")
   create_namespace = try(var.emrcontainers.create_namespace, true)
   chart            = "emrcontainers-chart"
-  chart_version    = try(var.emrcontainers.chart_version, "1.0.11")
+  chart_version    = try(var.emrcontainers.chart_version, "1.0.12")
   repository       = try(var.emrcontainers.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.emrcontainers.values, [])
 
@@ -1882,7 +2797,7 @@ module "sfn" {
   namespace        = try(var.sfn.namespace, "ack-system")
   create_namespace = try(var.sfn.create_namespace, true)
   chart            = "sfn-chart"
-  chart_version    = try(var.sfn.chart_version, "1.0.12")
+  chart_version    = try(var.sfn.chart_version, "1.0.13")
   repository       = try(var.sfn.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sfn.values, [])
 
@@ -2007,7 +2922,7 @@ module "eventbridge" {
   namespace        = try(var.eventbridge.namespace, "ack-system")
   create_namespace = try(var.eventbridge.create_namespace, true)
   chart            = "eventbridge-chart"
-  chart_version    = try(var.eventbridge.chart_version, "1.0.12")
+  chart_version    = try(var.eventbridge.chart_version, "1.0.13")
   repository       = try(var.eventbridge.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eventbridge.values, [])
 
