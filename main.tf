@@ -1,5 +1,6 @@
 data "aws_partition" "current" {}
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 # This resource is used to provide a means of mapping an implicit dependency
 # between the cluster and the addons.
@@ -114,12 +115,7 @@ module "sagemaker" {
   role_permissions_boundary_arn = lookup(var.sagemaker, "role_permissions_boundary_arn", null)
   role_description              = try(var.sagemaker.role_description, "IRSA for Sagemaker controller for ACK")
   role_policies = lookup(var.sagemaker, "role_policies", {
-    core_policy                      = var.enable_sagemaker ? aws_iam_policy.sagemaker_core_policy[0].arn : null,
-    studio_policy                    = var.enable_sagemaker ? aws_iam_policy.sagemaker_studio_policy[0].arn : null,
-    space_management_policy          = var.enable_sagemaker ? aws_iam_policy.sagemaker_space_management_policy[0].arn : null,
-    aws_service_actions_policy       = var.enable_sagemaker ? aws_iam_policy.aws_service_actions_policy[0].arn : null,
-    resource_specific_actions_policy = var.enable_sagemaker ? aws_iam_policy.resource_specific_actions_policy[0].arn : null,
-    s3_actions_policy                = var.enable_sagemaker ? aws_iam_policy.s3_actions_policy[0].arn : null
+    AmazonSageMakerFullAccess = "${local.iam_role_policy_prefix}/AmazonSageMakerFullAccess"
   })
 
   create_policy = try(var.sagemaker.create_policy, false)
@@ -131,437 +127,6 @@ module "sagemaker" {
       service_account = local.sagemaker_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended sagemaker-controller policy https://github.com/aws-controllers-k8s/sagemaker-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "sagemaker_core" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowAllNonAdminSageMakerActions"
-    effect = "Allow"
-    actions = [
-      "sagemaker:*",
-      "sagemaker-geospatial:*",
-    ]
-    not_resources = [
-      "arn:aws:sagemaker:*:*:domain/*",
-      "arn:aws:sagemaker:*:*:user-profile/*",
-      "arn:aws:sagemaker:*:*:app/*",
-      "arn:aws:sagemaker:*:*:space/*",
-      "arn:aws:sagemaker:*:*:flow-definition/*",
-    ]
-  }
-
-  statement {
-    sid       = "AllowAddTagsForSpace"
-    effect    = "Allow"
-    actions   = ["sagemaker:AddTags"]
-    resources = ["arn:aws:sagemaker:*:*:space/*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "sagemaker:TaggingAction"
-      values   = ["CreateSpace"]
-    }
-  }
-
-  statement {
-    sid       = "AllowAddTagsForApp"
-    effect    = "Allow"
-    actions   = ["sagemaker:AddTags"]
-    resources = ["arn:aws:sagemaker:*:*:app/*"]
-  }
-}
-
-data "aws_iam_policy_document" "sagemaker_studio" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowStudioActions"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreatePresignedDomainUrl",
-      "sagemaker:DescribeDomain",
-      "sagemaker:ListDomains",
-      "sagemaker:DescribeUserProfile",
-      "sagemaker:ListUserProfiles",
-      "sagemaker:DescribeSpace",
-      "sagemaker:ListSpaces",
-      "sagemaker:DescribeApp",
-      "sagemaker:ListApps",
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "AllowAppActionsForUserProfile"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreateApp",
-      "sagemaker:DeleteApp",
-    ]
-    resources = ["arn:aws:sagemaker:*:*:app/*/*/*/*"]
-
-    condition {
-      test     = "Null"
-      variable = "sagemaker:OwnerUserProfileArn"
-      values   = ["true"]
-    }
-  }
-
-  statement {
-    sid    = "AllowAppActionsForSharedSpaces"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreateApp",
-      "sagemaker:DeleteApp",
-    ]
-    resources = ["arn:aws:sagemaker:*:*:app/$${sagemaker:DomainId}/*/*/*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "sagemaker:SpaceSharingType"
-      values   = ["Shared"]
-    }
-  }
-}
-
-data "aws_iam_policy_document" "sagemaker_space_management" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowMutatingActionsOnSharedSpacesWithoutOwner"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreateSpace",
-      "sagemaker:UpdateSpace",
-      "sagemaker:DeleteSpace",
-    ]
-    resources = ["arn:aws:sagemaker:*:*:space/$${sagemaker:DomainId}/*"]
-
-    condition {
-      test     = "Null"
-      variable = "sagemaker:OwnerUserProfileArn"
-      values   = ["true"]
-    }
-  }
-
-  statement {
-    sid    = "RestrictMutatingActionsOnSpacesToOwnerUserProfile"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreateSpace",
-      "sagemaker:UpdateSpace",
-      "sagemaker:DeleteSpace",
-    ]
-    resources = ["arn:aws:sagemaker:*:*:space/$${sagemaker:DomainId}/*"]
-
-    condition {
-      test     = "ArnLike"
-      variable = "sagemaker:OwnerUserProfileArn"
-      values   = ["arn:aws:sagemaker:*:*:user-profile/$${sagemaker:DomainId}/$${sagemaker:UserProfileName}"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "sagemaker:SpaceSharingType"
-      values   = ["Private", "Shared"]
-    }
-  }
-
-  statement {
-    sid    = "RestrictMutatingActionsOnPrivateSpaceAppsToOwnerUserProfile"
-    effect = "Allow"
-    actions = [
-      "sagemaker:CreateApp",
-      "sagemaker:DeleteApp",
-    ]
-    resources = ["arn:aws:sagemaker:*:*:app/$${sagemaker:DomainId}/*/*/*"]
-
-    condition {
-      test     = "ArnLike"
-      variable = "sagemaker:OwnerUserProfileArn"
-      values   = ["arn:aws:sagemaker:*:*:user-profile/$${sagemaker:DomainId}/$${sagemaker:UserProfileName}"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "sagemaker:SpaceSharingType"
-      values   = ["Private"]
-    }
-  }
-
-  statement {
-    sid       = "AllowFlowDefinitionActions"
-    effect    = "Allow"
-    actions   = ["sagemaker:*"]
-    resources = ["arn:aws:sagemaker:*:*:flow-definition/*"]
-
-    condition {
-      test     = "StringEqualsIfExists"
-      variable = "sagemaker:WorkteamType"
-      values   = ["private-crowd", "vendor-crowd"]
-    }
-  }
-}
-
-data "aws_iam_policy_document" "aws_service_actions" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowAWSServiceActions"
-    effect = "Allow"
-    actions = [
-      "application-autoscaling:*",
-      "aws-marketplace:ViewSubscriptions",
-      "cloudformation:GetTemplateSummary",
-      "cloudwatch:*",
-      "codecommit:*",
-      "cognito-idp:*",
-      "ec2:*",
-      "ecr:*",
-      "elastic-inference:Connect",
-      "elasticfilesystem:Describe*",
-      "fsx:DescribeFileSystems",
-      "glue:*",
-      "groundtruthlabeling:*",
-      "iam:ListRoles",
-      "kms:*",
-      "lambda:ListFunctions",
-      "logs:*",
-      "robomaker:*",
-      "secretsmanager:ListSecrets",
-      "servicecatalog:*",
-      "sns:ListTopics",
-      "tag:GetResources",
-    ]
-    resources = ["*"]
-  }
-}
-
-data "aws_iam_policy_document" "resource_specific_actions" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowECRActions"
-    effect = "Allow"
-    actions = [
-      "ecr:*",
-    ]
-    resources = ["arn:aws:ecr:*:*:repository/*sagemaker*"]
-  }
-
-  statement {
-    sid    = "AllowCodeCommitActions"
-    effect = "Allow"
-    actions = [
-      "codecommit:GitPull",
-      "codecommit:GitPush",
-    ]
-    resources = [
-      "arn:aws:codecommit:*:*:*sagemaker*",
-      "arn:aws:codecommit:*:*:*SageMaker*",
-      "arn:aws:codecommit:*:*:*Sagemaker*",
-    ]
-  }
-
-  statement {
-    sid    = "AllowCodeBuildActions"
-    effect = "Allow"
-    actions = [
-      "codebuild:BatchGetBuilds",
-      "codebuild:StartBuild",
-    ]
-    resources = [
-      "arn:aws:codebuild:*:*:project/sagemaker*",
-      "arn:aws:codebuild:*:*:build/*",
-    ]
-  }
-
-  statement {
-    sid    = "AllowStepFunctionsActions"
-    effect = "Allow"
-    actions = [
-      "states:*",
-    ]
-    resources = [
-      "arn:aws:states:*:*:statemachine:*sagemaker*",
-      "arn:aws:states:*:*:execution:*sagemaker*:*",
-    ]
-  }
-
-  statement {
-    sid    = "AllowSecretManagerActions"
-    effect = "Allow"
-    actions = [
-      "secretsmanager:*",
-    ]
-    resources = ["arn:aws:secretsmanager:*:*:secret:AmazonSageMaker-*"]
-  }
-
-  statement {
-    sid    = "AllowReadOnlySecretManagerActions"
-    effect = "Allow"
-    actions = [
-      "secretsmanager:DescribeSecret",
-      "secretsmanager:GetSecretValue",
-    ]
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "secretsmanager:ResourceTag/SageMaker"
-      values   = ["true"]
-    }
-  }
-}
-
-data "aws_iam_policy_document" "s3_actions" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  statement {
-    sid    = "AllowS3ObjectActions"
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:AbortMultipartUpload",
-    ]
-    resources = [
-      "arn:aws:s3:::*SageMaker*",
-      "arn:aws:s3:::*Sagemaker*",
-      "arn:aws:s3:::*sagemaker*",
-      "arn:aws:s3:::*aws-glue*",
-    ]
-  }
-
-  statement {
-    sid       = "AllowS3GetObjectWithSageMakerExistingObjectTag"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::*"]
-
-    condition {
-      test     = "StringEqualsIgnoreCase"
-      variable = "s3:ExistingObjectTag/SageMaker"
-      values   = ["true"]
-    }
-  }
-
-  statement {
-    sid       = "AllowS3GetObjectWithServiceCatalogProvisioningExistingObjectTag"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "s3:ExistingObjectTag/servicecatalog:provisioning"
-      values   = ["true"]
-    }
-  }
-
-  statement {
-    sid    = "AllowS3BucketActions"
-    effect = "Allow"
-    actions = [
-      "s3:CreateBucket",
-      "s3:GetBucketLocation",
-      "s3:ListBucket",
-      "s3:ListAllMyBuckets",
-      "s3:GetBucketCors",
-      "s3:PutBucketCors",
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "AllowS3BucketACL"
-    effect = "Allow"
-    actions = [
-      "s3:GetBucketAcl",
-      "s3:PutObjectAcl",
-    ]
-    resources = [
-      "arn:aws:s3:::*SageMaker*",
-      "arn:aws:s3:::*Sagemaker*",
-      "arn:aws:s3:::*sagemaker*",
-    ]
-  }
-
-  statement {
-    sid     = "AllowLambdaInvokeFunction"
-    effect  = "Allow"
-    actions = ["lambda:InvokeFunction"]
-    resources = [
-      "arn:aws:lambda:*:*:function:*SageMaker*",
-      "arn:aws:lambda:*:*:function:*sagemaker*",
-      "arn:aws:lambda:*:*:function:*Sagemaker*",
-      "arn:aws:lambda:*:*:function:*LabelingFunction*",
-    ]
-  }
-}
-
-resource "aws_iam_policy" "sagemaker_core_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "SagemakerCorePolicy"
-  description = "IAM policy for SageMaker core actions"
-  policy      = data.aws_iam_policy_document.sagemaker_core[0].json
-
-  tags = var.tags
-}
-
-resource "aws_iam_policy" "sagemaker_studio_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "SagemakerStudioPolicy"
-  description = "IAM policy for SageMaker Studio and App actions"
-  policy      = data.aws_iam_policy_document.sagemaker_studio[0].json
-
-  tags = var.tags
-}
-
-resource "aws_iam_policy" "sagemaker_space_management_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "SagemakerSpaceManagementPolicy"
-  description = "IAM policy for SageMaker space and flow definition management"
-  policy      = data.aws_iam_policy_document.sagemaker_space_management[0].json
-
-  tags = var.tags
-}
-
-resource "aws_iam_policy" "aws_service_actions_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "AWSServiceActionsPolicy"
-  description = "IAM policy for AWS service actions"
-  policy      = data.aws_iam_policy_document.aws_service_actions[0].json
-
-  tags = var.tags
-}
-
-resource "aws_iam_policy" "resource_specific_actions_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "ResourceSpecificActionsPolicy"
-  description = "IAM policy for resource-specific actions"
-  policy      = data.aws_iam_policy_document.resource_specific_actions[0].json
-
-  tags = var.tags
-}
-
-resource "aws_iam_policy" "s3_actions_policy" {
-  count = var.enable_sagemaker ? 1 : 0
-
-  name        = "S3ActionsPolicy"
-  description = "IAM policy for S3 and S3 Express actions"
-  policy      = data.aws_iam_policy_document.s3_actions[0].json
 
   tags = var.tags
 }
@@ -648,7 +213,7 @@ module "memorydb" {
   role_permissions_boundary_arn = lookup(var.memorydb, "role_permissions_boundary_arn", null)
   role_description              = try(var.memorydb.role_description, "IRSA for MemoryDB controller for ACK")
   role_policies = lookup(var.memorydb, "role_policies", {
-    policy = var.enable_memorydb ? aws_iam_policy.memorydbpolicy[0].arn : null
+    AmazonMemoryDBFullAccess = "${local.iam_role_policy_prefix}/AmazonMemoryDBFullAccess"
   })
   create_policy = try(var.memorydb.create_policy, false)
 
@@ -659,39 +224,6 @@ module "memorydb" {
       service_account = local.memorydb_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended memorydb-controller policy https://github.com/aws-controllers-k8s/memorydb-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "memorydb_controller" {
-  count = var.enable_memorydb ? 1 : 0
-
-  statement {
-    effect    = "Allow"
-    actions   = ["memorydb:*"]
-    resources = ["*"]
-  }
-
-  statement {
-    effect    = "Allow"
-    actions   = ["iam:CreateServiceLinkedRole"]
-    resources = ["arn:aws:iam::*:role/aws-service-role/memorydb.amazonaws.com/AWSServiceRoleForMemoryDB"]
-
-    condition {
-      test     = "StringLike"
-      variable = "iam:AWSServiceName"
-      values   = ["memorydb.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_policy" "memorydbpolicy" {
-  count = var.enable_memorydb ? 1 : 0
-
-  name        = "MemoryDBController"
-  description = "IAM policy for MemoryDB Controller"
-  policy      = data.aws_iam_policy_document.memorydb_controller[0].json
 
   tags = var.tags
 }
@@ -778,7 +310,7 @@ module "opensearchservice" {
   role_permissions_boundary_arn = lookup(var.opensearchservice, "role_permissions_boundary_arn", null)
   role_description              = try(var.opensearchservice.role_description, "IRSA for Opensearch Service controller for ACK")
   role_policies = lookup(var.opensearchservice, "role_policies", {
-    policy = var.enable_opensearchservice ? aws_iam_policy.opensearchservicepolicy[0].arn : null
+    AmazonOpenSearchServiceFullAccess = "${local.iam_role_policy_prefix}/AmazonOpenSearchServiceFullAccess"
   })
   create_policy = try(var.opensearchservice.create_policy, false)
 
@@ -789,27 +321,6 @@ module "opensearchservice" {
       service_account = local.opensearchservice_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended opensearchservice-controller policy https://github.com/aws-controllers-k8s/opensearchservice-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "opensearchservice_controller" {
-  count = var.enable_opensearchservice ? 1 : 0
-
-  statement {
-    effect    = "Allow"
-    actions   = ["es:*"]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "opensearchservicepolicy" {
-  count = var.enable_opensearchservice ? 1 : 0
-
-  name        = "OpensearchServiceController"
-  description = "IAM policy for OpensearchService Controller"
-  policy      = data.aws_iam_policy_document.opensearchservice_controller[0].json
 
   tags = var.tags
 }
@@ -896,7 +407,7 @@ module "ecr" {
   role_permissions_boundary_arn = lookup(var.ecr, "role_permissions_boundary_arn", null)
   role_description              = try(var.ecr.role_description, "IRSA for ECR controller for ACK")
   role_policies = lookup(var.ecr, "role_policies", {
-    policy = var.enable_ecr ? aws_iam_policy.ecrpolicy[0].arn : null
+    AmazonEC2ContainerRegistryFullAccess = "${local.iam_role_policy_prefix}/AmazonEC2ContainerRegistryFullAccess"
   })
   create_policy = try(var.ecr.create_policy, false)
 
@@ -907,42 +418,6 @@ module "ecr" {
       service_account = local.ecr_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended ecr policy https://github.com/aws-controllers-k8s/ecr-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "ecr_controller" {
-  count = var.enable_ecr ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ecr:*",
-      "cloudtrail:LookupEvents",
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect    = "Allow"
-    actions   = ["iam:CreateServiceLinkedRole"]
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "iam:AWSServiceName"
-      values   = ["replication.ecr.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_policy" "ecrpolicy" {
-  count = var.enable_ecr ? 1 : 0
-
-  name        = "ECRController"
-  description = "IAM policy for ecr Controller"
-  policy      = data.aws_iam_policy_document.ecr_controller[0].json
 
   tags = var.tags
 }
@@ -1029,7 +504,7 @@ module "sns" {
   role_permissions_boundary_arn = lookup(var.sns, "role_permissions_boundary_arn", null)
   role_description              = try(var.sns.role_description, "IRSA for SNS controller for ACK")
   role_policies = lookup(var.sns, "role_policies", {
-    policy = var.enable_sns ? aws_iam_policy.snspolicy[0].arn : null
+    AmazonSNSFullAccess = "${local.iam_role_policy_prefix}/AmazonSNSFullAccess"
   })
   create_policy = try(var.sns.create_policy, false)
 
@@ -1040,29 +515,6 @@ module "sns" {
       service_account = local.sns_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended sns-controller policy https://github.com/aws-controllers-k8s/sns-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "sns_controller" {
-  count = var.enable_sns ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "sns:*"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "snspolicy" {
-  count = var.enable_sns ? 1 : 0
-
-  name        = "SNSController"
-  description = "IAM policy for SNS Controller"
-  policy      = data.aws_iam_policy_document.sns_controller[0].json
 
   tags = var.tags
 }
@@ -1149,7 +601,7 @@ module "sqs" {
   role_permissions_boundary_arn = lookup(var.sqs, "role_permissions_boundary_arn", null)
   role_description              = try(var.sqs.role_description, "IRSA for SQS controller for ACK")
   role_policies = lookup(var.sqs, "role_policies", {
-    policy = var.enable_sqs ? aws_iam_policy.sqspolicy[0].arn : null
+    AmazonSQSFullAccess = "${local.iam_role_policy_prefix}/AmazonSQSFullAccess"
   })
   create_policy = try(var.sqs.create_policy, false)
 
@@ -1160,29 +612,6 @@ module "sqs" {
       service_account = local.sqs_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended sqs-controller policy https://github.com/aws-controllers-k8s/sqs-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "sqs_controller" {
-  count = var.enable_sqs ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "sqs:*"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "sqspolicy" {
-  count = var.enable_sqs ? 1 : 0
-
-  name        = "SQSController"
-  description = "IAM policy for SQS Controller"
-  policy      = data.aws_iam_policy_document.sqs_controller[0].json
 
   tags = var.tags
 }
@@ -1269,7 +698,7 @@ module "lambda" {
   role_permissions_boundary_arn = lookup(var.lambda, "role_permissions_boundary_arn", null)
   role_description              = try(var.lambda.role_description, "IRSA for Lambda controller for ACK")
   role_policies = lookup(var.lambda, "role_policies", {
-    policy = var.enable_lambda ? aws_iam_policy.lambdapolicy[0].arn : null
+    policy = var.enable_lambda ? aws_iam_policy.lambda[0].arn : null
   })
   create_policy = try(var.lambda.create_policy, false)
 
@@ -1285,7 +714,7 @@ module "lambda" {
 }
 
 # recommended lambda-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
-data "aws_iam_policy_document" "lambda_controller" {
+data "aws_iam_policy_document" "lambda" {
   count = var.enable_lambda ? 1 : 0
 
   statement {
@@ -1314,12 +743,12 @@ data "aws_iam_policy_document" "lambda_controller" {
   }
 }
 
-resource "aws_iam_policy" "lambdapolicy" {
+resource "aws_iam_policy" "lambda" {
   count = var.enable_lambda ? 1 : 0
 
   name        = "LambdaController"
   description = "IAM policy for Lambda Controller"
-  policy      = data.aws_iam_policy_document.lambda_controller[0].json
+  policy      = data.aws_iam_policy_document.lambda[0].json
 
   tags = var.tags
 }
@@ -1407,7 +836,7 @@ module "iam" {
   role_permissions_boundary_arn = lookup(var.iam, "role_permissions_boundary_arn", null)
   role_description              = try(var.iam.role_description, "IRSA for iam controller for ACK")
   role_policies = lookup(var.iam, "role_policies", {
-    AWSIamPolicy = var.enable_iam ? aws_iam_policy.iampolicy[0].arn : null
+    policy = var.enable_iam ? aws_iam_policy.iam[0].arn : null
   })
   create_policy = try(var.iam.create_policy, false)
 
@@ -1423,87 +852,84 @@ module "iam" {
 }
 
 # recommended iam-controller policy https://github.com/aws-controllers-k8s/iam-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "iampolicy" {
+data "aws_iam_policy_document" "iam" {
   count = var.enable_iam ? 1 : 0
 
-  name_prefix = format("%s-%s", local.iam_name, "controller-iam-policies")
-
-  path        = "/"
-  description = "ACK IAM contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "iam:GetGroup",
-          "iam:CreateGroup",
-          "iam:DeleteGroup",
-          "iam:UpdateGroup",
-          "iam:GetRole",
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:UpdateRole",
-          "iam:PutRolePermissionsBoundary",
-          "iam:PutUserPermissionsBoundary",
-          "iam:GetUser",
-          "iam:CreateUser",
-          "iam:DeleteUser",
-          "iam:UpdateUser",
-          "iam:GetPolicy",
-          "iam:CreatePolicy",
-          "iam:DeletePolicy",
-          "iam:GetPolicyVersion",
-          "iam:CreatePolicyVersion",
-          "iam:DeletePolicyVersion",
-          "iam:ListPolicyVersions",
-          "iam:ListPolicyTags",
-          "iam:ListAttachedGroupPolicies",
-          "iam:GetGroupPolicy",
-          "iam:PutGroupPolicy",
-          "iam:AttachGroupPolicy",
-          "iam:DetachGroupPolicy",
-          "iam:DeleteGroupPolicy",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListRolePolicies",
-          "iam:GetRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:DeleteRolePolicy",
-          "iam:ListAttachedUserPolicies",
-          "iam:ListUserPolicies",
-          "iam:GetUserPolicy",
-          "iam:PutUserPolicy",
-          "iam:AttachUserPolicy",
-          "iam:DetachUserPolicy",
-          "iam:DeleteUserPolicy",
-          "iam:ListRoleTags",
-          "iam:ListUserTags",
-          "iam:TagPolicy",
-          "iam:UntagPolicy",
-          "iam:TagRole",
-          "iam:UntagRole",
-          "iam:TagUser",
-          "iam:UntagUser",
-          "iam:RemoveClientIDFromOpenIDConnectProvider",
-          "iam:ListOpenIDConnectProviderTags",
-          "iam:UpdateOpenIDConnectProviderThumbprint",
-          "iam:UntagOpenIDConnectProvider",
-          "iam:AddClientIDToOpenIDConnectProvider",
-          "iam:DeleteOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider",
-          "iam:TagOpenIDConnectProvider",
-          "iam:CreateOpenIDConnectProvider",
-          "iam:UpdateAssumeRolePolicy"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:GetGroup",
+      "iam:CreateGroup",
+      "iam:DeleteGroup",
+      "iam:UpdateGroup",
+      "iam:GetRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:UpdateRole",
+      "iam:PutRolePermissionsBoundary",
+      "iam:PutUserPermissionsBoundary",
+      "iam:GetUser",
+      "iam:CreateUser",
+      "iam:DeleteUser",
+      "iam:UpdateUser",
+      "iam:GetPolicy",
+      "iam:CreatePolicy",
+      "iam:DeletePolicy",
+      "iam:GetPolicyVersion",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:ListPolicyVersions",
+      "iam:ListPolicyTags",
+      "iam:ListAttachedGroupPolicies",
+      "iam:GetGroupPolicy",
+      "iam:PutGroupPolicy",
+      "iam:AttachGroupPolicy",
+      "iam:DetachGroupPolicy",
+      "iam:DeleteGroupPolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListRolePolicies",
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:ListAttachedUserPolicies",
+      "iam:ListUserPolicies",
+      "iam:GetUserPolicy",
+      "iam:PutUserPolicy",
+      "iam:AttachUserPolicy",
+      "iam:DetachUserPolicy",
+      "iam:DeleteUserPolicy",
+      "iam:ListRoleTags",
+      "iam:ListUserTags",
+      "iam:TagPolicy",
+      "iam:UntagPolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:TagUser",
+      "iam:UntagUser",
+      "iam:RemoveClientIDFromOpenIDConnectProvider",
+      "iam:ListOpenIDConnectProviderTags",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+      "iam:UntagOpenIDConnectProvider",
+      "iam:AddClientIDToOpenIDConnectProvider",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:GetOpenIDConnectProvider",
+      "iam:TagOpenIDConnectProvider",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:UpdateAssumeRolePolicy",
     ]
-  })
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "iam" {
+  count = var.enable_iam ? 1 : 0
+
+  name        = "IAMController"
+  description = "IAM policy for IAM Controller"
+  policy      = data.aws_iam_policy_document.iam[0].json
 
   tags = var.tags
 }
@@ -1689,7 +1115,7 @@ module "eks" {
   role_permissions_boundary_arn = lookup(var.eks, "role_permissions_boundary_arn", null)
   role_description              = try(var.eks.role_description, "IRSA for eks controller for ACK")
   role_policies = lookup(var.eks, "role_policies", {
-    EKSPolicy = var.enable_eks ? aws_iam_policy.ekspolicy[0].arn : null
+    policy = var.enable_eks ? aws_iam_policy.eks[0].arn : null
   })
   create_policy = try(var.eks.create_policy, false)
 
@@ -1705,30 +1131,27 @@ module "eks" {
 }
 
 # recommended eks-controller policy https://github.com/aws-controllers-k8s/eks-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "ekspolicy" {
+data "aws_iam_policy_document" "eks" {
   count = var.enable_eks ? 1 : 0
 
-  name_prefix = format("%s-%s", local.eks_name, "controller-eks-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "ACK EKS contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "eks:*",
-          "iam:GetRole",
-          "iam:PassRole"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "eks:*",
+      "iam:GetRole",
+      "iam:PassRole",
     ]
-  })
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "eks" {
+  count = var.enable_eks ? 1 : 0
+
+  name        = "EKSController"
+  description = "IAM policy for EKS Controller"
+  policy      = data.aws_iam_policy_document.eks[0].json
 
   tags = var.tags
 }
@@ -1816,7 +1239,7 @@ module "kms" {
   role_permissions_boundary_arn = lookup(var.kms, "role_permissions_boundary_arn", null)
   role_description              = try(var.kms.role_description, "IRSA for kms controller for ACK")
   role_policies = lookup(var.kms, "role_policies", {
-    policy = var.enable_kms ? aws_iam_policy.kmspolicy[0].arn : null
+    policy = var.enable_kms ? aws_iam_policy.kms[0].arn : null
   })
   create_policy = try(var.kms.create_policy, false)
 
@@ -1832,41 +1255,37 @@ module "kms" {
 }
 
 # recommended kms-controller policy https://github.com/aws-controllers-k8s/kms-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "kmspolicy" {
+data "aws_iam_policy_document" "kms" {
   count = var.enable_kms ? 1 : 0
 
-  name_prefix = format("%s-%s", local.kms_name, "controller-kms-policies")
-
-  path        = "/"
-  description = "ACK KMS contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "kms:CreateAlias",
-          "kms:CreateKey",
-          "kms:DeleteAlias",
-          "kms:Describe*",
-          "kms:GenerateRandom",
-          "kms:Get*",
-          "kms:List*",
-          "kms:ScheduleKeyDeletion",
-          "kms:TagResource",
-          "kms:UntagResource",
-          "iam:ListGroups",
-          "iam:ListRoles",
-          "iam:ListUsers",
-          "iam:CreateServiceLinkedRole"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:CreateAlias",
+      "kms:CreateKey",
+      "kms:DeleteAlias",
+      "kms:Describe*",
+      "kms:GenerateRandom",
+      "kms:Get*",
+      "kms:List*",
+      "kms:ScheduleKeyDeletion",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "iam:ListGroups",
+      "iam:ListRoles",
+      "iam:ListUsers",
+      "iam:CreateServiceLinkedRole",
     ]
-  })
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "kms" {
+  count = var.enable_kms ? 1 : 0
+
+  name        = "KMSController"
+  description = "IAM policy for KMS Controller"
+  policy      = data.aws_iam_policy_document.kms[0].json
 
   tags = var.tags
 }
@@ -1954,7 +1373,7 @@ module "acm" {
   role_permissions_boundary_arn = lookup(var.acm, "role_permissions_boundary_arn", null)
   role_description              = try(var.acm.role_description, "IRSA for acm controller for ACK")
   role_policies = lookup(var.acm, "role_policies", {
-    policy = var.enable_acm ? aws_iam_policy.acmpolicy[0].arn : null
+    policy = var.enable_acm ? aws_iam_policy.acm[0].arn : null
   })
   create_policy = try(var.acm.create_policy, false)
 
@@ -1970,34 +1389,32 @@ module "acm" {
 }
 
 # recommended acm-controller policy https://github.com/aws-controllers-k8s/acm-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "acmpolicy" {
+data "aws_iam_policy_document" "acm" {
   count = var.enable_acm ? 1 : 0
 
-  name_prefix = format("%s-%s", local.acm_name, "controller-acm-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "ACK ACM contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "acm:DescribeCertificate",
-          "acm:RequestCertificate",
-          "acm:UpdateCertificateOptions",
-          "acm:DeleteCertificate",
-          "acm:AddTagsToCertificate",
-          "acm:RemoveTagsFromCertificate",
-          "acm:ListTagsForCertificate"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "acm:DescribeCertificate",
+      "acm:RequestCertificate",
+      "acm:UpdateCertificateOptions",
+      "acm:DeleteCertificate",
+      "acm:AddTagsToCertificate",
+      "acm:RemoveTagsFromCertificate",
+      "acm:ListTagsForCertificate",
     ]
-  })
+    resources = ["*"]
+  }
+
+}
+
+resource "aws_iam_policy" "acm" {
+  count = var.enable_acm ? 1 : 0
+
+  name        = "ACMController"
+  description = "IAM policy for ACM Controller"
+  policy      = data.aws_iam_policy_document.acm[0].json
 
   tags = var.tags
 }
@@ -2510,7 +1927,7 @@ module "prometheusservice" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/prometheusservice_name-chart:1.2.12
+  # public.ecr.aws/aws-controllers-k8s/prometheusservice-chart:1.2.13
   name             = try(var.prometheusservice.name, local.prometheusservice_name)
   description      = try(var.prometheusservice.description, "Helm Chart for prometheusservice controller for ACK")
   namespace        = try(var.prometheusservice.namespace, "ack-system")
@@ -2576,7 +1993,7 @@ module "prometheusservice" {
   role_permissions_boundary_arn = lookup(var.prometheusservice, "role_permissions_boundary_arn", null)
   role_description              = try(var.prometheusservice.role_description, "IRSA for prometheusservice controller for ACK")
   role_policies = lookup(var.prometheusservice, "role_policies", {
-    AmazonPrometheusFullAccess = "${local.iam_role_policy_prefix}/AmazonPrometheusFullAccess"
+    policy = var.enable_prometheusservice ? aws_iam_policy.prometheusservice[0].arn : null
   })
   create_policy = try(var.prometheusservice.create_policy, false)
 
@@ -2587,6 +2004,35 @@ module "prometheusservice" {
       service_account = local.prometheusservice_name
     }
   }
+
+  tags = var.tags
+}
+
+# recommended prometheusservice-controller policy https://github.com/aws-controllers-k8s/prometheusservice-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "prometheusservice" {
+  count = var.enable_prometheusservice ? 1 : 0
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "aps:*",
+      "logs:CreateLogDelivery",
+      "logs:DescribeLogGroups",
+      "logs:DescribeResourcePolicies",
+      "logs:PutResourcePolicy",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "prometheusservice" {
+  count = var.enable_prometheusservice ? 1 : 0
+
+  name        = "PrometheusServiceController"
+  description = "IAM policy for Prometheus Service Controller"
+  policy      = data.aws_iam_policy_document.prometheusservice[0].json
 
   tags = var.tags
 }
@@ -2608,7 +2054,7 @@ module "emrcontainers" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/emrcontainers_name-chart:1.0.11
+  # public.ecr.aws/aws-controllers-k8s/emrcontainers-chart:1.0.12
   name             = try(var.emrcontainers.name, local.emrcontainers_name)
   description      = try(var.emrcontainers.description, "Helm Chart for emrcontainers controller for ACK")
   namespace        = try(var.emrcontainers.namespace, "ack-system")
@@ -2674,7 +2120,7 @@ module "emrcontainers" {
   role_permissions_boundary_arn = lookup(var.emrcontainers, "role_permissions_boundary_arn", null)
   role_description              = try(var.emrcontainers.role_description, "IRSA for emrcontainers controller for ACK")
   role_policies = lookup(var.emrcontainers, "role_policies", {
-    AmazonEmrContainers = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
+    policy = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
   })
   create_policy = try(var.emrcontainers.create_policy, false)
 
@@ -2689,24 +2135,16 @@ module "emrcontainers" {
   tags = var.tags
 }
 
-resource "aws_iam_policy" "emrcontainers" {
-  count = var.enable_emrcontainers ? 1 : 0
-
-  name_prefix = format("%s-%s", local.emrcontainers_name, "controller-iam-policies")
-  description = "IAM policy for EMRcontainers controller"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.emrcontainers.json
-
-  tags = var.tags
-}
-
-# inline policy provided by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# recommended emrcontainers-controller policy https://github.com/aws-controllers-k8s/emrcontainers-controller/blob/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
+  count = var.enable_emrcontainers ? 1 : 0
   statement {
     effect = "Allow"
+
     actions = [
-      "iam:CreateServiceLinkedRole"
+      "iam:CreateServiceLinkedRole",
     ]
+
     resources = ["*"]
 
     condition {
@@ -2718,22 +2156,25 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:CreateVirtualCluster",
       "emr-containers:ListVirtualClusters",
       "emr-containers:DescribeVirtualCluster",
-      "emr-containers:DeleteVirtualCluster"
+      "emr-containers:DeleteVirtualCluster",
     ]
+
     resources = ["*"]
   }
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:StartJobRun",
       "emr-containers:ListJobRuns",
       "emr-containers:DescribeJobRun",
-      "emr-containers:CancelJobRun"
+      "emr-containers:CancelJobRun",
     ]
 
     resources = ["*"]
@@ -2741,12 +2182,13 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:DescribeJobRun",
       "emr-containers:TagResource",
       "elasticmapreduce:CreatePersistentAppUI",
       "elasticmapreduce:DescribePersistentAppUI",
-      "elasticmapreduce:GetPersistentAppUIPresignedURL"
+      "elasticmapreduce:GetPersistentAppUIPresignedURL",
     ]
 
     resources = ["*"]
@@ -2754,9 +2196,10 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "s3:GetObject",
-      "s3:ListBucket"
+      "s3:ListBucket",
     ]
 
     resources = ["*"]
@@ -2764,14 +2207,25 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "logs:Get*",
       "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams"
+      "logs:DescribeLogStreams",
     ]
+
     resources = ["*"]
   }
+}
 
+resource "aws_iam_policy" "emrcontainers" {
+  count = var.enable_emrcontainers ? 1 : 0
+
+  name        = "EMRContainersController"
+  description = "IAM policy for EMR Containers Controller"
+  policy      = data.aws_iam_policy_document.emrcontainers[0].json
+
+  tags = var.tags
 }
 
 ################################################################################
@@ -2791,7 +2245,7 @@ module "sfn" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sfn_name-chart:1.0.12
+  # public.ecr.aws/aws-controllers-k8s/sfn-chart:1.0.13
   name             = try(var.sfn.name, local.sfn_name)
   description      = try(var.sfn.description, "Helm Chart for sfn controller for ACK")
   namespace        = try(var.sfn.namespace, "ack-system")
@@ -2858,7 +2312,7 @@ module "sfn" {
   role_description              = try(var.sfn.role_description, "IRSA for sfn controller for ACK")
   role_policies = lookup(var.sfn, "role_policies", {
     AWSStepFunctionsFullAccess  = "${local.iam_role_policy_prefix}/AWSStepFunctionsFullAccess"
-    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfnpasspolicy[0].arn : null
+    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfn[0].arn : null
   })
   create_policy = try(var.sfn.create_policy, false)
 
@@ -2873,28 +2327,30 @@ module "sfn" {
   tags = var.tags
 }
 
-resource "aws_iam_policy" "sfnpasspolicy" {
+# recommended sfn-controller policy https://github.com/aws-controllers-k8s/sfn-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "sfn" {
   count = var.enable_sfn ? 1 : 0
 
-  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "passrole policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "iam:PassRole",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "iam:PassRole",
     ]
-  })
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ack-sfn-execution-role"
+    ]
+  }
+
+}
+
+resource "aws_iam_policy" "sfn" {
+  count = var.enable_sfn ? 1 : 0
+
+  name        = "SFNController"
+  description = "IAM policy for SFN Controller"
+  policy      = data.aws_iam_policy_document.sfn[0].json
 
   tags = var.tags
 }
@@ -2916,7 +2372,7 @@ module "eventbridge" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/eventbridge_name-chart:1.0.12
+  # public.ecr.aws/aws-controllers-k8s/eventbridge-chart:1.0.13
   name             = try(var.eventbridge.name, local.eventbridge_name)
   description      = try(var.eventbridge.description, "Helm Chart for eventbridge controller for ACK")
   namespace        = try(var.eventbridge.namespace, "ack-system")
