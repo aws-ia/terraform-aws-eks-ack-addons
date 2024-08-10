@@ -44,6 +44,102 @@ variable "tags" {
 }
 
 ################################################################################
+# Kafka
+################################################################################
+
+variable "enable_kafka" {
+  description = "Enable ACK Kafka add-on"
+  type        = bool
+  default     = false
+}
+
+variable "kafka" {
+  description = "ACK Kafka Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# EFS
+################################################################################
+
+variable "enable_efs" {
+  description = "Enable ACK EFS add-on"
+  type        = bool
+  default     = false
+}
+
+variable "efs" {
+  description = "ACK EFS Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# ECS
+################################################################################
+
+variable "enable_ecs" {
+  description = "Enable ACK ECS add-on"
+  type        = bool
+  default     = false
+}
+
+variable "ecs" {
+  description = "ACK ECS Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Cloudtrail
+################################################################################
+
+variable "enable_cloudtrail" {
+  description = "Enable ACK Cloudtrail add-on"
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail" {
+  description = "ACK Cloudtrail Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Cloudfront
+################################################################################
+
+variable "enable_cloudfront" {
+  description = "Enable ACK Cloudfront add-on"
+  type        = bool
+  default     = false
+}
+
+variable "cloudfront" {
+  description = "ACK cloudfront Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Application Autoscaling
+################################################################################
+
+variable "enable_applicationautoscaling" {
+  description = "Enable ACK Application Autoscaling add-on"
+  type        = bool
+  default     = false
+}
+
+variable "applicationautoscaling" {
+  description = "ACK Application Autoscaling Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # Sagemaker
 ################################################################################
 

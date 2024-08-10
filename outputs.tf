@@ -12,6 +12,66 @@ output "gitops_metadata" {
   description = "GitOps Bridge metadata"
   value = merge(
     { for k, v in {
+      iam_role_arn    = module.kafka.iam_role_arn
+      namespace       = try(var.kafka.namespace, "ack-system")
+      service_account = local.kafka_name
+      } : "ack_iam_${k}" => v if var.enable_kafka
+    },
+    { for k, v in {
+      iam_role_arn    = module.efs.iam_role_arn
+      namespace       = try(var.efs.namespace, "ack-system")
+      service_account = local.efs_name
+      } : "ack_iam_${k}" => v if var.enable_efs
+    },
+    { for k, v in {
+      iam_role_arn    = module.ecs.iam_role_arn
+      namespace       = try(var.ecs.namespace, "ack-system")
+      service_account = local.ecs_name
+      } : "ack_iam_${k}" => v if var.enable_ecs
+    },
+    { for k, v in {
+      iam_role_arn    = module.cloudtrail.iam_role_arn
+      namespace       = try(var.cloudtrail.namespace, "ack-system")
+      service_account = local.cloudtrail_name
+      } : "ack_iam_${k}" => v if var.enable_cloudtrail
+    },
+    { for k, v in {
+      iam_role_arn    = module.cloudfront.iam_role_arn
+      namespace       = try(var.cloudfront.namespace, "ack-system")
+      service_account = local.cloudfront_name
+      } : "ack_iam_${k}" => v if var.enable_cloudfront
+    },
+    { for k, v in {
+      iam_role_arn    = module.applicationautoscaling.iam_role_arn
+      namespace       = try(var.applicationautoscaling.namespace, "ack-system")
+      service_account = local.applicationautoscaling_name
+      } : "ack_iam_${k}" => v if var.enable_applicationautoscaling
+    },
+    { for k, v in {
+      iam_role_arn    = module.sagemaker.iam_role_arn
+      namespace       = try(var.sagemaker.namespace, "ack-system")
+      service_account = local.sagemaker_name
+      } : "ack_iam_${k}" => v if var.enable_sagemaker
+    },
+    { for k, v in {
+      iam_role_arn    = module.memorydb.iam_role_arn
+      namespace       = try(var.memorydb.namespace, "ack-system")
+      service_account = local.memorydb_name
+      } : "ack_iam_${k}" => v if var.enable_memorydb
+    },
+    { for k, v in {
+      iam_role_arn    = module.opensearchservice.iam_role_arn
+      namespace       = try(var.opensearchservice.namespace, "ack-system")
+      service_account = local.opensearchservice_name
+      } : "ack_iam_${k}" => v if var.enable_opensearchservice
+    },
+    { for k, v in {
+      iam_role_arn    = module.ecr.iam_role_arn
+      namespace       = try(var.ecr.namespace, "ack-system")
+      service_account = local.ecr_name
+      } : "ack_iam_${k}" => v if var.enable_ecr
+    },
+    { for k, v in {
       iam_role_arn    = module.sns.iam_role_arn
       namespace       = try(var.sns.namespace, "ack-system")
       service_account = local.sns_name
