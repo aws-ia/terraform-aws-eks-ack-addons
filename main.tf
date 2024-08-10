@@ -1,5 +1,6 @@
 data "aws_partition" "current" {}
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 # This resource is used to provide a means of mapping an implicit dependency
 # between the cluster and the addons.
@@ -33,6 +34,395 @@ locals {
 }
 
 ################################################################################
+# SageMaker
+################################################################################
+
+locals {
+  sagemaker_name = "ack-sagemaker"
+}
+
+module "sagemaker" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_sagemaker
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/sagemaker-chart:1.2.12
+  name             = try(var.sagemaker.name, local.sagemaker_name)
+  description      = try(var.sagemaker.description, "Helm Chart for Sagemaker controller for ACK")
+  namespace        = try(var.sagemaker.namespace, "ack-system")
+  create_namespace = try(var.sagemaker.create_namespace, true)
+  chart            = "sagemaker-chart"
+  chart_version    = try(var.sagemaker.chart_version, "1.2.12")
+  repository       = try(var.sagemaker.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.sagemaker.values, [])
+
+  timeout                    = try(var.sagemaker.timeout, null)
+  repository_key_file        = try(var.sagemaker.repository_key_file, null)
+  repository_cert_file       = try(var.sagemaker.repository_cert_file, null)
+  repository_ca_file         = try(var.sagemaker.repository_ca_file, null)
+  repository_username        = try(var.sagemaker.repository_username, local.repository_username)
+  repository_password        = try(var.sagemaker.repository_password, local.repository_password)
+  devel                      = try(var.sagemaker.devel, null)
+  verify                     = try(var.sagemaker.verify, null)
+  keyring                    = try(var.sagemaker.keyring, null)
+  disable_webhooks           = try(var.sagemaker.disable_webhooks, null)
+  reuse_values               = try(var.sagemaker.reuse_values, null)
+  reset_values               = try(var.sagemaker.reset_values, null)
+  force_update               = try(var.sagemaker.force_update, null)
+  recreate_pods              = try(var.sagemaker.recreate_pods, null)
+  cleanup_on_fail            = try(var.sagemaker.cleanup_on_fail, null)
+  max_history                = try(var.sagemaker.max_history, null)
+  atomic                     = try(var.sagemaker.atomic, null)
+  skip_crds                  = try(var.sagemaker.skip_crds, null)
+  render_subchart_notes      = try(var.sagemaker.render_subchart_notes, null)
+  disable_openapi_validation = try(var.sagemaker.disable_openapi_validation, null)
+  wait                       = try(var.sagemaker.wait, false)
+  wait_for_jobs              = try(var.sagemaker.wait_for_jobs, null)
+  dependency_update          = try(var.sagemaker.dependency_update, null)
+  replace                    = try(var.sagemaker.replace, null)
+  lint                       = try(var.sagemaker.lint, null)
+
+  postrender = try(var.sagemaker.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-sagemaker-sagemaker-chart-xxxxxxxxxxxxx` to `ack-sagemaker-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-sagemaker"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.sagemaker_name
+    }],
+    try(var.sagemaker.set, [])
+  )
+  set_sensitive = try(var.sagemaker.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.sagemaker.create_role, true)
+  role_name                     = try(var.sagemaker.role_name, "ack-sagemaker")
+  role_name_use_prefix          = try(var.sagemaker.role_name_use_prefix, true)
+  role_path                     = try(var.sagemaker.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.sagemaker, "role_permissions_boundary_arn", null)
+  role_description              = try(var.sagemaker.role_description, "IRSA for Sagemaker controller for ACK")
+  role_policies = lookup(var.sagemaker, "role_policies", {
+    AmazonSageMakerFullAccess = "${local.iam_role_policy_prefix}/AmazonSageMakerFullAccess"
+  })
+
+  create_policy = try(var.sagemaker.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.sagemaker_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# MemoryDB
+################################################################################
+
+locals {
+  memorydb_name = "ack-memorydb"
+}
+
+module "memorydb" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_memorydb
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/memorydb-chart:1.0.4
+  name             = try(var.memorydb.name, local.memorydb_name)
+  description      = try(var.memorydb.description, "Helm Chart for MemoryDB controller for ACK")
+  namespace        = try(var.memorydb.namespace, "ack-system")
+  create_namespace = try(var.memorydb.create_namespace, true)
+  chart            = "memorydb-chart"
+  chart_version    = try(var.memorydb.chart_version, "1.0.4")
+  repository       = try(var.memorydb.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.memorydb.values, [])
+
+  timeout                    = try(var.memorydb.timeout, null)
+  repository_key_file        = try(var.memorydb.repository_key_file, null)
+  repository_cert_file       = try(var.memorydb.repository_cert_file, null)
+  repository_ca_file         = try(var.memorydb.repository_ca_file, null)
+  repository_username        = try(var.memorydb.repository_username, local.repository_username)
+  repository_password        = try(var.memorydb.repository_password, local.repository_password)
+  devel                      = try(var.memorydb.devel, null)
+  verify                     = try(var.memorydb.verify, null)
+  keyring                    = try(var.memorydb.keyring, null)
+  disable_webhooks           = try(var.memorydb.disable_webhooks, null)
+  reuse_values               = try(var.memorydb.reuse_values, null)
+  reset_values               = try(var.memorydb.reset_values, null)
+  force_update               = try(var.memorydb.force_update, null)
+  recreate_pods              = try(var.memorydb.recreate_pods, null)
+  cleanup_on_fail            = try(var.memorydb.cleanup_on_fail, null)
+  max_history                = try(var.memorydb.max_history, null)
+  atomic                     = try(var.memorydb.atomic, null)
+  skip_crds                  = try(var.memorydb.skip_crds, null)
+  render_subchart_notes      = try(var.memorydb.render_subchart_notes, null)
+  disable_openapi_validation = try(var.memorydb.disable_openapi_validation, null)
+  wait                       = try(var.memorydb.wait, false)
+  wait_for_jobs              = try(var.memorydb.wait_for_jobs, null)
+  dependency_update          = try(var.memorydb.dependency_update, null)
+  replace                    = try(var.memorydb.replace, null)
+  lint                       = try(var.memorydb.lint, null)
+
+  postrender = try(var.memorydb.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-memorydb-memorydb-chart-xxxxxxxxxxxxx` to `ack-memorydb-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-memorydb"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.memorydb_name
+    }],
+    try(var.memorydb.set, [])
+  )
+  set_sensitive = try(var.memorydb.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.memorydb.create_role, true)
+  role_name                     = try(var.memorydb.role_name, "ack-memorydb")
+  role_name_use_prefix          = try(var.memorydb.role_name_use_prefix, true)
+  role_path                     = try(var.memorydb.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.memorydb, "role_permissions_boundary_arn", null)
+  role_description              = try(var.memorydb.role_description, "IRSA for MemoryDB controller for ACK")
+  role_policies = lookup(var.memorydb, "role_policies", {
+    AmazonMemoryDBFullAccess = "${local.iam_role_policy_prefix}/AmazonMemoryDBFullAccess"
+  })
+  create_policy = try(var.memorydb.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.memorydb_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# OpenSearch Service
+################################################################################
+
+locals {
+  opensearchservice_name = "ack-opensearchservice"
+}
+
+module "opensearchservice" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_opensearchservice
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/opensearchservice-chart:0.0.27
+  name             = try(var.opensearchservice.name, local.opensearchservice_name)
+  description      = try(var.opensearchservice.description, "Helm Chart for Opensearch Service controller for ACK")
+  namespace        = try(var.opensearchservice.namespace, "ack-system")
+  create_namespace = try(var.opensearchservice.create_namespace, true)
+  chart            = "opensearchservice-chart"
+  chart_version    = try(var.opensearchservice.chart_version, "0.0.27")
+  repository       = try(var.opensearchservice.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.opensearchservice.values, [])
+
+  timeout                    = try(var.opensearchservice.timeout, null)
+  repository_key_file        = try(var.opensearchservice.repository_key_file, null)
+  repository_cert_file       = try(var.opensearchservice.repository_cert_file, null)
+  repository_ca_file         = try(var.opensearchservice.repository_ca_file, null)
+  repository_username        = try(var.opensearchservice.repository_username, local.repository_username)
+  repository_password        = try(var.opensearchservice.repository_password, local.repository_password)
+  devel                      = try(var.opensearchservice.devel, null)
+  verify                     = try(var.opensearchservice.verify, null)
+  keyring                    = try(var.opensearchservice.keyring, null)
+  disable_webhooks           = try(var.opensearchservice.disable_webhooks, null)
+  reuse_values               = try(var.opensearchservice.reuse_values, null)
+  reset_values               = try(var.opensearchservice.reset_values, null)
+  force_update               = try(var.opensearchservice.force_update, null)
+  recreate_pods              = try(var.opensearchservice.recreate_pods, null)
+  cleanup_on_fail            = try(var.opensearchservice.cleanup_on_fail, null)
+  max_history                = try(var.opensearchservice.max_history, null)
+  atomic                     = try(var.opensearchservice.atomic, null)
+  skip_crds                  = try(var.opensearchservice.skip_crds, null)
+  render_subchart_notes      = try(var.opensearchservice.render_subchart_notes, null)
+  disable_openapi_validation = try(var.opensearchservice.disable_openapi_validation, null)
+  wait                       = try(var.opensearchservice.wait, false)
+  wait_for_jobs              = try(var.opensearchservice.wait_for_jobs, null)
+  dependency_update          = try(var.opensearchservice.dependency_update, null)
+  replace                    = try(var.opensearchservice.replace, null)
+  lint                       = try(var.opensearchservice.lint, null)
+
+  postrender = try(var.opensearchservice.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-opensearchservice-opensearchservice-chart-xxxxxxxxxxxxx` to `ack-opensearchservice-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-opensearchservice"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.opensearchservice_name
+    }],
+    try(var.opensearchservice.set, [])
+  )
+  set_sensitive = try(var.opensearchservice.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.opensearchservice.create_role, true)
+  role_name                     = try(var.opensearchservice.role_name, "ack-opensearchservice")
+  role_name_use_prefix          = try(var.opensearchservice.role_name_use_prefix, true)
+  role_path                     = try(var.opensearchservice.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.opensearchservice, "role_permissions_boundary_arn", null)
+  role_description              = try(var.opensearchservice.role_description, "IRSA for Opensearch Service controller for ACK")
+  role_policies = lookup(var.opensearchservice, "role_policies", {
+    AmazonOpenSearchServiceFullAccess = "${local.iam_role_policy_prefix}/AmazonOpenSearchServiceFullAccess"
+  })
+  create_policy = try(var.opensearchservice.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.opensearchservice_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# ECR
+################################################################################
+
+locals {
+  ecr_name = "ack-ecr"
+}
+
+module "ecr" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_ecr
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/ecr-chart:1.0.17
+  name             = try(var.ecr.name, local.ecr_name)
+  description      = try(var.ecr.description, "Helm Chart for ECR controller for ACK")
+  namespace        = try(var.ecr.namespace, "ack-system")
+  create_namespace = try(var.ecr.create_namespace, true)
+  chart            = "ecr-chart"
+  chart_version    = try(var.ecr.chart_version, "1.0.17")
+  repository       = try(var.ecr.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.ecr.values, [])
+
+  timeout                    = try(var.ecr.timeout, null)
+  repository_key_file        = try(var.ecr.repository_key_file, null)
+  repository_cert_file       = try(var.ecr.repository_cert_file, null)
+  repository_ca_file         = try(var.ecr.repository_ca_file, null)
+  repository_username        = try(var.ecr.repository_username, local.repository_username)
+  repository_password        = try(var.ecr.repository_password, local.repository_password)
+  devel                      = try(var.ecr.devel, null)
+  verify                     = try(var.ecr.verify, null)
+  keyring                    = try(var.ecr.keyring, null)
+  disable_webhooks           = try(var.ecr.disable_webhooks, null)
+  reuse_values               = try(var.ecr.reuse_values, null)
+  reset_values               = try(var.ecr.reset_values, null)
+  force_update               = try(var.ecr.force_update, null)
+  recreate_pods              = try(var.ecr.recreate_pods, null)
+  cleanup_on_fail            = try(var.ecr.cleanup_on_fail, null)
+  max_history                = try(var.ecr.max_history, null)
+  atomic                     = try(var.ecr.atomic, null)
+  skip_crds                  = try(var.ecr.skip_crds, null)
+  render_subchart_notes      = try(var.ecr.render_subchart_notes, null)
+  disable_openapi_validation = try(var.ecr.disable_openapi_validation, null)
+  wait                       = try(var.ecr.wait, false)
+  wait_for_jobs              = try(var.ecr.wait_for_jobs, null)
+  dependency_update          = try(var.ecr.dependency_update, null)
+  replace                    = try(var.ecr.replace, null)
+  lint                       = try(var.ecr.lint, null)
+
+  postrender = try(var.ecr.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-ecr-ecr-chart-xxxxxxxxxxxxx` to `ack-ecr-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-ecr"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.ecr_name
+    }],
+    try(var.ecr.set, [])
+  )
+  set_sensitive = try(var.ecr.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.ecr.create_role, true)
+  role_name                     = try(var.ecr.role_name, "ack-ecr")
+  role_name_use_prefix          = try(var.ecr.role_name_use_prefix, true)
+  role_path                     = try(var.ecr.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.ecr, "role_permissions_boundary_arn", null)
+  role_description              = try(var.ecr.role_description, "IRSA for ECR controller for ACK")
+  role_policies = lookup(var.ecr, "role_policies", {
+    AmazonEC2ContainerRegistryFullAccess = "${local.iam_role_policy_prefix}/AmazonEC2ContainerRegistryFullAccess"
+  })
+  create_policy = try(var.ecr.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.ecr_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
 # SNS
 ################################################################################
 
@@ -49,13 +439,13 @@ module "sns" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.11
+  # public.ecr.aws/aws-controllers-k8s/sns-chart:1.0.12
   name             = try(var.sns.name, local.sns_name)
   description      = try(var.sns.description, "Helm Chart for SNS controller for ACK")
   namespace        = try(var.sns.namespace, "ack-system")
   create_namespace = try(var.sns.create_namespace, true)
   chart            = "sns-chart"
-  chart_version    = try(var.sns.chart_version, "1.0.11")
+  chart_version    = try(var.sns.chart_version, "1.0.12")
   repository       = try(var.sns.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sns.values, [])
 
@@ -114,7 +504,7 @@ module "sns" {
   role_permissions_boundary_arn = lookup(var.sns, "role_permissions_boundary_arn", null)
   role_description              = try(var.sns.role_description, "IRSA for SNS controller for ACK")
   role_policies = lookup(var.sns, "role_policies", {
-    policy = var.enable_sns ? aws_iam_policy.snspolicy[0].arn : null
+    AmazonSNSFullAccess = "${local.iam_role_policy_prefix}/AmazonSNSFullAccess"
   })
   create_policy = try(var.sns.create_policy, false)
 
@@ -125,29 +515,6 @@ module "sns" {
       service_account = local.sns_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/sns-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "sns_controller" {
-  count = var.enable_sns ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "sns:*"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "snspolicy" {
-  count = var.enable_sns ? 1 : 0
-
-  name        = "SNSController"
-  description = "IAM policy for SNS Controller"
-  policy      = data.aws_iam_policy_document.sns_controller[0].json
 
   tags = var.tags
 }
@@ -169,13 +536,13 @@ module "sqs" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/sqs-chart:1.0.15
   name             = try(var.sqs.name, local.sqs_name)
   description      = try(var.sqs.description, "Helm Chart for SQS controller for ACK")
   namespace        = try(var.sqs.namespace, "ack-system")
   create_namespace = try(var.sqs.create_namespace, true)
   chart            = "sqs-chart"
-  chart_version    = try(var.sqs.chart_version, "1.0.14")
+  chart_version    = try(var.sqs.chart_version, "1.0.15")
   repository       = try(var.sqs.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sqs.values, [])
 
@@ -234,7 +601,7 @@ module "sqs" {
   role_permissions_boundary_arn = lookup(var.sqs, "role_permissions_boundary_arn", null)
   role_description              = try(var.sqs.role_description, "IRSA for SQS controller for ACK")
   role_policies = lookup(var.sqs, "role_policies", {
-    policy = var.enable_sqs ? aws_iam_policy.sqspolicy[0].arn : null
+    AmazonSQSFullAccess = "${local.iam_role_policy_prefix}/AmazonSQSFullAccess"
   })
   create_policy = try(var.sqs.create_policy, false)
 
@@ -245,29 +612,6 @@ module "sqs" {
       service_account = local.sqs_name
     }
   }
-
-  tags = var.tags
-}
-
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/sqs-controller/blob/main/config/iam/recommended-policy-arn
-data "aws_iam_policy_document" "sqs_controller" {
-  count = var.enable_sqs ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "sqs:*"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "sqspolicy" {
-  count = var.enable_sqs ? 1 : 0
-
-  name        = "SQSController"
-  description = "IAM policy for SQS Controller"
-  policy      = data.aws_iam_policy_document.sqs_controller[0].json
 
   tags = var.tags
 }
@@ -354,7 +698,7 @@ module "lambda" {
   role_permissions_boundary_arn = lookup(var.lambda, "role_permissions_boundary_arn", null)
   role_description              = try(var.lambda.role_description, "IRSA for Lambda controller for ACK")
   role_policies = lookup(var.lambda, "role_policies", {
-    policy = var.enable_lambda ? aws_iam_policy.lambdapolicy[0].arn : null
+    policy = var.enable_lambda ? aws_iam_policy.lambda[0].arn : null
   })
   create_policy = try(var.lambda.create_policy, false)
 
@@ -369,8 +713,8 @@ module "lambda" {
   tags = var.tags
 }
 
-# recommended iam-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
-data "aws_iam_policy_document" "lambda_controller" {
+# recommended lambda-controller policy https://github.com/aws-controllers-k8s/lambda-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "lambda" {
   count = var.enable_lambda ? 1 : 0
 
   statement {
@@ -399,12 +743,12 @@ data "aws_iam_policy_document" "lambda_controller" {
   }
 }
 
-resource "aws_iam_policy" "lambdapolicy" {
+resource "aws_iam_policy" "lambda" {
   count = var.enable_lambda ? 1 : 0
 
   name        = "LambdaController"
   description = "IAM policy for Lambda Controller"
-  policy      = data.aws_iam_policy_document.lambda_controller[0].json
+  policy      = data.aws_iam_policy_document.lambda[0].json
 
   tags = var.tags
 }
@@ -426,13 +770,13 @@ module "iam" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.10
+  # public.ecr.aws/aws-controllers-k8s/iam-chart:1.3.11
   name             = try(var.iam.name, local.iam_name)
   description      = try(var.iam.description, "Helm Chart for iam controller for ACK")
   namespace        = try(var.iam.namespace, "ack-system")
   create_namespace = try(var.iam.create_namespace, true)
   chart            = "iam-chart"
-  chart_version    = try(var.iam.chart_version, "1.3.10")
+  chart_version    = try(var.iam.chart_version, "1.3.11")
   repository       = try(var.iam.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.iam.values, [])
 
@@ -492,7 +836,7 @@ module "iam" {
   role_permissions_boundary_arn = lookup(var.iam, "role_permissions_boundary_arn", null)
   role_description              = try(var.iam.role_description, "IRSA for iam controller for ACK")
   role_policies = lookup(var.iam, "role_policies", {
-    AWSIamPolicy = var.enable_iam ? aws_iam_policy.iampolicy[0].arn : null
+    policy = var.enable_iam ? aws_iam_policy.iam[0].arn : null
   })
   create_policy = try(var.iam.create_policy, false)
 
@@ -508,87 +852,84 @@ module "iam" {
 }
 
 # recommended iam-controller policy https://github.com/aws-controllers-k8s/iam-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "iampolicy" {
+data "aws_iam_policy_document" "iam" {
   count = var.enable_iam ? 1 : 0
 
-  name_prefix = format("%s-%s", local.iam_name, "controller-iam-policies")
-
-  path        = "/"
-  description = "ACK IAM contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "iam:GetGroup",
-          "iam:CreateGroup",
-          "iam:DeleteGroup",
-          "iam:UpdateGroup",
-          "iam:GetRole",
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:UpdateRole",
-          "iam:PutRolePermissionsBoundary",
-          "iam:PutUserPermissionsBoundary",
-          "iam:GetUser",
-          "iam:CreateUser",
-          "iam:DeleteUser",
-          "iam:UpdateUser",
-          "iam:GetPolicy",
-          "iam:CreatePolicy",
-          "iam:DeletePolicy",
-          "iam:GetPolicyVersion",
-          "iam:CreatePolicyVersion",
-          "iam:DeletePolicyVersion",
-          "iam:ListPolicyVersions",
-          "iam:ListPolicyTags",
-          "iam:ListAttachedGroupPolicies",
-          "iam:GetGroupPolicy",
-          "iam:PutGroupPolicy",
-          "iam:AttachGroupPolicy",
-          "iam:DetachGroupPolicy",
-          "iam:DeleteGroupPolicy",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListRolePolicies",
-          "iam:GetRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:DeleteRolePolicy",
-          "iam:ListAttachedUserPolicies",
-          "iam:ListUserPolicies",
-          "iam:GetUserPolicy",
-          "iam:PutUserPolicy",
-          "iam:AttachUserPolicy",
-          "iam:DetachUserPolicy",
-          "iam:DeleteUserPolicy",
-          "iam:ListRoleTags",
-          "iam:ListUserTags",
-          "iam:TagPolicy",
-          "iam:UntagPolicy",
-          "iam:TagRole",
-          "iam:UntagRole",
-          "iam:TagUser",
-          "iam:UntagUser",
-          "iam:RemoveClientIDFromOpenIDConnectProvider",
-          "iam:ListOpenIDConnectProviderTags",
-          "iam:UpdateOpenIDConnectProviderThumbprint",
-          "iam:UntagOpenIDConnectProvider",
-          "iam:AddClientIDToOpenIDConnectProvider",
-          "iam:DeleteOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider",
-          "iam:TagOpenIDConnectProvider",
-          "iam:CreateOpenIDConnectProvider",
-          "iam:UpdateAssumeRolePolicy"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:GetGroup",
+      "iam:CreateGroup",
+      "iam:DeleteGroup",
+      "iam:UpdateGroup",
+      "iam:GetRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:UpdateRole",
+      "iam:PutRolePermissionsBoundary",
+      "iam:PutUserPermissionsBoundary",
+      "iam:GetUser",
+      "iam:CreateUser",
+      "iam:DeleteUser",
+      "iam:UpdateUser",
+      "iam:GetPolicy",
+      "iam:CreatePolicy",
+      "iam:DeletePolicy",
+      "iam:GetPolicyVersion",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:ListPolicyVersions",
+      "iam:ListPolicyTags",
+      "iam:ListAttachedGroupPolicies",
+      "iam:GetGroupPolicy",
+      "iam:PutGroupPolicy",
+      "iam:AttachGroupPolicy",
+      "iam:DetachGroupPolicy",
+      "iam:DeleteGroupPolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListRolePolicies",
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:ListAttachedUserPolicies",
+      "iam:ListUserPolicies",
+      "iam:GetUserPolicy",
+      "iam:PutUserPolicy",
+      "iam:AttachUserPolicy",
+      "iam:DetachUserPolicy",
+      "iam:DeleteUserPolicy",
+      "iam:ListRoleTags",
+      "iam:ListUserTags",
+      "iam:TagPolicy",
+      "iam:UntagPolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:TagUser",
+      "iam:UntagUser",
+      "iam:RemoveClientIDFromOpenIDConnectProvider",
+      "iam:ListOpenIDConnectProviderTags",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+      "iam:UntagOpenIDConnectProvider",
+      "iam:AddClientIDToOpenIDConnectProvider",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:GetOpenIDConnectProvider",
+      "iam:TagOpenIDConnectProvider",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:UpdateAssumeRolePolicy",
     ]
-  })
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "iam" {
+  count = var.enable_iam ? 1 : 0
+
+  name        = "IAMController"
+  description = "IAM policy for IAM Controller"
+  policy      = data.aws_iam_policy_document.iam[0].json
 
   tags = var.tags
 }
@@ -610,13 +951,13 @@ module "ec2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.15
+  # public.ecr.aws/aws-controllers-k8s/ec2-chart:1.2.16
   name             = try(var.ec2.name, local.ec2_name)
   description      = try(var.ec2.description, "Helm Chart for ec2 controller for ACK")
   namespace        = try(var.ec2.namespace, "ack-system")
   create_namespace = try(var.ec2.create_namespace, true)
   chart            = "ec2-chart"
-  chart_version    = try(var.ec2.chart_version, "1.2.15")
+  chart_version    = try(var.ec2.chart_version, "1.2.16")
   repository       = try(var.ec2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.ec2.values, [])
 
@@ -708,13 +1049,13 @@ module "eks" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.3
+  # public.ecr.aws/aws-controllers-k8s/eks-chart:1.4.4
   name             = try(var.eks.name, local.eks_name)
   description      = try(var.eks.description, "Helm Chart for eks controller for ACK")
   namespace        = try(var.eks.namespace, "ack-system")
   create_namespace = try(var.eks.create_namespace, true)
   chart            = "eks-chart"
-  chart_version    = try(var.eks.chart_version, "1.4.3")
+  chart_version    = try(var.eks.chart_version, "1.4.4")
   repository       = try(var.eks.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eks.values, [])
 
@@ -774,7 +1115,7 @@ module "eks" {
   role_permissions_boundary_arn = lookup(var.eks, "role_permissions_boundary_arn", null)
   role_description              = try(var.eks.role_description, "IRSA for eks controller for ACK")
   role_policies = lookup(var.eks, "role_policies", {
-    EKSPolicy = var.enable_eks ? aws_iam_policy.ekspolicy[0].arn : null
+    policy = var.enable_eks ? aws_iam_policy.eks[0].arn : null
   })
   create_policy = try(var.eks.create_policy, false)
 
@@ -790,30 +1131,27 @@ module "eks" {
 }
 
 # recommended eks-controller policy https://github.com/aws-controllers-k8s/eks-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "ekspolicy" {
+data "aws_iam_policy_document" "eks" {
   count = var.enable_eks ? 1 : 0
 
-  name_prefix = format("%s-%s", local.eks_name, "controller-eks-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "ACK EKS contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "eks:*",
-          "iam:GetRole",
-          "iam:PassRole"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "eks:*",
+      "iam:GetRole",
+      "iam:PassRole",
     ]
-  })
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "eks" {
+  count = var.enable_eks ? 1 : 0
+
+  name        = "EKSController"
+  description = "IAM policy for EKS Controller"
+  policy      = data.aws_iam_policy_document.eks[0].json
 
   tags = var.tags
 }
@@ -835,13 +1173,13 @@ module "kms" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/kms-chart:1.0.15
   name             = try(var.kms.name, local.kms_name)
   description      = try(var.kms.description, "Helm Chart for kms controller for ACK")
   namespace        = try(var.kms.namespace, "ack-system")
   create_namespace = try(var.kms.create_namespace, true)
   chart            = "kms-chart"
-  chart_version    = try(var.kms.chart_version, "1.0.14")
+  chart_version    = try(var.kms.chart_version, "1.0.15")
   repository       = try(var.kms.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.kms.values, [])
 
@@ -901,7 +1239,7 @@ module "kms" {
   role_permissions_boundary_arn = lookup(var.kms, "role_permissions_boundary_arn", null)
   role_description              = try(var.kms.role_description, "IRSA for kms controller for ACK")
   role_policies = lookup(var.kms, "role_policies", {
-    policy = var.enable_kms ? aws_iam_policy.kmspolicy[0].arn : null
+    policy = var.enable_kms ? aws_iam_policy.kms[0].arn : null
   })
   create_policy = try(var.kms.create_policy, false)
 
@@ -917,41 +1255,37 @@ module "kms" {
 }
 
 # recommended kms-controller policy https://github.com/aws-controllers-k8s/kms-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "kmspolicy" {
+data "aws_iam_policy_document" "kms" {
   count = var.enable_kms ? 1 : 0
 
-  name_prefix = format("%s-%s", local.kms_name, "controller-kms-policies")
-
-  path        = "/"
-  description = "ACK KMS contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "kms:CreateAlias",
-          "kms:CreateKey",
-          "kms:DeleteAlias",
-          "kms:Describe*",
-          "kms:GenerateRandom",
-          "kms:Get*",
-          "kms:List*",
-          "kms:ScheduleKeyDeletion",
-          "kms:TagResource",
-          "kms:UntagResource",
-          "iam:ListGroups",
-          "iam:ListRoles",
-          "iam:ListUsers",
-          "iam:CreateServiceLinkedRole"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:CreateAlias",
+      "kms:CreateKey",
+      "kms:DeleteAlias",
+      "kms:Describe*",
+      "kms:GenerateRandom",
+      "kms:Get*",
+      "kms:List*",
+      "kms:ScheduleKeyDeletion",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "iam:ListGroups",
+      "iam:ListRoles",
+      "iam:ListUsers",
+      "iam:CreateServiceLinkedRole",
     ]
-  })
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "kms" {
+  count = var.enable_kms ? 1 : 0
+
+  name        = "KMSController"
+  description = "IAM policy for KMS Controller"
+  policy      = data.aws_iam_policy_document.kms[0].json
 
   tags = var.tags
 }
@@ -973,13 +1307,13 @@ module "acm" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.17
+  # public.ecr.aws/aws-controllers-k8s/acm-chart:0.0.18
   name             = try(var.acm.name, local.acm_name)
   description      = try(var.acm.description, "Helm Chart for acm controller for ACK")
   namespace        = try(var.acm.namespace, "ack-system")
   create_namespace = try(var.acm.create_namespace, true)
   chart            = "acm-chart"
-  chart_version    = try(var.acm.chart_version, "0.0.17")
+  chart_version    = try(var.acm.chart_version, "0.0.18")
   repository       = try(var.acm.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.acm.values, [])
 
@@ -1039,7 +1373,7 @@ module "acm" {
   role_permissions_boundary_arn = lookup(var.acm, "role_permissions_boundary_arn", null)
   role_description              = try(var.acm.role_description, "IRSA for acm controller for ACK")
   role_policies = lookup(var.acm, "role_policies", {
-    policy = var.enable_acm ? aws_iam_policy.acmpolicy[0].arn : null
+    policy = var.enable_acm ? aws_iam_policy.acm[0].arn : null
   })
   create_policy = try(var.acm.create_policy, false)
 
@@ -1055,34 +1389,32 @@ module "acm" {
 }
 
 # recommended acm-controller policy https://github.com/aws-controllers-k8s/acm-controller/blob/main/config/iam/recommended-inline-policy
-resource "aws_iam_policy" "acmpolicy" {
+data "aws_iam_policy_document" "acm" {
   count = var.enable_acm ? 1 : 0
 
-  name_prefix = format("%s-%s", local.acm_name, "controller-acm-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "ACK ACM contoller policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "acm:DescribeCertificate",
-          "acm:RequestCertificate",
-          "acm:UpdateCertificateOptions",
-          "acm:DeleteCertificate",
-          "acm:AddTagsToCertificate",
-          "acm:RemoveTagsFromCertificate",
-          "acm:ListTagsForCertificate"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "acm:DescribeCertificate",
+      "acm:RequestCertificate",
+      "acm:UpdateCertificateOptions",
+      "acm:DeleteCertificate",
+      "acm:AddTagsToCertificate",
+      "acm:RemoveTagsFromCertificate",
+      "acm:ListTagsForCertificate",
     ]
-  })
+    resources = ["*"]
+  }
+
+}
+
+resource "aws_iam_policy" "acm" {
+  count = var.enable_acm ? 1 : 0
+
+  name        = "ACMController"
+  description = "IAM policy for ACM Controller"
+  policy      = data.aws_iam_policy_document.acm[0].json
 
   tags = var.tags
 }
@@ -1104,13 +1436,13 @@ module "apigatewayv2" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.14
+  # public.ecr.aws/aws-controllers-k8s/apigatewayv2-chart:1.0.15
   name             = try(var.apigatewayv2.name, local.apigatewayv2_name)
   description      = try(var.apigatewayv2.description, "Helm Chart for apigatewayv2 controller for ACK")
   namespace        = try(var.apigatewayv2.namespace, "ack-system")
   create_namespace = try(var.apigatewayv2.create_namespace, true)
   chart            = "apigatewayv2-chart"
-  chart_version    = try(var.apigatewayv2.chart_version, "1.0.14")
+  chart_version    = try(var.apigatewayv2.chart_version, "1.0.15")
   repository       = try(var.apigatewayv2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.apigatewayv2.values, [])
 
@@ -1203,13 +1535,13 @@ module "dynamodb" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.12
+  # public.ecr.aws/aws-controllers-k8s/dynamodb-chart:1.2.13
   name             = try(var.dynamodb.name, local.dynamodb_name)
   description      = try(var.dynamodb.description, "Helm Chart for dynamodb controller for ACK")
   namespace        = try(var.dynamodb.namespace, "ack-system")
   create_namespace = try(var.dynamodb.create_namespace, true)
   chart            = "dynamodb-chart"
-  chart_version    = try(var.dynamodb.chart_version, "1.2.12")
+  chart_version    = try(var.dynamodb.chart_version, "1.2.13")
   repository       = try(var.dynamodb.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.dynamodb.values, [])
 
@@ -1301,13 +1633,13 @@ module "s3" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.13
+  # public.ecr.aws/aws-controllers-k8s/s3-chart:1.0.15
   name             = try(var.s3.name, local.s3_name)
   description      = try(var.s3.description, "Helm Chart for s3 controller for ACK")
   namespace        = try(var.s3.namespace, "ack-system")
   create_namespace = try(var.s3.create_namespace, true)
   chart            = "s3-chart"
-  chart_version    = try(var.s3.chart_version, "1.0.13")
+  chart_version    = try(var.s3.chart_version, "1.0.15")
   repository       = try(var.s3.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.s3.values, [])
 
@@ -1497,13 +1829,13 @@ module "rds" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.2
+  # public.ecr.aws/aws-controllers-k8s/rds-chart:1.4.3
   name             = try(var.rds.name, local.rds_name)
   description      = try(var.rds.description, "Helm Chart for rds controller for ACK")
   namespace        = try(var.rds.namespace, "ack-system")
   create_namespace = try(var.rds.create_namespace, true)
   chart            = "rds-chart"
-  chart_version    = try(var.rds.chart_version, "1.4.2")
+  chart_version    = try(var.rds.chart_version, "1.4.3")
   repository       = try(var.rds.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.rds.values, [])
 
@@ -1595,13 +1927,13 @@ module "prometheusservice" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/prometheusservice_name-chart:1.2.12
+  # public.ecr.aws/aws-controllers-k8s/prometheusservice-chart:1.2.13
   name             = try(var.prometheusservice.name, local.prometheusservice_name)
   description      = try(var.prometheusservice.description, "Helm Chart for prometheusservice controller for ACK")
   namespace        = try(var.prometheusservice.namespace, "ack-system")
   create_namespace = try(var.prometheusservice.create_namespace, true)
   chart            = "prometheusservice-chart"
-  chart_version    = try(var.prometheusservice.chart_version, "1.2.12")
+  chart_version    = try(var.prometheusservice.chart_version, "1.2.13")
   repository       = try(var.prometheusservice.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.prometheusservice.values, [])
 
@@ -1661,7 +1993,7 @@ module "prometheusservice" {
   role_permissions_boundary_arn = lookup(var.prometheusservice, "role_permissions_boundary_arn", null)
   role_description              = try(var.prometheusservice.role_description, "IRSA for prometheusservice controller for ACK")
   role_policies = lookup(var.prometheusservice, "role_policies", {
-    AmazonPrometheusFullAccess = "${local.iam_role_policy_prefix}/AmazonPrometheusFullAccess"
+    policy = var.enable_prometheusservice ? aws_iam_policy.prometheusservice[0].arn : null
   })
   create_policy = try(var.prometheusservice.create_policy, false)
 
@@ -1672,6 +2004,35 @@ module "prometheusservice" {
       service_account = local.prometheusservice_name
     }
   }
+
+  tags = var.tags
+}
+
+# recommended prometheusservice-controller policy https://github.com/aws-controllers-k8s/prometheusservice-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "prometheusservice" {
+  count = var.enable_prometheusservice ? 1 : 0
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "aps:*",
+      "logs:CreateLogDelivery",
+      "logs:DescribeLogGroups",
+      "logs:DescribeResourcePolicies",
+      "logs:PutResourcePolicy",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "prometheusservice" {
+  count = var.enable_prometheusservice ? 1 : 0
+
+  name        = "PrometheusServiceController"
+  description = "IAM policy for Prometheus Service Controller"
+  policy      = data.aws_iam_policy_document.prometheusservice[0].json
 
   tags = var.tags
 }
@@ -1693,13 +2054,13 @@ module "emrcontainers" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/emrcontainers_name-chart:1.0.11
+  # public.ecr.aws/aws-controllers-k8s/emrcontainers-chart:1.0.12
   name             = try(var.emrcontainers.name, local.emrcontainers_name)
   description      = try(var.emrcontainers.description, "Helm Chart for emrcontainers controller for ACK")
   namespace        = try(var.emrcontainers.namespace, "ack-system")
   create_namespace = try(var.emrcontainers.create_namespace, true)
   chart            = "emrcontainers-chart"
-  chart_version    = try(var.emrcontainers.chart_version, "1.0.11")
+  chart_version    = try(var.emrcontainers.chart_version, "1.0.12")
   repository       = try(var.emrcontainers.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.emrcontainers.values, [])
 
@@ -1759,7 +2120,7 @@ module "emrcontainers" {
   role_permissions_boundary_arn = lookup(var.emrcontainers, "role_permissions_boundary_arn", null)
   role_description              = try(var.emrcontainers.role_description, "IRSA for emrcontainers controller for ACK")
   role_policies = lookup(var.emrcontainers, "role_policies", {
-    AmazonEmrContainers = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
+    policy = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
   })
   create_policy = try(var.emrcontainers.create_policy, false)
 
@@ -1774,24 +2135,16 @@ module "emrcontainers" {
   tags = var.tags
 }
 
-resource "aws_iam_policy" "emrcontainers" {
-  count = var.enable_emrcontainers ? 1 : 0
-
-  name_prefix = format("%s-%s", local.emrcontainers_name, "controller-iam-policies")
-  description = "IAM policy for EMRcontainers controller"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.emrcontainers.json
-
-  tags = var.tags
-}
-
-# inline policy provided by ack https://raw.githubusercontent.com/aws-controllers-k8s/emrcontainers-controller/main/config/iam/recommended-inline-policy
+# recommended emrcontainers-controller policy https://github.com/aws-controllers-k8s/emrcontainers-controller/blob/main/config/iam/recommended-inline-policy
 data "aws_iam_policy_document" "emrcontainers" {
+  count = var.enable_emrcontainers ? 1 : 0
   statement {
     effect = "Allow"
+
     actions = [
-      "iam:CreateServiceLinkedRole"
+      "iam:CreateServiceLinkedRole",
     ]
+
     resources = ["*"]
 
     condition {
@@ -1803,22 +2156,25 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:CreateVirtualCluster",
       "emr-containers:ListVirtualClusters",
       "emr-containers:DescribeVirtualCluster",
-      "emr-containers:DeleteVirtualCluster"
+      "emr-containers:DeleteVirtualCluster",
     ]
+
     resources = ["*"]
   }
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:StartJobRun",
       "emr-containers:ListJobRuns",
       "emr-containers:DescribeJobRun",
-      "emr-containers:CancelJobRun"
+      "emr-containers:CancelJobRun",
     ]
 
     resources = ["*"]
@@ -1826,12 +2182,13 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "emr-containers:DescribeJobRun",
       "emr-containers:TagResource",
       "elasticmapreduce:CreatePersistentAppUI",
       "elasticmapreduce:DescribePersistentAppUI",
-      "elasticmapreduce:GetPersistentAppUIPresignedURL"
+      "elasticmapreduce:GetPersistentAppUIPresignedURL",
     ]
 
     resources = ["*"]
@@ -1839,9 +2196,10 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "s3:GetObject",
-      "s3:ListBucket"
+      "s3:ListBucket",
     ]
 
     resources = ["*"]
@@ -1849,14 +2207,25 @@ data "aws_iam_policy_document" "emrcontainers" {
 
   statement {
     effect = "Allow"
+
     actions = [
       "logs:Get*",
       "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams"
+      "logs:DescribeLogStreams",
     ]
+
     resources = ["*"]
   }
+}
 
+resource "aws_iam_policy" "emrcontainers" {
+  count = var.enable_emrcontainers ? 1 : 0
+
+  name        = "EMRContainersController"
+  description = "IAM policy for EMR Containers Controller"
+  policy      = data.aws_iam_policy_document.emrcontainers[0].json
+
+  tags = var.tags
 }
 
 ################################################################################
@@ -1876,13 +2245,13 @@ module "sfn" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/sfn_name-chart:1.0.12
+  # public.ecr.aws/aws-controllers-k8s/sfn-chart:1.0.13
   name             = try(var.sfn.name, local.sfn_name)
   description      = try(var.sfn.description, "Helm Chart for sfn controller for ACK")
   namespace        = try(var.sfn.namespace, "ack-system")
   create_namespace = try(var.sfn.create_namespace, true)
   chart            = "sfn-chart"
-  chart_version    = try(var.sfn.chart_version, "1.0.12")
+  chart_version    = try(var.sfn.chart_version, "1.0.13")
   repository       = try(var.sfn.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.sfn.values, [])
 
@@ -1943,7 +2312,7 @@ module "sfn" {
   role_description              = try(var.sfn.role_description, "IRSA for sfn controller for ACK")
   role_policies = lookup(var.sfn, "role_policies", {
     AWSStepFunctionsFullAccess  = "${local.iam_role_policy_prefix}/AWSStepFunctionsFullAccess"
-    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfnpasspolicy[0].arn : null
+    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfn[0].arn : null
   })
   create_policy = try(var.sfn.create_policy, false)
 
@@ -1958,28 +2327,30 @@ module "sfn" {
   tags = var.tags
 }
 
-resource "aws_iam_policy" "sfnpasspolicy" {
+# recommended sfn-controller policy https://github.com/aws-controllers-k8s/sfn-controller/blob/main/config/iam/recommended-policy-arn
+data "aws_iam_policy_document" "sfn" {
   count = var.enable_sfn ? 1 : 0
 
-  name_prefix = format("%s-%s", local.sfn_name, "controller-iam-policies")
+  statement {
+    effect = "Allow"
 
-  path        = "/"
-  description = "passrole policy"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "iam:PassRole",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
+    actions = [
+      "iam:PassRole",
     ]
-  })
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ack-sfn-execution-role"
+    ]
+  }
+
+}
+
+resource "aws_iam_policy" "sfn" {
+  count = var.enable_sfn ? 1 : 0
+
+  name        = "SFNController"
+  description = "IAM policy for SFN Controller"
+  policy      = data.aws_iam_policy_document.sfn[0].json
 
   tags = var.tags
 }
@@ -2001,13 +2372,13 @@ module "eventbridge" {
   # Disable helm release
   create_release = var.create_kubernetes_resources
 
-  # public.ecr.aws/aws-controllers-k8s/eventbridge_name-chart:1.0.12
+  # public.ecr.aws/aws-controllers-k8s/eventbridge-chart:1.0.13
   name             = try(var.eventbridge.name, local.eventbridge_name)
   description      = try(var.eventbridge.description, "Helm Chart for eventbridge controller for ACK")
   namespace        = try(var.eventbridge.namespace, "ack-system")
   create_namespace = try(var.eventbridge.create_namespace, true)
   chart            = "eventbridge-chart"
-  chart_version    = try(var.eventbridge.chart_version, "1.0.12")
+  chart_version    = try(var.eventbridge.chart_version, "1.0.13")
   repository       = try(var.eventbridge.repository, "oci://public.ecr.aws/aws-controllers-k8s")
   values           = try(var.eventbridge.values, [])
 
