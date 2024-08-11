@@ -131,27 +131,33 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   # Controllers to enable
-  enable_sagemaker         = true
-  enable_memorydb          = true
-  enable_opensearchservice = true
-  enable_ecr               = true
-  enable_sns               = true
-  enable_sqs               = true
-  enable_lambda            = true
-  enable_iam               = true
-  enable_ec2               = true
-  enable_eks               = true
-  enable_kms               = true
-  enable_acm               = true
-  enable_apigatewayv2      = true
-  enable_dynamodb          = true
-  enable_s3                = true
-  enable_elasticache       = true
-  enable_rds               = true
-  enable_prometheusservice = true
-  enable_emrcontainers     = true
-  enable_sfn               = true
-  enable_eventbridge       = true
+  enable_kafka                  = true
+  enable_efs                    = true
+  enable_ecs                    = true
+  enable_cloudtrail             = true
+  enable_cloudfront             = true
+  enable_applicationautoscaling = true
+  enable_sagemaker              = true
+  enable_memorydb               = true
+  enable_opensearchservice      = true
+  enable_ecr                    = true
+  enable_sns                    = true
+  enable_sqs                    = true
+  enable_lambda                 = true
+  enable_iam                    = true
+  enable_ec2                    = true
+  enable_eks                    = true
+  enable_kms                    = true
+  enable_acm                    = true
+  enable_apigatewayv2           = true
+  enable_dynamodb               = true
+  enable_s3                     = true
+  enable_elasticache            = true
+  enable_rds                    = true
+  enable_prometheusservice      = true
+  enable_emrcontainers          = true
+  enable_sfn                    = true
+  enable_eventbridge            = true
 
   tags = local.tags
 }
