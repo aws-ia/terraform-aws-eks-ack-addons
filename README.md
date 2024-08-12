@@ -18,6 +18,9 @@ module "eks_ack_addons" {
   ecrpublic_token    = "<ecr token>"
 
   # Controllers to enable
+  enable_networkfirewall        = true
+  enable_cloudwatchlogs         = true
+  enable_kinesis                = true
   enable_secretsmanager         = true
   enable_route53resolver        = true
   enable_route53                = true
@@ -91,6 +94,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_cloudfront"></a> [cloudfront](#module\_cloudfront) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_cloudtrail"></a> [cloudtrail](#module\_cloudtrail) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_cloudwatch"></a> [cloudwatch](#module\_cloudwatch) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_cloudwatchlogs"></a> [cloudwatchlogs](#module\_cloudwatchlogs) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_ec2"></a> [ec2](#module\_ec2) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_ecr"></a> [ecr](#module\_ecr) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
@@ -103,10 +107,12 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="module_iam"></a> [iam](#module\_iam) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_kafka"></a> [kafka](#module\_kafka) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_keyspaces"></a> [keyspaces](#module\_keyspaces) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_kinesis"></a> [kinesis](#module\_kinesis) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_kms"></a> [kms](#module\_kms) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_lambda"></a> [lambda](#module\_lambda) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_memorydb"></a> [memorydb](#module\_memorydb) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_mq"></a> [mq](#module\_mq) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
+| <a name="module_networkfirewall"></a> [networkfirewall](#module\_networkfirewall) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_opensearchservice"></a> [opensearchservice](#module\_opensearchservice) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_organizations"></a> [organizations](#module\_organizations) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
 | <a name="module_prometheusservice"></a> [prometheusservice](#module\_prometheusservice) | aws-ia/eks-blueprints-addon/aws | 1.1.1 |
@@ -125,21 +131,27 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | Name | Type |
 |------|------|
 | [aws_iam_policy.acm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.cloudwatchlogs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.eks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.iam](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.kinesis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.networkfirewall](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.prometheusservice](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.sfn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [time_sleep.this](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.acm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.cloudwatchlogs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.eks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.emrcontainers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.iam](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.kinesis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.lambda](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.networkfirewall](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.prometheusservice](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.sfn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_partition.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/partition) | data source |
@@ -155,6 +167,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_cloudfront"></a> [cloudfront](#input\_cloudfront) | ACK cloudfront Helm Chart config | `any` | `{}` | no |
 | <a name="input_cloudtrail"></a> [cloudtrail](#input\_cloudtrail) | ACK Cloudtrail Helm Chart config | `any` | `{}` | no |
 | <a name="input_cloudwatch"></a> [cloudwatch](#input\_cloudwatch) | ACK CloudWatch Helm Chart config | `any` | `{}` | no |
+| <a name="input_cloudwatchlogs"></a> [cloudwatchlogs](#input\_cloudwatchlogs) | ACK CloudWatch Logs Helm Chart config | `any` | `{}` | no |
 | <a name="input_cluster_endpoint"></a> [cluster\_endpoint](#input\_cluster\_endpoint) | Endpoint for your Kubernetes API server | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the EKS cluster | `string` | n/a | yes |
 | <a name="input_create_delay_dependencies"></a> [create\_delay\_dependencies](#input\_create\_delay\_dependencies) | Dependency attribute which must be resolved before starting the `create_delay_duration` | `list(string)` | `[]` | no |
@@ -176,6 +189,7 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_enable_cloudfront"></a> [enable\_cloudfront](#input\_enable\_cloudfront) | Enable ACK Cloudfront add-on | `bool` | `false` | no |
 | <a name="input_enable_cloudtrail"></a> [enable\_cloudtrail](#input\_enable\_cloudtrail) | Enable ACK Cloudtrail add-on | `bool` | `false` | no |
 | <a name="input_enable_cloudwatch"></a> [enable\_cloudwatch](#input\_enable\_cloudwatch) | Enable ACK CloudWatch add-on | `bool` | `false` | no |
+| <a name="input_enable_cloudwatchlogs"></a> [enable\_cloudwatchlogs](#input\_enable\_cloudwatchlogs) | Enable ACK CloudWatch Logs add-on | `bool` | `false` | no |
 | <a name="input_enable_dynamodb"></a> [enable\_dynamodb](#input\_enable\_dynamodb) | Enable ACK dynamodb add-on | `bool` | `false` | no |
 | <a name="input_enable_ec2"></a> [enable\_ec2](#input\_enable\_ec2) | Enable ACK ec2 add-on | `bool` | `false` | no |
 | <a name="input_enable_ecr"></a> [enable\_ecr](#input\_enable\_ecr) | Enable ACK ECR add-on | `bool` | `false` | no |
@@ -188,10 +202,12 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_enable_iam"></a> [enable\_iam](#input\_enable\_iam) | Enable ACK iam add-on | `bool` | `false` | no |
 | <a name="input_enable_kafka"></a> [enable\_kafka](#input\_enable\_kafka) | Enable ACK Kafka add-on | `bool` | `false` | no |
 | <a name="input_enable_keyspaces"></a> [enable\_keyspaces](#input\_enable\_keyspaces) | Enable ACK Keyspaces add-on | `bool` | `false` | no |
+| <a name="input_enable_kinesis"></a> [enable\_kinesis](#input\_enable\_kinesis) | Enable ACK Kinesis add-on | `bool` | `false` | no |
 | <a name="input_enable_kms"></a> [enable\_kms](#input\_enable\_kms) | Enable ACK kms add-on | `bool` | `false` | no |
 | <a name="input_enable_lambda"></a> [enable\_lambda](#input\_enable\_lambda) | Enable ACK Lambda add-on | `bool` | `false` | no |
 | <a name="input_enable_memorydb"></a> [enable\_memorydb](#input\_enable\_memorydb) | Enable ACK MemoryDB add-on | `bool` | `false` | no |
 | <a name="input_enable_mq"></a> [enable\_mq](#input\_enable\_mq) | Enable ACK MQ add-on | `bool` | `false` | no |
+| <a name="input_enable_networkfirewall"></a> [enable\_networkfirewall](#input\_enable\_networkfirewall) | Enable ACK Network Firewall add-on | `bool` | `false` | no |
 | <a name="input_enable_opensearchservice"></a> [enable\_opensearchservice](#input\_enable\_opensearchservice) | Enable ACK Opensearch Service add-on | `bool` | `false` | no |
 | <a name="input_enable_organizations"></a> [enable\_organizations](#input\_enable\_organizations) | Enable ACK Organizations add-on | `bool` | `false` | no |
 | <a name="input_enable_prometheusservice"></a> [enable\_prometheusservice](#input\_enable\_prometheusservice) | Enable ACK prometheusservice add-on | `bool` | `false` | no |
@@ -208,10 +224,12 @@ Examples codified under the [`examples`](https://github.com/aws-ia/terraform-aws
 | <a name="input_iam"></a> [iam](#input\_iam) | ACK iam Helm Chart config | `any` | `{}` | no |
 | <a name="input_kafka"></a> [kafka](#input\_kafka) | ACK Kafka Helm Chart config | `any` | `{}` | no |
 | <a name="input_keyspaces"></a> [keyspaces](#input\_keyspaces) | ACK Keyspaces Helm Chart config | `any` | `{}` | no |
+| <a name="input_kinesis"></a> [kinesis](#input\_kinesis) | ACK Kinesis Helm Chart config | `any` | `{}` | no |
 | <a name="input_kms"></a> [kms](#input\_kms) | ACK kms Helm Chart config | `any` | `{}` | no |
 | <a name="input_lambda"></a> [lambda](#input\_lambda) | ACK Lambda Helm Chart config | `any` | `{}` | no |
 | <a name="input_memorydb"></a> [memorydb](#input\_memorydb) | ACK MemoryDB Helm Chart config | `any` | `{}` | no |
 | <a name="input_mq"></a> [mq](#input\_mq) | ACK MQ Helm Chart config | `any` | `{}` | no |
+| <a name="input_networkfirewall"></a> [networkfirewall](#input\_networkfirewall) | ACK Network Firewall Helm Chart config | `any` | `{}` | no |
 | <a name="input_oidc_provider_arn"></a> [oidc\_provider\_arn](#input\_oidc\_provider\_arn) | The ARN of the cluster OIDC Provider | `string` | n/a | yes |
 | <a name="input_opensearchservice"></a> [opensearchservice](#input\_opensearchservice) | ACK Opensearch Service Helm Chart config | `any` | `{}` | no |
 | <a name="input_organizations"></a> [organizations](#input\_organizations) | ACK Organizations Helm Chart config | `any` | `{}` | no |

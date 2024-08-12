@@ -34,6 +34,395 @@ locals {
 }
 
 ################################################################################
+# Network Firewall
+################################################################################
+
+locals {
+  networkfirewall_name = "ack-networkfirewall"
+}
+
+module "networkfirewall" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_networkfirewall
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/networkfirewall-chart:0.0.8
+  name             = try(var.networkfirewall.name, local.networkfirewall_name)
+  description      = try(var.networkfirewall.description, "Helm Chart for Network Firewall controller for ACK")
+  namespace        = try(var.networkfirewall.namespace, "ack-system")
+  create_namespace = try(var.networkfirewall.create_namespace, true)
+  chart            = "networkfirewall-chart"
+  chart_version    = try(var.networkfirewall.chart_version, "0.0.8")
+  repository       = try(var.networkfirewall.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.networkfirewall.values, [])
+
+  timeout                    = try(var.networkfirewall.timeout, null)
+  repository_key_file        = try(var.networkfirewall.repository_key_file, null)
+  repository_cert_file       = try(var.networkfirewall.repository_cert_file, null)
+  repository_ca_file         = try(var.networkfirewall.repository_ca_file, null)
+  repository_username        = try(var.networkfirewall.repository_username, local.repository_username)
+  repository_password        = try(var.networkfirewall.repository_password, local.repository_password)
+  devel                      = try(var.networkfirewall.devel, null)
+  verify                     = try(var.networkfirewall.verify, null)
+  keyring                    = try(var.networkfirewall.keyring, null)
+  disable_webhooks           = try(var.networkfirewall.disable_webhooks, null)
+  reuse_values               = try(var.networkfirewall.reuse_values, null)
+  reset_values               = try(var.networkfirewall.reset_values, null)
+  force_update               = try(var.networkfirewall.force_update, null)
+  recreate_pods              = try(var.networkfirewall.recreate_pods, null)
+  cleanup_on_fail            = try(var.networkfirewall.cleanup_on_fail, null)
+  max_history                = try(var.networkfirewall.max_history, null)
+  atomic                     = try(var.networkfirewall.atomic, null)
+  skip_crds                  = try(var.networkfirewall.skip_crds, null)
+  render_subchart_notes      = try(var.networkfirewall.render_subchart_notes, null)
+  disable_openapi_validation = try(var.networkfirewall.disable_openapi_validation, null)
+  wait                       = try(var.networkfirewall.wait, false)
+  wait_for_jobs              = try(var.networkfirewall.wait_for_jobs, null)
+  dependency_update          = try(var.networkfirewall.dependency_update, null)
+  replace                    = try(var.networkfirewall.replace, null)
+  lint                       = try(var.networkfirewall.lint, null)
+
+  postrender = try(var.networkfirewall.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-networkfirewall-networkfirewall-chart-xxxxxxxxxxxxx` to `ack-networkfirewall-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-networkfirewall"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.networkfirewall_name
+    }],
+    try(var.networkfirewall.set, [])
+  )
+  set_sensitive = try(var.networkfirewall.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.networkfirewall.create_role, true)
+  role_name                     = try(var.networkfirewall.role_name, "ack-networkfirewall")
+  role_name_use_prefix          = try(var.networkfirewall.role_name_use_prefix, true)
+  role_path                     = try(var.networkfirewall.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.networkfirewall, "role_permissions_boundary_arn", null)
+  role_description              = try(var.networkfirewall.role_description, "IRSA for Network Firewall controller for ACK")
+  role_policies = lookup(var.networkfirewall, "role_policies", {
+    policy = var.enable_networkfirewall ? aws_iam_policy.networkfirewall[0].arn : null
+  })
+  create_policy = try(var.networkfirewall.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.networkfirewall_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended networkfirewall-controller policy https://github.com/aws-controllers-k8s/networkfirewall-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "networkfirewall" {
+  count = var.enable_networkfirewall ? 1 : 0
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "network-firewall:CreateFirewall",
+      "network-firewall:CreateFirewallPolicy",
+      "network-firewall:DeleteFirewall",
+      "network-firewall:DeleteFirewallPolicy",
+      "network-firewall:DescribeFirewall",
+      "network-firewall:DescribeLoggingConfiguration",
+      "network-firewall:ListFirewallPolicies",
+      "network-firewall:ListFirewalls",
+      "network-firewall:UpdateLoggingConfiguration",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "networkfirewall" {
+  count = var.enable_networkfirewall ? 1 : 0
+
+  name        = "NetworkFirewallController"
+  description = "IAM policy for Network Firewall Controller"
+  policy      = data.aws_iam_policy_document.networkfirewall[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# Amazon CloudWatch Logs
+################################################################################
+
+locals {
+  cloudwatchlogs_name = "ack-cloudwatchlogs"
+}
+
+module "cloudwatchlogs" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_cloudwatchlogs
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/cloudwatchlogs-chart:0.0.9
+  name             = try(var.cloudwatchlogs.name, local.cloudwatchlogs_name)
+  description      = try(var.cloudwatchlogs.description, "Helm Chart for CloudWatch Logs controller for ACK")
+  namespace        = try(var.cloudwatchlogs.namespace, "ack-system")
+  create_namespace = try(var.cloudwatchlogs.create_namespace, true)
+  chart            = "cloudwatchlogs-chart"
+  chart_version    = try(var.cloudwatchlogs.chart_version, "0.0.9")
+  repository       = try(var.cloudwatchlogs.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.cloudwatchlogs.values, [])
+
+  timeout                    = try(var.cloudwatchlogs.timeout, null)
+  repository_key_file        = try(var.cloudwatchlogs.repository_key_file, null)
+  repository_cert_file       = try(var.cloudwatchlogs.repository_cert_file, null)
+  repository_ca_file         = try(var.cloudwatchlogs.repository_ca_file, null)
+  repository_username        = try(var.cloudwatchlogs.repository_username, local.repository_username)
+  repository_password        = try(var.cloudwatchlogs.repository_password, local.repository_password)
+  devel                      = try(var.cloudwatchlogs.devel, null)
+  verify                     = try(var.cloudwatchlogs.verify, null)
+  keyring                    = try(var.cloudwatchlogs.keyring, null)
+  disable_webhooks           = try(var.cloudwatchlogs.disable_webhooks, null)
+  reuse_values               = try(var.cloudwatchlogs.reuse_values, null)
+  reset_values               = try(var.cloudwatchlogs.reset_values, null)
+  force_update               = try(var.cloudwatchlogs.force_update, null)
+  recreate_pods              = try(var.cloudwatchlogs.recreate_pods, null)
+  cleanup_on_fail            = try(var.cloudwatchlogs.cleanup_on_fail, null)
+  max_history                = try(var.cloudwatchlogs.max_history, null)
+  atomic                     = try(var.cloudwatchlogs.atomic, null)
+  skip_crds                  = try(var.cloudwatchlogs.skip_crds, null)
+  render_subchart_notes      = try(var.cloudwatchlogs.render_subchart_notes, null)
+  disable_openapi_validation = try(var.cloudwatchlogs.disable_openapi_validation, null)
+  wait                       = try(var.cloudwatchlogs.wait, false)
+  wait_for_jobs              = try(var.cloudwatchlogs.wait_for_jobs, null)
+  dependency_update          = try(var.cloudwatchlogs.dependency_update, null)
+  replace                    = try(var.cloudwatchlogs.replace, null)
+  lint                       = try(var.cloudwatchlogs.lint, null)
+
+  postrender = try(var.cloudwatchlogs.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-cloudwatchlogs-cloudwatchlogs-chart-xxxxxxxxxxxxx` to `ack-cloudwatchlogs-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-cloudwatchlogs"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.cloudwatchlogs_name
+    }],
+    try(var.cloudwatchlogs.set, [])
+  )
+  set_sensitive = try(var.cloudwatchlogs.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.cloudwatchlogs.create_role, true)
+  role_name                     = try(var.cloudwatchlogs.role_name, "ack-cloudwatchlogs")
+  role_name_use_prefix          = try(var.cloudwatchlogs.role_name_use_prefix, true)
+  role_path                     = try(var.cloudwatchlogs.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.cloudwatchlogs, "role_permissions_boundary_arn", null)
+  role_description              = try(var.cloudwatchlogs.role_description, "IRSA for CloudWatch Logs controller for ACK")
+  role_policies = lookup(var.cloudwatchlogs, "role_policies", {
+    policy = var.enable_cloudwatchlogs ? aws_iam_policy.cloudwatchlogs[0].arn : null
+  })
+  create_policy = try(var.cloudwatchlogs.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.cloudwatchlogs_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended cloudwatchlogs-controller policy https://github.com/aws-controllers-k8s/cloudwatchlogs-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "cloudwatchlogs" {
+  count = var.enable_cloudwatchlogs ? 1 : 0
+
+  statement {
+    sid    = "VisualEditor0"
+    effect = "Allow"
+
+    actions = [
+      "logs:TagLogGroup",
+      "logs:DescribeLogGroups",
+      "logs:UntagLogGroup",
+      "logs:DeleteLogGroup",
+      "logs:UntagResource",
+      "logs:TagResource",
+      "logs:CreateLogGroup",
+      "logs:ListTagsForResource",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "cloudwatchlogs" {
+  count = var.enable_cloudwatchlogs ? 1 : 0
+
+  name        = "CloudWatchLogsController"
+  description = "IAM policy for CloudWatch Logs Controller"
+  policy      = data.aws_iam_policy_document.cloudwatchlogs[0].json
+
+  tags = var.tags
+}
+
+################################################################################
+# Kinesis
+################################################################################
+
+locals {
+  kinesis_name = "ack-kinesis"
+}
+
+module "kinesis" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_kinesis
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/kinesis-chart:0.0.17
+  name             = try(var.kinesis.name, local.kinesis_name)
+  description      = try(var.kinesis.description, "Helm Chart for Kinesis controller for ACK")
+  namespace        = try(var.kinesis.namespace, "ack-system")
+  create_namespace = try(var.kinesis.create_namespace, true)
+  chart            = "kinesis-chart"
+  chart_version    = try(var.kinesis.chart_version, "0.0.17")
+  repository       = try(var.kinesis.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.kinesis.values, [])
+
+  timeout                    = try(var.kinesis.timeout, null)
+  repository_key_file        = try(var.kinesis.repository_key_file, null)
+  repository_cert_file       = try(var.kinesis.repository_cert_file, null)
+  repository_ca_file         = try(var.kinesis.repository_ca_file, null)
+  repository_username        = try(var.kinesis.repository_username, local.repository_username)
+  repository_password        = try(var.kinesis.repository_password, local.repository_password)
+  devel                      = try(var.kinesis.devel, null)
+  verify                     = try(var.kinesis.verify, null)
+  keyring                    = try(var.kinesis.keyring, null)
+  disable_webhooks           = try(var.kinesis.disable_webhooks, null)
+  reuse_values               = try(var.kinesis.reuse_values, null)
+  reset_values               = try(var.kinesis.reset_values, null)
+  force_update               = try(var.kinesis.force_update, null)
+  recreate_pods              = try(var.kinesis.recreate_pods, null)
+  cleanup_on_fail            = try(var.kinesis.cleanup_on_fail, null)
+  max_history                = try(var.kinesis.max_history, null)
+  atomic                     = try(var.kinesis.atomic, null)
+  skip_crds                  = try(var.kinesis.skip_crds, null)
+  render_subchart_notes      = try(var.kinesis.render_subchart_notes, null)
+  disable_openapi_validation = try(var.kinesis.disable_openapi_validation, null)
+  wait                       = try(var.kinesis.wait, false)
+  wait_for_jobs              = try(var.kinesis.wait_for_jobs, null)
+  dependency_update          = try(var.kinesis.dependency_update, null)
+  replace                    = try(var.kinesis.replace, null)
+  lint                       = try(var.kinesis.lint, null)
+
+  postrender = try(var.kinesis.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-kinesis-kinesis-chart-xxxxxxxxxxxxx` to `ack-kinesis-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-kinesis"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.kinesis_name
+    }],
+    try(var.kinesis.set, [])
+  )
+  set_sensitive = try(var.kinesis.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.kinesis.create_role, true)
+  role_name                     = try(var.kinesis.role_name, "ack-kinesis")
+  role_name_use_prefix          = try(var.kinesis.role_name_use_prefix, true)
+  role_path                     = try(var.kinesis.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.kinesis, "role_permissions_boundary_arn", null)
+  role_description              = try(var.kinesis.role_description, "IRSA for Kinesis controller for ACK")
+  role_policies = lookup(var.kinesis, "role_policies", {
+    policy = var.enable_kinesis ? aws_iam_policy.kinesis[0].arn : null
+  })
+
+  create_policy = try(var.kinesis.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.kinesis_name
+    }
+  }
+
+  tags = var.tags
+}
+
+# recommended kinesis-controller policy https://github.com/aws-controllers-k8s/kinesis-controller/blob/main/config/iam/recommended-inline-policy
+data "aws_iam_policy_document" "kinesis" {
+  count = var.enable_kinesis ? 1 : 0
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kinesis:ListStreams",
+      "kinesis:DeleteStream",
+      "kinesis:DescribeStreamSummary",
+      "kinesis:ListShards",
+      "kinesis:UpdateShardCount",
+      "kinesis:CreateStream",
+      "kinesis:DescribeStream",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "kinesis" {
+  count = var.enable_kinesis ? 1 : 0
+
+  name        = "KinesisController"
+  description = "IAM policy for Kinesis Controller"
+  policy      = data.aws_iam_policy_document.kinesis[0].json
+
+  tags = var.tags
+}
+
+################################################################################
 # Secrets Manager
 ################################################################################
 
@@ -718,7 +1107,6 @@ module "keyspaces" {
 
   tags = var.tags
 }
-
 
 ################################################################################
 # Kafka

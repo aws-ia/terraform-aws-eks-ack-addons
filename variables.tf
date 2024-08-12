@@ -44,6 +44,54 @@ variable "tags" {
 }
 
 ################################################################################
+# Amazon Network Firewall
+################################################################################
+
+variable "enable_networkfirewall" {
+  description = "Enable ACK Network Firewall add-on"
+  type        = bool
+  default     = false
+}
+
+variable "networkfirewall" {
+  description = "ACK Network Firewall Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Amazon CloudWatch Logs
+################################################################################
+
+variable "enable_cloudwatchlogs" {
+  description = "Enable ACK CloudWatch Logs add-on"
+  type        = bool
+  default     = false
+}
+
+variable "cloudwatchlogs" {
+  description = "ACK CloudWatch Logs Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Kinesis
+################################################################################
+
+variable "enable_kinesis" {
+  description = "Enable ACK Kinesis add-on"
+  type        = bool
+  default     = false
+}
+
+variable "kinesis" {
+  description = "ACK Kinesis Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
 # Secrets Manager
 ################################################################################
 
