@@ -34,6 +34,693 @@ locals {
 }
 
 ################################################################################
+# Secrets Manager
+################################################################################
+
+locals {
+  secretsmanager_name = "ack-secretsmanager"
+}
+
+module "secretsmanager" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_secretsmanager
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/secretsmanager-chart:0.0.9
+  name             = try(var.secretsmanager.name, local.secretsmanager_name)
+  description      = try(var.secretsmanager.description, "Helm Chart for Secrets Manager controller for ACK")
+  namespace        = try(var.secretsmanager.namespace, "ack-system")
+  create_namespace = try(var.secretsmanager.create_namespace, true)
+  chart            = "secretsmanager-chart"
+  chart_version    = try(var.secretsmanager.chart_version, "0.0.9")
+  repository       = try(var.secretsmanager.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.secretsmanager.values, [])
+
+  timeout                    = try(var.secretsmanager.timeout, null)
+  repository_key_file        = try(var.secretsmanager.repository_key_file, null)
+  repository_cert_file       = try(var.secretsmanager.repository_cert_file, null)
+  repository_ca_file         = try(var.secretsmanager.repository_ca_file, null)
+  repository_username        = try(var.secretsmanager.repository_username, local.repository_username)
+  repository_password        = try(var.secretsmanager.repository_password, local.repository_password)
+  devel                      = try(var.secretsmanager.devel, null)
+  verify                     = try(var.secretsmanager.verify, null)
+  keyring                    = try(var.secretsmanager.keyring, null)
+  disable_webhooks           = try(var.secretsmanager.disable_webhooks, null)
+  reuse_values               = try(var.secretsmanager.reuse_values, null)
+  reset_values               = try(var.secretsmanager.reset_values, null)
+  force_update               = try(var.secretsmanager.force_update, null)
+  recreate_pods              = try(var.secretsmanager.recreate_pods, null)
+  cleanup_on_fail            = try(var.secretsmanager.cleanup_on_fail, null)
+  max_history                = try(var.secretsmanager.max_history, null)
+  atomic                     = try(var.secretsmanager.atomic, null)
+  skip_crds                  = try(var.secretsmanager.skip_crds, null)
+  render_subchart_notes      = try(var.secretsmanager.render_subchart_notes, null)
+  disable_openapi_validation = try(var.secretsmanager.disable_openapi_validation, null)
+  wait                       = try(var.secretsmanager.wait, false)
+  wait_for_jobs              = try(var.secretsmanager.wait_for_jobs, null)
+  dependency_update          = try(var.secretsmanager.dependency_update, null)
+  replace                    = try(var.secretsmanager.replace, null)
+  lint                       = try(var.secretsmanager.lint, null)
+
+  postrender = try(var.secretsmanager.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-secretsmanager-secretsmanager-chart-xxxxxxxxxxxxx` to `ack-secretsmanager-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-secretsmanager"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.secretsmanager_name
+    }],
+    try(var.secretsmanager.set, [])
+  )
+  set_sensitive = try(var.secretsmanager.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.secretsmanager.create_role, true)
+  role_name                     = try(var.secretsmanager.role_name, "ack-secretsmanager")
+  role_name_use_prefix          = try(var.secretsmanager.role_name_use_prefix, true)
+  role_path                     = try(var.secretsmanager.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.secretsmanager, "role_permissions_boundary_arn", null)
+  role_description              = try(var.secretsmanager.role_description, "IRSA for Secrets Manager controller for ACK")
+  role_policies = lookup(var.secretsmanager, "role_policies", {
+    SecretsManagerReadWrite = "${local.iam_role_policy_prefix}/SecretsManagerReadWrite"
+  })
+
+  create_policy = try(var.secretsmanager.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.secretsmanager_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# Route 53 Resolver
+################################################################################
+
+locals {
+  route53resolver_name = "ack-route53resolver"
+}
+
+module "route53resolver" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_route53resolver
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/route53resolver-chart:0.0.9
+  name             = try(var.route53resolver.name, local.route53resolver_name)
+  description      = try(var.route53resolver.description, "Helm Chart for Route53Resolver controller for ACK")
+  namespace        = try(var.route53resolver.namespace, "ack-system")
+  create_namespace = try(var.route53resolver.create_namespace, true)
+  chart            = "route53resolver-chart"
+  chart_version    = try(var.route53resolver.chart_version, "0.0.9")
+  repository       = try(var.route53resolver.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.route53resolver.values, [])
+
+  timeout                    = try(var.route53resolver.timeout, null)
+  repository_key_file        = try(var.route53resolver.repository_key_file, null)
+  repository_cert_file       = try(var.route53resolver.repository_cert_file, null)
+  repository_ca_file         = try(var.route53resolver.repository_ca_file, null)
+  repository_username        = try(var.route53resolver.repository_username, local.repository_username)
+  repository_password        = try(var.route53resolver.repository_password, local.repository_password)
+  devel                      = try(var.route53resolver.devel, null)
+  verify                     = try(var.route53resolver.verify, null)
+  keyring                    = try(var.route53resolver.keyring, null)
+  disable_webhooks           = try(var.route53resolver.disable_webhooks, null)
+  reuse_values               = try(var.route53resolver.reuse_values, null)
+  reset_values               = try(var.route53resolver.reset_values, null)
+  force_update               = try(var.route53resolver.force_update, null)
+  recreate_pods              = try(var.route53resolver.recreate_pods, null)
+  cleanup_on_fail            = try(var.route53resolver.cleanup_on_fail, null)
+  max_history                = try(var.route53resolver.max_history, null)
+  atomic                     = try(var.route53resolver.atomic, null)
+  skip_crds                  = try(var.route53resolver.skip_crds, null)
+  render_subchart_notes      = try(var.route53resolver.render_subchart_notes, null)
+  disable_openapi_validation = try(var.route53resolver.disable_openapi_validation, null)
+  wait                       = try(var.route53resolver.wait, false)
+  wait_for_jobs              = try(var.route53resolver.wait_for_jobs, null)
+  dependency_update          = try(var.route53resolver.dependency_update, null)
+  replace                    = try(var.route53resolver.replace, null)
+  lint                       = try(var.route53resolver.lint, null)
+
+  postrender = try(var.route53resolver.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-route53resolver-route53resolver-chart-xxxxxxxxxxxxx` to `ack-route53resolver-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-route53resolver"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.route53resolver_name
+    }],
+    try(var.route53resolver.set, [])
+  )
+  set_sensitive = try(var.route53resolver.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.route53resolver.create_role, true)
+  role_name                     = try(var.route53resolver.role_name, "ack-route53resolver")
+  role_name_use_prefix          = try(var.route53resolver.role_name_use_prefix, true)
+  role_path                     = try(var.route53resolver.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.route53resolver, "role_permissions_boundary_arn", null)
+  role_description              = try(var.route53resolver.role_description, "IRSA for Route53Resolver controller for ACK")
+  role_policies = lookup(var.route53resolver, "role_policies", {
+    AmazonRoute53ResolverFullAccess = "${local.iam_role_policy_prefix}/AmazonRoute53ResolverFullAccess"
+  })
+
+  create_policy = try(var.route53resolver.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.route53resolver_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# Route 53
+################################################################################
+
+locals {
+  route53_name = "ack-route53"
+}
+
+module "route53" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_route53
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/route53-chart:0.0.16
+  name             = try(var.route53.name, local.route53_name)
+  description      = try(var.route53.description, "Helm Chart for Route 53 controller for ACK")
+  namespace        = try(var.route53.namespace, "ack-system")
+  create_namespace = try(var.route53.create_namespace, true)
+  chart            = "route53-chart"
+  chart_version    = try(var.route53.chart_version, "0.0.16")
+  repository       = try(var.route53.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.route53.values, [])
+
+  timeout                    = try(var.route53.timeout, null)
+  repository_key_file        = try(var.route53.repository_key_file, null)
+  repository_cert_file       = try(var.route53.repository_cert_file, null)
+  repository_ca_file         = try(var.route53.repository_ca_file, null)
+  repository_username        = try(var.route53.repository_username, local.repository_username)
+  repository_password        = try(var.route53.repository_password, local.repository_password)
+  devel                      = try(var.route53.devel, null)
+  verify                     = try(var.route53.verify, null)
+  keyring                    = try(var.route53.keyring, null)
+  disable_webhooks           = try(var.route53.disable_webhooks, null)
+  reuse_values               = try(var.route53.reuse_values, null)
+  reset_values               = try(var.route53.reset_values, null)
+  force_update               = try(var.route53.force_update, null)
+  recreate_pods              = try(var.route53.recreate_pods, null)
+  cleanup_on_fail            = try(var.route53.cleanup_on_fail, null)
+  max_history                = try(var.route53.max_history, null)
+  atomic                     = try(var.route53.atomic, null)
+  skip_crds                  = try(var.route53.skip_crds, null)
+  render_subchart_notes      = try(var.route53.render_subchart_notes, null)
+  disable_openapi_validation = try(var.route53.disable_openapi_validation, null)
+  wait                       = try(var.route53.wait, false)
+  wait_for_jobs              = try(var.route53.wait_for_jobs, null)
+  dependency_update          = try(var.route53.dependency_update, null)
+  replace                    = try(var.route53.replace, null)
+  lint                       = try(var.route53.lint, null)
+
+  postrender = try(var.route53.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-route53-route53-chart-xxxxxxxxxxxxx` to `ack-route53-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-route53"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.route53_name
+    }],
+    try(var.route53.set, [])
+  )
+  set_sensitive = try(var.route53.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.route53.create_role, true)
+  role_name                     = try(var.route53.role_name, "ack-route53")
+  role_name_use_prefix          = try(var.route53.role_name_use_prefix, true)
+  role_path                     = try(var.route53.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.route53, "role_permissions_boundary_arn", null)
+  role_description              = try(var.route53.role_description, "IRSA for Route 53 controller for ACK")
+  role_policies = lookup(var.route53, "role_policies", {
+    AmazonRoute53FullAccess = "${local.iam_role_policy_prefix}/AmazonRoute53FullAccess"
+  })
+
+  create_policy = try(var.route53.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.route53_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# Organizations
+################################################################################
+
+locals {
+  organizations_name = "ack-organizations"
+}
+
+module "organizations" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_organizations
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/organizations-chart:0.0.8
+  name             = try(var.organizations.name, local.organizations_name)
+  description      = try(var.organizations.description, "Helm Chart for Organizations controller for ACK")
+  namespace        = try(var.organizations.namespace, "ack-system")
+  create_namespace = try(var.organizations.create_namespace, true)
+  chart            = "organizations-chart"
+  chart_version    = try(var.organizations.chart_version, "0.0.8")
+  repository       = try(var.organizations.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.organizations.values, [])
+
+  timeout                    = try(var.organizations.timeout, null)
+  repository_key_file        = try(var.organizations.repository_key_file, null)
+  repository_cert_file       = try(var.organizations.repository_cert_file, null)
+  repository_ca_file         = try(var.organizations.repository_ca_file, null)
+  repository_username        = try(var.organizations.repository_username, local.repository_username)
+  repository_password        = try(var.organizations.repository_password, local.repository_password)
+  devel                      = try(var.organizations.devel, null)
+  verify                     = try(var.organizations.verify, null)
+  keyring                    = try(var.organizations.keyring, null)
+  disable_webhooks           = try(var.organizations.disable_webhooks, null)
+  reuse_values               = try(var.organizations.reuse_values, null)
+  reset_values               = try(var.organizations.reset_values, null)
+  force_update               = try(var.organizations.force_update, null)
+  recreate_pods              = try(var.organizations.recreate_pods, null)
+  cleanup_on_fail            = try(var.organizations.cleanup_on_fail, null)
+  max_history                = try(var.organizations.max_history, null)
+  atomic                     = try(var.organizations.atomic, null)
+  skip_crds                  = try(var.organizations.skip_crds, null)
+  render_subchart_notes      = try(var.organizations.render_subchart_notes, null)
+  disable_openapi_validation = try(var.organizations.disable_openapi_validation, null)
+  wait                       = try(var.organizations.wait, false)
+  wait_for_jobs              = try(var.organizations.wait_for_jobs, null)
+  dependency_update          = try(var.organizations.dependency_update, null)
+  replace                    = try(var.organizations.replace, null)
+  lint                       = try(var.organizations.lint, null)
+
+  postrender = try(var.organizations.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-organizations-organizations-chart-xxxxxxxxxxxxx` to `ack-organizations-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-organizations"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.organizations_name
+    }],
+    try(var.organizations.set, [])
+  )
+  set_sensitive = try(var.organizations.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.organizations.create_role, true)
+  role_name                     = try(var.organizations.role_name, "ack-organizations")
+  role_name_use_prefix          = try(var.organizations.role_name_use_prefix, true)
+  role_path                     = try(var.organizations.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.organizations, "role_permissions_boundary_arn", null)
+  role_description              = try(var.organizations.role_description, "IRSA for Organizations controller for ACK")
+  role_policies = lookup(var.organizations, "role_policies", {
+    AWSOrganizationsFullAccess = "${local.iam_role_policy_prefix}/AWSOrganizationsFullAccess"
+  })
+
+  create_policy = try(var.organizations.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.organizations_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# MQ
+################################################################################
+
+locals {
+  mq_name = "ack-mq"
+}
+
+module "mq" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_mq
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/mq-chart:0.0.35
+  name             = try(var.mq.name, local.mq_name)
+  description      = try(var.mq.description, "Helm Chart for MQ controller for ACK")
+  namespace        = try(var.mq.namespace, "ack-system")
+  create_namespace = try(var.mq.create_namespace, true)
+  chart            = "mq-chart"
+  chart_version    = try(var.mq.chart_version, "0.0.35")
+  repository       = try(var.mq.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.mq.values, [])
+
+  timeout                    = try(var.mq.timeout, null)
+  repository_key_file        = try(var.mq.repository_key_file, null)
+  repository_cert_file       = try(var.mq.repository_cert_file, null)
+  repository_ca_file         = try(var.mq.repository_ca_file, null)
+  repository_username        = try(var.mq.repository_username, local.repository_username)
+  repository_password        = try(var.mq.repository_password, local.repository_password)
+  devel                      = try(var.mq.devel, null)
+  verify                     = try(var.mq.verify, null)
+  keyring                    = try(var.mq.keyring, null)
+  disable_webhooks           = try(var.mq.disable_webhooks, null)
+  reuse_values               = try(var.mq.reuse_values, null)
+  reset_values               = try(var.mq.reset_values, null)
+  force_update               = try(var.mq.force_update, null)
+  recreate_pods              = try(var.mq.recreate_pods, null)
+  cleanup_on_fail            = try(var.mq.cleanup_on_fail, null)
+  max_history                = try(var.mq.max_history, null)
+  atomic                     = try(var.mq.atomic, null)
+  skip_crds                  = try(var.mq.skip_crds, null)
+  render_subchart_notes      = try(var.mq.render_subchart_notes, null)
+  disable_openapi_validation = try(var.mq.disable_openapi_validation, null)
+  wait                       = try(var.mq.wait, false)
+  wait_for_jobs              = try(var.mq.wait_for_jobs, null)
+  dependency_update          = try(var.mq.dependency_update, null)
+  replace                    = try(var.mq.replace, null)
+  lint                       = try(var.mq.lint, null)
+
+  postrender = try(var.mq.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-mq-mq-chart-xxxxxxxxxxxxx` to `ack-mq-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-mq"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.mq_name
+    }],
+    try(var.mq.set, [])
+  )
+  set_sensitive = try(var.mq.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.mq.create_role, true)
+  role_name                     = try(var.mq.role_name, "ack-mq")
+  role_name_use_prefix          = try(var.mq.role_name_use_prefix, true)
+  role_path                     = try(var.mq.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.mq, "role_permissions_boundary_arn", null)
+  role_description              = try(var.mq.role_description, "IRSA for MQ controller for ACK")
+  role_policies = lookup(var.mq, "role_policies", {
+    AmazonMQFullAccess = "${local.iam_role_policy_prefix}/AmazonMQFullAccess"
+  })
+
+  create_policy = try(var.mq.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.mq_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# CloudWatch
+################################################################################
+
+locals {
+  cloudwatch_name = "ack-cloudwatch"
+}
+
+module "cloudwatch" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_cloudwatch
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/cloudwatch-chart:0.0.10
+  name             = try(var.cloudwatch.name, local.cloudwatch_name)
+  description      = try(var.cloudwatch.description, "Helm Chart for CloudWatch controller for ACK")
+  namespace        = try(var.cloudwatch.namespace, "ack-system")
+  create_namespace = try(var.cloudwatch.create_namespace, true)
+  chart            = "cloudwatch-chart"
+  chart_version    = try(var.cloudwatch.chart_version, "0.0.10")
+  repository       = try(var.cloudwatch.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.cloudwatch.values, [])
+
+  timeout                    = try(var.cloudwatch.timeout, null)
+  repository_key_file        = try(var.cloudwatch.repository_key_file, null)
+  repository_cert_file       = try(var.cloudwatch.repository_cert_file, null)
+  repository_ca_file         = try(var.cloudwatch.repository_ca_file, null)
+  repository_username        = try(var.cloudwatch.repository_username, local.repository_username)
+  repository_password        = try(var.cloudwatch.repository_password, local.repository_password)
+  devel                      = try(var.cloudwatch.devel, null)
+  verify                     = try(var.cloudwatch.verify, null)
+  keyring                    = try(var.cloudwatch.keyring, null)
+  disable_webhooks           = try(var.cloudwatch.disable_webhooks, null)
+  reuse_values               = try(var.cloudwatch.reuse_values, null)
+  reset_values               = try(var.cloudwatch.reset_values, null)
+  force_update               = try(var.cloudwatch.force_update, null)
+  recreate_pods              = try(var.cloudwatch.recreate_pods, null)
+  cleanup_on_fail            = try(var.cloudwatch.cleanup_on_fail, null)
+  max_history                = try(var.cloudwatch.max_history, null)
+  atomic                     = try(var.cloudwatch.atomic, null)
+  skip_crds                  = try(var.cloudwatch.skip_crds, null)
+  render_subchart_notes      = try(var.cloudwatch.render_subchart_notes, null)
+  disable_openapi_validation = try(var.cloudwatch.disable_openapi_validation, null)
+  wait                       = try(var.cloudwatch.wait, false)
+  wait_for_jobs              = try(var.cloudwatch.wait_for_jobs, null)
+  dependency_update          = try(var.cloudwatch.dependency_update, null)
+  replace                    = try(var.cloudwatch.replace, null)
+  lint                       = try(var.cloudwatch.lint, null)
+
+  postrender = try(var.cloudwatch.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-cloudwatch-cloudwatch-chart-xxxxxxxxxxxxx` to `ack-cloudwatch-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-cloudwatch"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.cloudwatch_name
+    }],
+    try(var.cloudwatch.set, [])
+  )
+  set_sensitive = try(var.cloudwatch.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.cloudwatch.create_role, true)
+  role_name                     = try(var.cloudwatch.role_name, "ack-cloudwatch")
+  role_name_use_prefix          = try(var.cloudwatch.role_name_use_prefix, true)
+  role_path                     = try(var.cloudwatch.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.cloudwatch, "role_permissions_boundary_arn", null)
+  role_description              = try(var.cloudwatch.role_description, "IRSA for CloudWatch  controller for ACK")
+  role_policies = lookup(var.cloudwatch, "role_policies", {
+    CloudWatchFullAccessV2 = "${local.iam_role_policy_prefix}/CloudWatchFullAccessV2"
+  })
+
+  create_policy = try(var.cloudwatch.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.cloudwatch_name
+    }
+  }
+
+  tags = var.tags
+}
+
+################################################################################
+# Keyspaces
+################################################################################
+
+locals {
+  keyspaces_name = "ack-keyspaces"
+}
+
+module "keyspaces" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_keyspaces
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/keyspaces-chart:0.0.15
+  name             = try(var.keyspaces.name, local.keyspaces_name)
+  description      = try(var.keyspaces.description, "Helm Chart for Keyspaces controller for ACK")
+  namespace        = try(var.keyspaces.namespace, "ack-system")
+  create_namespace = try(var.keyspaces.create_namespace, true)
+  chart            = "keyspaces-chart"
+  chart_version    = try(var.keyspaces.chart_version, "0.0.15")
+  repository       = try(var.keyspaces.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.keyspaces.values, [])
+
+  timeout                    = try(var.keyspaces.timeout, null)
+  repository_key_file        = try(var.keyspaces.repository_key_file, null)
+  repository_cert_file       = try(var.keyspaces.repository_cert_file, null)
+  repository_ca_file         = try(var.keyspaces.repository_ca_file, null)
+  repository_username        = try(var.keyspaces.repository_username, local.repository_username)
+  repository_password        = try(var.keyspaces.repository_password, local.repository_password)
+  devel                      = try(var.keyspaces.devel, null)
+  verify                     = try(var.keyspaces.verify, null)
+  keyring                    = try(var.keyspaces.keyring, null)
+  disable_webhooks           = try(var.keyspaces.disable_webhooks, null)
+  reuse_values               = try(var.keyspaces.reuse_values, null)
+  reset_values               = try(var.keyspaces.reset_values, null)
+  force_update               = try(var.keyspaces.force_update, null)
+  recreate_pods              = try(var.keyspaces.recreate_pods, null)
+  cleanup_on_fail            = try(var.keyspaces.cleanup_on_fail, null)
+  max_history                = try(var.keyspaces.max_history, null)
+  atomic                     = try(var.keyspaces.atomic, null)
+  skip_crds                  = try(var.keyspaces.skip_crds, null)
+  render_subchart_notes      = try(var.keyspaces.render_subchart_notes, null)
+  disable_openapi_validation = try(var.keyspaces.disable_openapi_validation, null)
+  wait                       = try(var.keyspaces.wait, false)
+  wait_for_jobs              = try(var.keyspaces.wait_for_jobs, null)
+  dependency_update          = try(var.keyspaces.dependency_update, null)
+  replace                    = try(var.keyspaces.replace, null)
+  lint                       = try(var.keyspaces.lint, null)
+
+  postrender = try(var.keyspaces.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-keyspaces-keyspaces-chart-xxxxxxxxxxxxx` to `ack-keyspaces-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-keyspaces"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.keyspaces_name
+    }],
+    try(var.keyspaces.set, [])
+  )
+  set_sensitive = try(var.keyspaces.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.keyspaces.create_role, true)
+  role_name                     = try(var.keyspaces.role_name, "ack-keyspaces")
+  role_name_use_prefix          = try(var.keyspaces.role_name_use_prefix, true)
+  role_path                     = try(var.keyspaces.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.keyspaces, "role_permissions_boundary_arn", null)
+  role_description              = try(var.keyspaces.role_description, "IRSA for Keyspaces controller for ACK")
+  role_policies = lookup(var.keyspaces, "role_policies", {
+    AmazonKeyspacesFullAccess = "${local.iam_role_policy_prefix}/AmazonKeyspacesFullAccess"
+  })
+
+  create_policy = try(var.keyspaces.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.keyspaces_name
+    }
+  }
+
+  tags = var.tags
+}
+
+
+################################################################################
 # Kafka
 ################################################################################
 

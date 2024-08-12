@@ -44,6 +44,119 @@ variable "tags" {
 }
 
 ################################################################################
+# Secrets Manager
+################################################################################
+
+variable "enable_secretsmanager" {
+  description = "Enable ACK Secrets Manager add-on"
+  type        = bool
+  default     = false
+}
+
+variable "secretsmanager" {
+  description = "ACK Secrets Manager Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Route 53 Resolver
+################################################################################
+
+variable "enable_route53resolver" {
+  description = "Enable ACK Route 53 Resolver add-on"
+  type        = bool
+  default     = false
+}
+
+variable "route53resolver" {
+  description = "ACK Route 53 Resolver Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Route 53
+################################################################################
+
+variable "enable_route53" {
+  description = "Enable ACK Route 53 add-on"
+  type        = bool
+  default     = false
+}
+
+variable "route53" {
+  description = "ACK Route 53 Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Organizations
+################################################################################
+
+variable "enable_organizations" {
+  description = "Enable ACK Organizations add-on"
+  type        = bool
+  default     = false
+}
+
+variable "organizations" {
+  description = "ACK Organizations Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# MQ
+################################################################################
+
+variable "enable_mq" {
+  description = "Enable ACK MQ add-on"
+  type        = bool
+  default     = false
+}
+
+variable "mq" {
+  description = "ACK MQ Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# CloudWatch
+################################################################################
+
+variable "enable_cloudwatch" {
+  description = "Enable ACK CloudWatch add-on"
+  type        = bool
+  default     = false
+}
+
+variable "cloudwatch" {
+  description = "ACK CloudWatch Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Keyspaces
+################################################################################
+
+variable "enable_keyspaces" {
+  description = "Enable ACK Keyspaces add-on"
+  type        = bool
+  default     = false
+}
+
+variable "keyspaces" {
+  description = "ACK Keyspaces Helm Chart config"
+  type        = any
+  default     = {}
+}
+
+
+################################################################################
 # Kafka
 ################################################################################
 
