@@ -12,6 +12,48 @@ output "gitops_metadata" {
   description = "GitOps Bridge metadata"
   value = merge(
     { for k, v in {
+      iam_role_arn    = module.secretsmanager.iam_role_arn
+      namespace       = try(var.secretsmanager.namespace, "ack-system")
+      service_account = local.secretsmanager_name
+      } : "ack_iam_${k}" => v if var.enable_secretsmanager
+    },
+    { for k, v in {
+      iam_role_arn    = module.route53resolver.iam_role_arn
+      namespace       = try(var.route53resolver.namespace, "ack-system")
+      service_account = local.route53resolver_name
+      } : "ack_iam_${k}" => v if var.enable_route53resolver
+    },
+    { for k, v in {
+      iam_role_arn    = module.route53.iam_role_arn
+      namespace       = try(var.route53.namespace, "ack-system")
+      service_account = local.route53_name
+      } : "ack_iam_${k}" => v if var.enable_route53
+    },
+    { for k, v in {
+      iam_role_arn    = module.organizations.iam_role_arn
+      namespace       = try(var.organizations.namespace, "ack-system")
+      service_account = local.organizations_name
+      } : "ack_iam_${k}" => v if var.enable_organizations
+    },
+    { for k, v in {
+      iam_role_arn    = module.mq.iam_role_arn
+      namespace       = try(var.mq.namespace, "ack-system")
+      service_account = local.mq_name
+      } : "ack_iam_${k}" => v if var.enable_mq
+    },
+    { for k, v in {
+      iam_role_arn    = module.cloudwatch.iam_role_arn
+      namespace       = try(var.cloudwatch.namespace, "ack-system")
+      service_account = local.cloudwatch_name
+      } : "ack_iam_${k}" => v if var.enable_cloudwatch
+    },
+    { for k, v in {
+      iam_role_arn    = module.keyspaces.iam_role_arn
+      namespace       = try(var.keyspaces.namespace, "ack-system")
+      service_account = local.keyspaces_name
+      } : "ack_iam_${k}" => v if var.enable_keyspaces
+    },
+    { for k, v in {
       iam_role_arn    = module.kafka.iam_role_arn
       namespace       = try(var.kafka.namespace, "ack-system")
       service_account = local.kafka_name

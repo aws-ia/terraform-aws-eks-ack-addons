@@ -131,6 +131,13 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   # Controllers to enable
+  enable_secretsmanager         = true
+  enable_route53resolver        = true
+  enable_route53                = true
+  enable_organizations          = true
+  enable_mq                     = true
+  enable_cloudwatch             = true
+  enable_keyspaces              = true
   enable_kafka                  = true
   enable_efs                    = true
   enable_ecs                    = true
