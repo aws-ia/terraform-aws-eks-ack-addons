@@ -31,4 +31,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-**/examples/event-driven-pipeline/input/*
+**/tests/event-driven-pipeline/input/*
