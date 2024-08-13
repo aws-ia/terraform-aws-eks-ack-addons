@@ -12,6 +12,24 @@ output "gitops_metadata" {
   description = "GitOps Bridge metadata"
   value = merge(
     { for k, v in {
+      iam_role_arn    = module.networkfirewall.iam_role_arn
+      namespace       = try(var.networkfirewall.namespace, "ack-system")
+      service_account = local.networkfirewall_name
+      } : "ack_iam_${k}" => v if var.enable_networkfirewall
+    },
+    { for k, v in {
+      iam_role_arn    = module.cloudwatchlogs.iam_role_arn
+      namespace       = try(var.cloudwatchlogs.namespace, "ack-system")
+      service_account = local.cloudwatchlogs_name
+      } : "ack_iam_${k}" => v if var.enable_cloudwatchlogs
+    },
+    { for k, v in {
+      iam_role_arn    = module.kinesis.iam_role_arn
+      namespace       = try(var.kinesis.namespace, "ack-system")
+      service_account = local.kinesis_name
+      } : "ack_iam_${k}" => v if var.enable_kinesis
+    },
+    { for k, v in {
       iam_role_arn    = module.secretsmanager.iam_role_arn
       namespace       = try(var.secretsmanager.namespace, "ack-system")
       service_account = local.secretsmanager_name

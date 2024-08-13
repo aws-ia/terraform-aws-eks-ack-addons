@@ -131,6 +131,9 @@ module "eks_ack_addons" {
   ecrpublic_token    = data.aws_ecrpublic_authorization_token.token.password
 
   # Controllers to enable
+  enable_networkfirewall        = true
+  enable_cloudwatchlogs         = true
+  enable_kinesis                = true
   enable_secretsmanager         = true
   enable_route53resolver        = true
   enable_route53                = true
