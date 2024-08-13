@@ -114,10 +114,15 @@ module "networkfirewall" {
   role_path                     = try(var.networkfirewall.role_path, "/")
   role_permissions_boundary_arn = lookup(var.networkfirewall, "role_permissions_boundary_arn", null)
   role_description              = try(var.networkfirewall.role_description, "IRSA for Network Firewall controller for ACK")
-  role_policies = lookup(var.networkfirewall, "role_policies", {
-    policy = var.enable_networkfirewall ? aws_iam_policy.networkfirewall[0].arn : null
-  })
-  create_policy = try(var.networkfirewall.create_policy, false)
+  role_policies                 = lookup(var.networkfirewall, "role_policies", {})
+
+  create_policy           = try(var.networkfirewall.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.networkfirewall[*].json
+  policy_statements       = lookup(var.networkfirewall, "policy_statements", [])
+  policy_name             = try(var.networkfirewall.policy_name, null)
+  policy_name_use_prefix  = try(var.networkfirewall.policy_name_use_prefix, true)
+  policy_path             = try(var.networkfirewall.policy_path, null)
+  policy_description      = try(var.networkfirewall.policy_description, "IAM Policy for Network Firewall controller for ACK")
 
   oidc_providers = {
     this = {
@@ -151,16 +156,6 @@ data "aws_iam_policy_document" "networkfirewall" {
 
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "networkfirewall" {
-  count = var.enable_networkfirewall ? 1 : 0
-
-  name        = "NetworkFirewallController"
-  description = "IAM policy for Network Firewall Controller"
-  policy      = data.aws_iam_policy_document.networkfirewall[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -244,10 +239,15 @@ module "cloudwatchlogs" {
   role_path                     = try(var.cloudwatchlogs.role_path, "/")
   role_permissions_boundary_arn = lookup(var.cloudwatchlogs, "role_permissions_boundary_arn", null)
   role_description              = try(var.cloudwatchlogs.role_description, "IRSA for CloudWatch Logs controller for ACK")
-  role_policies = lookup(var.cloudwatchlogs, "role_policies", {
-    policy = var.enable_cloudwatchlogs ? aws_iam_policy.cloudwatchlogs[0].arn : null
-  })
-  create_policy = try(var.cloudwatchlogs.create_policy, false)
+  role_policies                 = lookup(var.cloudwatchlogs, "role_policies", {})
+
+  create_policy           = try(var.cloudwatchlogs.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.cloudwatchlogs[*].json
+  policy_statements       = lookup(var.cloudwatchlogs, "policy_statements", [])
+  policy_name             = try(var.cloudwatchlogs.policy_name, null)
+  policy_name_use_prefix  = try(var.cloudwatchlogs.policy_name_use_prefix, true)
+  policy_path             = try(var.cloudwatchlogs.policy_path, null)
+  policy_description      = try(var.cloudwatchlogs.policy_description, "IAM Policy for Cloudwatch Logs controller for ACK")
 
   oidc_providers = {
     this = {
@@ -281,16 +281,6 @@ data "aws_iam_policy_document" "cloudwatchlogs" {
 
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "cloudwatchlogs" {
-  count = var.enable_cloudwatchlogs ? 1 : 0
-
-  name        = "CloudWatchLogsController"
-  description = "IAM policy for CloudWatch Logs Controller"
-  policy      = data.aws_iam_policy_document.cloudwatchlogs[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -374,11 +364,15 @@ module "kinesis" {
   role_path                     = try(var.kinesis.role_path, "/")
   role_permissions_boundary_arn = lookup(var.kinesis, "role_permissions_boundary_arn", null)
   role_description              = try(var.kinesis.role_description, "IRSA for Kinesis controller for ACK")
-  role_policies = lookup(var.kinesis, "role_policies", {
-    policy = var.enable_kinesis ? aws_iam_policy.kinesis[0].arn : null
-  })
+  role_policies                 = lookup(var.kinesis, "role_policies", {})
 
-  create_policy = try(var.kinesis.create_policy, false)
+  create_policy           = try(var.kinesis.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.kinesis[*].json
+  policy_statements       = lookup(var.kinesis, "policy_statements", [])
+  policy_name             = try(var.kinesis.policy_name, null)
+  policy_name_use_prefix  = try(var.kinesis.policy_name_use_prefix, true)
+  policy_path             = try(var.kinesis.policy_path, null)
+  policy_description      = try(var.kinesis.policy_description, "IAM Policy for Kinesis controller for ACK")
 
   oidc_providers = {
     this = {
@@ -410,16 +404,6 @@ data "aws_iam_policy_document" "kinesis" {
 
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "kinesis" {
-  count = var.enable_kinesis ? 1 : 0
-
-  name        = "KinesisController"
-  description = "IAM policy for Kinesis Controller"
-  policy      = data.aws_iam_policy_document.kinesis[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -2360,10 +2344,16 @@ module "lambda" {
   role_path                     = try(var.lambda.role_path, "/")
   role_permissions_boundary_arn = lookup(var.lambda, "role_permissions_boundary_arn", null)
   role_description              = try(var.lambda.role_description, "IRSA for Lambda controller for ACK")
-  role_policies = lookup(var.lambda, "role_policies", {
-    policy = var.enable_lambda ? aws_iam_policy.lambda[0].arn : null
-  })
-  create_policy = try(var.lambda.create_policy, false)
+  role_policies                 = lookup(var.lambda, "role_policies", {})
+
+  create_policy           = try(var.lambda.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.lambda[*].json
+  policy_statements       = lookup(var.lambda, "policy_statements", [])
+  policy_name             = try(var.lambda.policy_name, null)
+  policy_name_use_prefix  = try(var.lambda.policy_name_use_prefix, true)
+  policy_path             = try(var.lambda.policy_path, null)
+  policy_description      = try(var.lambda.policy_description, "IAM Policy for Lambda controller for ACK")
+
 
   oidc_providers = {
     this = {
@@ -2404,16 +2394,6 @@ data "aws_iam_policy_document" "lambda" {
       values   = ["lambda.amazonaws.com"]
     }
   }
-}
-
-resource "aws_iam_policy" "lambda" {
-  count = var.enable_lambda ? 1 : 0
-
-  name        = "LambdaController"
-  description = "IAM policy for Lambda Controller"
-  policy      = data.aws_iam_policy_document.lambda[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -2498,10 +2478,15 @@ module "iam" {
   role_path                     = try(var.iam.role_path, "/")
   role_permissions_boundary_arn = lookup(var.iam, "role_permissions_boundary_arn", null)
   role_description              = try(var.iam.role_description, "IRSA for iam controller for ACK")
-  role_policies = lookup(var.iam, "role_policies", {
-    policy = var.enable_iam ? aws_iam_policy.iam[0].arn : null
-  })
-  create_policy = try(var.iam.create_policy, false)
+  role_policies                 = lookup(var.iam, "role_policies", {})
+
+  create_policy           = try(var.iam.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.iam[*].json
+  policy_statements       = lookup(var.iam, "policy_statements", [])
+  policy_name             = try(var.iam.policy_name, null)
+  policy_name_use_prefix  = try(var.iam.policy_name_use_prefix, true)
+  policy_path             = try(var.iam.policy_path, null)
+  policy_description      = try(var.iam.policy_description, "IAM Policy for IAM controller for ACK")
 
   oidc_providers = {
     this = {
@@ -2585,16 +2570,6 @@ data "aws_iam_policy_document" "iam" {
 
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "iam" {
-  count = var.enable_iam ? 1 : 0
-
-  name        = "IAMController"
-  description = "IAM policy for IAM Controller"
-  policy      = data.aws_iam_policy_document.iam[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -2777,10 +2752,15 @@ module "eks" {
   role_path                     = try(var.eks.role_path, "/")
   role_permissions_boundary_arn = lookup(var.eks, "role_permissions_boundary_arn", null)
   role_description              = try(var.eks.role_description, "IRSA for eks controller for ACK")
-  role_policies = lookup(var.eks, "role_policies", {
-    policy = var.enable_eks ? aws_iam_policy.eks[0].arn : null
-  })
-  create_policy = try(var.eks.create_policy, false)
+  role_policies                 = lookup(var.eks, "role_policies", {})
+
+  create_policy           = try(var.eks.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.eks[*].json
+  policy_statements       = lookup(var.eks, "policy_statements", [])
+  policy_name             = try(var.eks.policy_name, null)
+  policy_name_use_prefix  = try(var.eks.policy_name_use_prefix, true)
+  policy_path             = try(var.eks.policy_path, null)
+  policy_description      = try(var.eks.policy_description, "IAM Policy for EKS controller for ACK")
 
   oidc_providers = {
     this = {
@@ -2807,16 +2787,6 @@ data "aws_iam_policy_document" "eks" {
     ]
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "eks" {
-  count = var.enable_eks ? 1 : 0
-
-  name        = "EKSController"
-  description = "IAM policy for EKS Controller"
-  policy      = data.aws_iam_policy_document.eks[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -2901,10 +2871,15 @@ module "kms" {
   role_path                     = try(var.kms.role_path, "/")
   role_permissions_boundary_arn = lookup(var.kms, "role_permissions_boundary_arn", null)
   role_description              = try(var.kms.role_description, "IRSA for kms controller for ACK")
-  role_policies = lookup(var.kms, "role_policies", {
-    policy = var.enable_kms ? aws_iam_policy.kms[0].arn : null
-  })
-  create_policy = try(var.kms.create_policy, false)
+  role_policies                 = lookup(var.kms, "role_policies", {})
+
+  create_policy           = try(var.kms.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.kms[*].json
+  policy_statements       = lookup(var.kms, "policy_statements", [])
+  policy_name             = try(var.kms.policy_name, null)
+  policy_name_use_prefix  = try(var.kms.policy_name_use_prefix, true)
+  policy_path             = try(var.kms.policy_path, null)
+  policy_description      = try(var.kms.policy_description, "IAM Policy for KMS controller for ACK")
 
   oidc_providers = {
     this = {
@@ -2941,16 +2916,6 @@ data "aws_iam_policy_document" "kms" {
     ]
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "kms" {
-  count = var.enable_kms ? 1 : 0
-
-  name        = "KMSController"
-  description = "IAM policy for KMS Controller"
-  policy      = data.aws_iam_policy_document.kms[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -3035,10 +3000,15 @@ module "acm" {
   role_path                     = try(var.acm.role_path, "/")
   role_permissions_boundary_arn = lookup(var.acm, "role_permissions_boundary_arn", null)
   role_description              = try(var.acm.role_description, "IRSA for acm controller for ACK")
-  role_policies = lookup(var.acm, "role_policies", {
-    policy = var.enable_acm ? aws_iam_policy.acm[0].arn : null
-  })
-  create_policy = try(var.acm.create_policy, false)
+  role_policies                 = lookup(var.acm, "role_policies", {})
+
+  create_policy           = try(var.acm.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.acm[*].json
+  policy_statements       = lookup(var.acm, "policy_statements", [])
+  policy_name             = try(var.acm.policy_name, null)
+  policy_name_use_prefix  = try(var.acm.policy_name_use_prefix, true)
+  policy_path             = try(var.acm.policy_path, null)
+  policy_description      = try(var.acm.policy_description, "IAM Policy for ACM controller for ACK")
 
   oidc_providers = {
     this = {
@@ -3070,16 +3040,6 @@ data "aws_iam_policy_document" "acm" {
     resources = ["*"]
   }
 
-}
-
-resource "aws_iam_policy" "acm" {
-  count = var.enable_acm ? 1 : 0
-
-  name        = "ACMController"
-  description = "IAM policy for ACM Controller"
-  policy      = data.aws_iam_policy_document.acm[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -3655,10 +3615,15 @@ module "prometheusservice" {
   role_path                     = try(var.prometheusservice.role_path, "/")
   role_permissions_boundary_arn = lookup(var.prometheusservice, "role_permissions_boundary_arn", null)
   role_description              = try(var.prometheusservice.role_description, "IRSA for prometheusservice controller for ACK")
-  role_policies = lookup(var.prometheusservice, "role_policies", {
-    policy = var.enable_prometheusservice ? aws_iam_policy.prometheusservice[0].arn : null
-  })
-  create_policy = try(var.prometheusservice.create_policy, false)
+  role_policies                 = lookup(var.prometheusservice, "role_policies", {})
+
+  create_policy           = try(var.prometheusservice.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.prometheusservice[*].json
+  policy_statements       = lookup(var.prometheusservice, "policy_statements", [])
+  policy_name             = try(var.prometheusservice.policy_name, null)
+  policy_name_use_prefix  = try(var.prometheusservice.policy_name_use_prefix, true)
+  policy_path             = try(var.prometheusservice.policy_path, null)
+  policy_description      = try(var.prometheusservice.policy_description, "IAM Policy for Prometheus Service controller for ACK")
 
   oidc_providers = {
     this = {
@@ -3688,16 +3653,6 @@ data "aws_iam_policy_document" "prometheusservice" {
 
     resources = ["*"]
   }
-}
-
-resource "aws_iam_policy" "prometheusservice" {
-  count = var.enable_prometheusservice ? 1 : 0
-
-  name        = "PrometheusServiceController"
-  description = "IAM policy for Prometheus Service Controller"
-  policy      = data.aws_iam_policy_document.prometheusservice[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
@@ -3782,10 +3737,15 @@ module "emrcontainers" {
   role_path                     = try(var.emrcontainers.role_path, "/")
   role_permissions_boundary_arn = lookup(var.emrcontainers, "role_permissions_boundary_arn", null)
   role_description              = try(var.emrcontainers.role_description, "IRSA for emrcontainers controller for ACK")
-  role_policies = lookup(var.emrcontainers, "role_policies", {
-    policy = var.enable_emrcontainers ? aws_iam_policy.emrcontainers[0].arn : null
-  })
-  create_policy = try(var.emrcontainers.create_policy, false)
+  role_policies                 = lookup(var.emrcontainers, "role_policies", {})
+
+  create_policy           = try(var.emrcontainers.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.emrcontainers[*].json
+  policy_statements       = lookup(var.emrcontainers, "policy_statements", [])
+  policy_name             = try(var.emrcontainers.policy_name, null)
+  policy_name_use_prefix  = try(var.emrcontainers.policy_name_use_prefix, true)
+  policy_path             = try(var.emrcontainers.policy_path, null)
+  policy_description      = try(var.emrcontainers.policy_description, "IAM Policy for EMR Containers controller for ACK")
 
   oidc_providers = {
     this = {
@@ -3881,16 +3841,6 @@ data "aws_iam_policy_document" "emrcontainers" {
   }
 }
 
-resource "aws_iam_policy" "emrcontainers" {
-  count = var.enable_emrcontainers ? 1 : 0
-
-  name        = "EMRContainersController"
-  description = "IAM policy for EMR Containers Controller"
-  policy      = data.aws_iam_policy_document.emrcontainers[0].json
-
-  tags = var.tags
-}
-
 ################################################################################
 # Step Functions
 ################################################################################
@@ -3974,10 +3924,16 @@ module "sfn" {
   role_permissions_boundary_arn = lookup(var.sfn, "role_permissions_boundary_arn", null)
   role_description              = try(var.sfn.role_description, "IRSA for sfn controller for ACK")
   role_policies = lookup(var.sfn, "role_policies", {
-    AWSStepFunctionsFullAccess  = "${local.iam_role_policy_prefix}/AWSStepFunctionsFullAccess"
-    AWSStepFunctionsIamPassRole = var.enable_sfn ? aws_iam_policy.sfn[0].arn : null
+    AWSStepFunctionsFullAccess = "${local.iam_role_policy_prefix}/AWSStepFunctionsFullAccess"
   })
-  create_policy = try(var.sfn.create_policy, false)
+
+  create_policy           = try(var.sfn.create_policy, true)
+  source_policy_documents = data.aws_iam_policy_document.sfn[*].json
+  policy_statements       = lookup(var.sfn, "policy_statements", [])
+  policy_name             = try(var.sfn.policy_name, null)
+  policy_name_use_prefix  = try(var.sfn.policy_name_use_prefix, true)
+  policy_path             = try(var.sfn.policy_path, null)
+  policy_description      = try(var.sfn.policy_description, "IAM Policy for SFN controller for ACK")
 
   oidc_providers = {
     this = {
@@ -4006,16 +3962,6 @@ data "aws_iam_policy_document" "sfn" {
     ]
   }
 
-}
-
-resource "aws_iam_policy" "sfn" {
-  count = var.enable_sfn ? 1 : 0
-
-  name        = "SFNController"
-  description = "IAM policy for SFN Controller"
-  policy      = data.aws_iam_policy_document.sfn[0].json
-
-  tags = var.tags
 }
 
 ################################################################################
