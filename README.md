@@ -62,13 +62,22 @@ module "eks_ack_addons" {
 }
 ```
 
+## Support & Feedback
+
+> [!IMPORTANT]
+> EKS Blueprints for Terraform is maintained by AWS Solution Architects. It is not part of an AWS
+> service and support is provided as a best-effort by the EKS Blueprints community. To provide feedback,
+> please use the [issues templates](https://github.com/aws-ia/terraform-aws-eks-ack-addons/issues)
+> provided. If you are interested in contributing to EKS Blueprints, see the
+> [Contribution guide](https://github.com/aws-ia/terraform-aws-eks-ack-addons/blob/main/.github/CONTRIBUTING.md).
+
 ## Tests
 
 Tests codified under the [`tests`](https://github.com/aws-ia/terraform-aws-eks-ack-addons) are intended to give users references for how to use the module as well as testing/validating changes to the source code of the module. If contributing to the project, please be sure to make any appropriate updates to the relevant tests to allow maintainers to test your changes and to keep the tests up to date for users. Thank you!
 
 - [Complete](https://github.com/aws-ia/terraform-aws-eks-ack-addons/tree/main/tests/complete)
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -239,7 +248,7 @@ Tests codified under the [`tests`](https://github.com/aws-ia/terraform-aws-eks-a
 | Name | Description |
 |------|-------------|
 | <a name="output_gitops_metadata"></a> [gitops\_metadata](#output\_gitops\_metadata) | GitOps Bridge metadata |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
 
 ## Community
 
