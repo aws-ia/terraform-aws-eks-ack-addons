@@ -2864,7 +2864,7 @@ module "kms" {
 
 
   # IAM role for service account (IRSA)
-  set_irsa_names                = ["serviceAccount.annotations.kms\\.amazonaws\\.com/role-arn"]
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
   create_role                   = try(var.kms.create_role, true)
   role_name                     = try(var.kms.role_name, "ack-kms")
   role_name_use_prefix          = try(var.kms.role_name_use_prefix, true)
@@ -2993,7 +2993,7 @@ module "acm" {
 
 
   # IAM role for service account (IRSA)
-  set_irsa_names                = ["serviceAccount.annotations.acm\\.amazonaws\\.com/role-arn"]
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
   create_role                   = try(var.acm.create_role, true)
   role_name                     = try(var.acm.role_name, "ack-acm")
   role_name_use_prefix          = try(var.acm.role_name_use_prefix, true)
