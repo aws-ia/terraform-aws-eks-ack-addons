@@ -4061,3 +4061,100 @@ module "eventbridge" {
 
   tags = var.tags
 }
+
+################################################################################
+# WAFv2
+################################################################################
+
+locals {
+  wafv2_name = "ack-wafv2"
+}
+
+module "wafv2" {
+  source  = "aws-ia/eks-blueprints-addon/aws"
+  version = "1.1.1"
+
+  create = var.enable_wafv2
+
+  # Disable helm release
+  create_release = var.create_kubernetes_resources
+
+  # public.ecr.aws/aws-controllers-k8s/wafv2-chart:1.0.6
+  name             = try(var.wafv2.name, local.wafv2_name)
+  description      = try(var.wafv2.description, "Helm Chart for wafv2 controller for ACK")
+  namespace        = try(var.wafv2.namespace, "ack-system")
+  create_namespace = try(var.wafv2.create_namespace, true)
+  chart            = "wafv2-chart"
+  chart_version    = try(var.wafv2.chart_version, "1.0.6")
+  repository       = try(var.wafv2.repository, "oci://public.ecr.aws/aws-controllers-k8s")
+  values           = try(var.wafv2.values, [])
+
+  timeout                    = try(var.wafv2.timeout, null)
+  repository_key_file        = try(var.wafv2.repository_key_file, null)
+  repository_cert_file       = try(var.wafv2.repository_cert_file, null)
+  repository_ca_file         = try(var.wafv2.repository_ca_file, null)
+  repository_username        = try(var.wafv2.repository_username, local.repository_username)
+  repository_password        = try(var.wafv2.repository_password, local.repository_password)
+  devel                      = try(var.wafv2.devel, null)
+  verify                     = try(var.wafv2.verify, null)
+  keyring                    = try(var.wafv2.keyring, null)
+  disable_webhooks           = try(var.wafv2.disable_webhooks, null)
+  reuse_values               = try(var.wafv2.reuse_values, null)
+  reset_values               = try(var.wafv2.reset_values, null)
+  force_update               = try(var.wafv2.force_update, null)
+  recreate_pods              = try(var.wafv2.recreate_pods, null)
+  cleanup_on_fail            = try(var.wafv2.cleanup_on_fail, null)
+  max_history                = try(var.wafv2.max_history, null)
+  atomic                     = try(var.wafv2.atomic, null)
+  skip_crds                  = try(var.wafv2.skip_crds, null)
+  render_subchart_notes      = try(var.wafv2.render_subchart_notes, null)
+  disable_openapi_validation = try(var.wafv2.disable_openapi_validation, null)
+  wait                       = try(var.wafv2.wait, false)
+  wait_for_jobs              = try(var.wafv2.wait_for_jobs, null)
+  dependency_update          = try(var.wafv2.dependency_update, null)
+  replace                    = try(var.wafv2.replace, null)
+  lint                       = try(var.wafv2.lint, null)
+
+  postrender = try(var.wafv2.postrender, [])
+
+  set = concat([
+    {
+      # shortens pod name from `ack-wafv2-wafv2-chart-xxxxxxxxxxxxx` to `ack-wafv2-xxxxxxxxxxxxx`
+      name  = "nameOverride"
+      value = "ack-wafv2"
+    },
+    {
+      name  = "aws.region"
+      value = local.region
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.wafv2_name
+    }],
+    try(var.wafv2.set, [])
+  )
+  set_sensitive = try(var.wafv2.set_sensitive, [])
+
+  # IAM role for service account (IRSA)
+  set_irsa_names                = ["serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"]
+  create_role                   = try(var.wafv2.create_role, true)
+  role_name                     = try(var.wafv2.role_name, "ack-wafv2")
+  role_name_use_prefix          = try(var.wafv2.role_name_use_prefix, true)
+  role_path                     = try(var.wafv2.role_path, "/")
+  role_permissions_boundary_arn = lookup(var.wafv2, "role_permissions_boundary_arn", null)
+  role_description              = try(var.wafv2.role_description, "IRSA for wafv2 controller for ACK")
+  role_policies = lookup(var.wafv2, "role_policies", {
+    AWSWAFFullAccess = "${local.iam_role_policy_prefix}/AWSWAFFullAccess"
+  })
+  create_policy = try(var.wafv2.create_policy, false)
+
+  oidc_providers = {
+    this = {
+      provider_arn = local.oidc_provider_arn
+      # namespace is inherited from chart
+      service_account = local.wafv2_name
+    }
+  }
+
+  tags = var.tags
+}

@@ -645,3 +645,19 @@ variable "create_kubernetes_resources" {
   type        = bool
   default     = true
 }
+
+################################################################################
+# RDS
+################################################################################
+
+variable "enable_wafv2" {
+  description = "Enable ACK WAFv2 add-on"
+  type        = bool
+  default     = false
+}
+
+variable "wafv2" {
+  description = "ACK WAFv2 Helm Chart config"
+  type        = any
+  default     = {}
+}

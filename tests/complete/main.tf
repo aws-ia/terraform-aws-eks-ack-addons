@@ -168,6 +168,7 @@ module "eks_ack_addons" {
   enable_emrcontainers          = true
   enable_sfn                    = true
   enable_eventbridge            = true
+  enable_wafv2                  = true
 
   tags = local.tags
 }

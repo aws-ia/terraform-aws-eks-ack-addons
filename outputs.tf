@@ -232,6 +232,12 @@ output "gitops_metadata" {
       namespace       = try(var.elasticache.namespace, "ack-system")
       service_account = local.elasticache_name
       } : "ack_elasticache_${k}" => v if var.enable_elasticache
+    },
+    { for k, v in {
+      iam_role_arn    = module.wafv2.iam_role_arn
+      namespace       = try(var.wafv2.namespace, "ack-system")
+      service_account = local.wafv2_name
+    } : "ack_wafv2_${k}" => v if var.enable_wafv2
     }
   )
 }

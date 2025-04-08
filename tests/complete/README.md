@@ -26,6 +26,7 @@ Configuration in this directory creates an AWS EKS cluster with the following AC
 - Amazon ElastiCache Controller
 - Amazon EMR Containers Controller
 - Amazon EventBridge Controller
+- Amazon WAFv2 Controller
 - Amazon IAM Controller
 - Amazon KMS Controller
 - AWS Lambda Controller
@@ -94,6 +95,7 @@ ack-system    ack-eks-54945d94d4-mflgw                        1/1     Running   
 ack-system    ack-elasticache-5758ff66bd-mmj27                1/1     Running   0          12m
 ack-system    ack-emrcontainers-74c5d7b8c-9htg9               1/1     Running   0          11m
 ack-system    ack-eventbridge-b76bd85b8-dtvxr                 1/1     Running   0          13m
+ack-system    ack-wafv2-b76665zb6-dybzr                       1/1     Running   0          13m
 ack-system    ack-iam-89dd5d6b5-wf8tm                         1/1     Running   0          11m
 ack-system    ack-kafka-7bd95bd59-dvcf6                       1/1     Running   0          10m
 ack-system    ack-keyspaces-6cc9bbc575-lfjwr                  1/1     Running   0          11m
