@@ -17,7 +17,7 @@ resource "time_sleep" "this" {
 
 locals {
   partition = data.aws_partition.current.partition
-  region    = data.aws_region.current.name
+  region    = data.aws_region.current.id
 
   # Threads the sleep resource into the module to make the dependency
   # tflint-ignore: terraform_unused_declarations
